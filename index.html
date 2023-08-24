@@ -229,6 +229,193 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/24/openfoam-fluent-simple-k-e/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tttt's">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2023/08/24/openfoam-fluent-simple-k-e/" itemprop="url">OpenFOAM和fluent的SIMPLE计算设置对比【还没写完】</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-08-24T23:11:34+08:00">
+                2023-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <ul>
+<li>(Dynamic viscosity)动力粘度：<span
+class="math inline">\(\mu\)</span> <span
+class="math inline">\(，这个\)</span><span
+class="math inline">\(\mu\)</span>与牛顿内摩擦公式有关：<span
+class="math inline">\(\tau = \mu du/ dy\)</span>， 单位为<span
+class="math inline">\(Pa\cdot s\)</span>或<span
+class="math inline">\(N\cdot s/m^2\)</span></li>
+<li>(Kinematic viscosity)运动粘度：<span class="math inline">\(\nu = \mu
+/ \rho\)</span> ，单位为<span class="math inline">\(m^2/s\)</span></li>
+</ul>
+<p>在OpenFOAM中，一般设置运动粘度： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nu [ 0 2 -1 0 0 0 0 ] 0.01;</span><br></pre></td></tr></table></figure></p>
+<p><a target="_blank" rel="noopener" href="http://www.dyfluid.com/theory.pdf">theory.pdf
+(dyfluid.com)</a> 对于simpleFoam来说，OpenFOAM求解的方程是这样的：</p>
+<p>$$ <span class="math display">\[\begin{align}
+\nabla\cdot\bf{U}=0 \\
+\nabla \cdot (\mathbf{U}\mathbf{U})-\nabla \cdot(\nu \nabla
+\mathbf{U})=-\nabla p
+
+\end{align}\]</span> $$
+对于不可压流体时，OpenFOAM对上述方程整个除了密度<span
+class="math inline">\(\rho\)</span>
+。所以会在边界条件的p文件内看到p的量纲是<span
+class="math inline">\(m^2/s^2\)</span>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dimensions      [0 2 -2 0 0 0 0];</span><br></pre></td></tr></table></figure>
+<p>压力<span class="math inline">\(p\)</span> 原量纲为：<span
+class="math inline">\(kg / m\cdot s^2\)</span> ，除以密度<span
+class="math inline">\(kg/m^3\)</span></p>
+<h3 id="k-epsilon-模型"><span class="math inline">\(k-\epsilon\)</span>
+模型</h3>
+<p>对于求解采用<span class="math inline">\(k-\epsilon\)</span>
+模型时，湍流粘度<span class="math inline">\(\nu_{t}\)</span>
+与湍动能<span class="math inline">\(k\)</span> 和湍流耗散率<span
+class="math inline">\(\epsilon\)</span> 结合，有公式： <span
+class="math display">\[
+\nu_t = C_{\mu} \frac{k^2}{\epsilon}
+\]</span> 标准 k-ε 模型： 常数： <span class="math display">\[
+\begin{align}
+C_{mu} = 0.0 \\
+C_1 = 1.44 \\
+C_2 = 1.92 \\
+α_k = 1 \\
+α_ε = 0.76923
+\end{align}
+\]</span></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.cfd-online.com/Wiki/Turbulence_dissipation_rate">Turbulence
+dissipation rate -- CFD-Wiki, the free CFD reference
+(cfd-online.com)</a> 湍流耗散率单位：<span
+class="math inline">\(m^2/s^3\)</span></p>
+<h3
+id="关于边界flowrateinletvelocity">关于边界flowRateInletVelocity</h3>
+<p><a
+target="_blank" rel="noopener" href="https://www.cfd-online.com/Forums/openfoam-pre-processing/237183-flowrateinletvelocity-value-uniform-0-0-0-a.html">flowRateInletVelocity
+value uniform (0 0 0) -- CFD Online Discussion Forums
+(cfd-online.com)</a> <a
+target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/guides/v2112/api/classFoam_1_1flowRateInletVelocityFvPatchVectorField.html">OpenFOAM:
+API Guide: flowRateInletVelocityFvPatchVectorField Class Reference</a> -
+Example of the boundary condition specification for a <strong>volumetric
+flow</strong> rate: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;patchName&gt;</span><br><span class="line">&#123;</span><br><span class="line">    type                flowRateInletVelocity;</span><br><span class="line">    volumetricFlowRate  0.2;</span><br><span class="line">    extrapolateProfile  yes;</span><br><span class="line">    value               uniform (0 0 0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p>example of the boundary condition specification for a
+<strong>mass flow rate</strong>: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;patchName&gt;</span><br><span class="line">&#123;</span><br><span class="line">    type                flowRateInletVelocity;</span><br><span class="line">    massFlowRate        0.2;</span><br><span class="line">    extrapolateProfile  yes;</span><br><span class="line">    rho                 rho;</span><br><span class="line">    rhoInlet            1.0;</span><br><span class="line">    value               uniform (0 0 0);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>检测入口和出口处的流量相同的 <a
+target="_blank" rel="noopener" href="https://www.cfd-online.com/Forums/openfoam-solving/225969-difference-between-specified-calculated-mass-flow-rate.html">Difference
+between specified and calculated mass flow rate -- CFD Online Discussion
+Forums (cfd-online.com)</a></p></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/19/test-math-func/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -802,7 +989,7 @@ target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment
               
                 <a href="/">
               
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -815,7 +1002,7 @@ target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
