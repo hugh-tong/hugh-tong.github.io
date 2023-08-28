@@ -229,6 +229,194 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/28/set-p-bc-in-fluentNOF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tttt's">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2023/08/28/set-p-bc-in-fluentNOF/" itemprop="url">set_p_bc_in_fluentNOF</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-08-28T23:40:17+08:00">
+                2023-08-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a
+target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV12s4y1j7vs/?spm_id_from=333.337.search-card.all.click&amp;vd_source=c32136bd36d786f2220cfc980f5de7c2">一个视频理解Ansys
+Fluent里的压力设置及含义（表压or静压）_哔哩哔哩_bilibili</a></p>
+<ul>
+<li>Operating Condition
+<ul>
+<li>Operating Pressure[Pa] +Gauge Pressure(Relative Pressure, Static
+Pressure) <span class="math inline">\(P_{absolute} =
+P_{operating}+P_{gauge}\)</span> The gauge pressure is what we enter in
+the Boundary conditions panels. Set the gauge pressure is used to avoid
+problems with round-off errors which occur when the dynamic pressure
+differences in a fluid are small compared to the absolute pressure
+level</li>
+</ul></li>
+<li>Reference pressure location, is where the absolute static pressure
+is known</li>
+</ul>
+<figure>
+<img
+src="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20230828222040140.png"
+alt="image-20230828222040140" />
+<figcaption aria-hidden="true">image-20230828222040140</figcaption>
+</figure>
+<p>！！[<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=Er2j5Kq17as">CFD]
+Pressure-Inlet Boundary Conditions - YouTube</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.cfd-online.com/Forums/openfoam-solving/76073-reference-pressure-openfoam.html">Reference
+pressure in OpenFOAM -- CFD Online Discussion Forums
+(cfd-online.com)</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">In others the reference is set only if required.</span><br><span class="line"></span><br><span class="line">Quote:</span><br><span class="line"></span><br><span class="line">*In fluent, if we specify pref=1atm, then if we entering a guage perssure of 0 atm at outlet then we can directly enter the value 0.  even if I am giving the perssure boundary condition p=0 at outlet, there wont be any wrong in specifying the pref value = 0 in tne fvSolution file, right?*</span><br><span class="line"></span><br><span class="line">Right, since you&#x27;re solving for incompressible flows. As long as you do not over-specify the boundary (setting p and U at the same side, for example), it will be fine. The only difference could be a translation of the values of p.</span><br></pre></td></tr></table></figure>
+<p>这个算例里面有句话值得注意：over-specify！(setting p and U at the
+same side)</p>
+<p><strong>ASK GPT:</strong></p>
+<p>In OpenFOAM, when setting up a boundary condition with a constant
+mass flow rate velocity, you usually need to also specify an appropriate
+pressure boundary condition to ensure the problem is well-posed and
+physically accurate. The choice of pressure boundary condition depends
+on the specific problem and flow conditions. Here are a few options you
+can consider:</p>
+<ol type="1">
+<li><p><strong>Inlet/Outlet Pressure:</strong> You can use the
+<code>inletOutlet</code> boundary condition for pressure at the inlet or
+outlet. This condition allows the pressure to be determined based on the
+velocity field and the specified mass flow rate, ensuring that the flow
+is consistent with the desired mass flow rate.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">inletOutlet</span><br><span class="line">&#123;</span><br><span class="line">    type inletOutlet;</span><br><span class="line">    <span class="function">inletValue <span class="title">uniform</span> <span class="params">(<span class="number">0</span> <span class="number">0</span> <span class="number">0</span>)</span></span>; <span class="comment">// Specify the velocity components</span></span><br><span class="line">    value $internalField; <span class="comment">// To set pressure equal to internalField</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>Fixed Value or Fixed Gradient:</strong> Depending on the
+flow problem, you might be able to set a fixed value or fixed gradient
+for the pressure at the boundary. However, ensure that the boundary
+conditions do not lead to unphysical results.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fixedValue</span><br><span class="line">&#123;</span><br><span class="line">    type fixedValue;</span><br><span class="line">    value $internalField; <span class="comment">// Specify the desired pressure value</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fixedGradient</span><br><span class="line">&#123;</span><br><span class="line">    type fixedGradient;</span><br><span class="line">    <span class="function">gradient <span class="title">uniform</span> <span class="params">(<span class="number">0</span> <span class="number">0</span> <span class="number">0</span>)</span></span>; <span class="comment">// Specify a gradient if needed</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>Zero Gradient:</strong> For some cases, you might use a
+zero gradient condition for pressure at the boundary. This assumes that
+the pressure gradient is zero, which might be suitable if the boundary
+is far from the region of interest or if you have a long enough
+domain.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zeroGradient</span><br><span class="line">&#123;</span><br><span class="line">    type zeroGradient;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>Pressure Inlet:</strong> If you have a known pressure
+value at the inlet, you can directly specify that value. However, this
+might affect the mass flow rate, so ensure consistency with your
+velocity boundary condition.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pressureInlet</span><br><span class="line">&#123;</span><br><span class="line">    type pressureInlet;</span><br><span class="line">    p uniform <span class="number">101325</span>; <span class="comment">// Specify the pressure value</span></span><br><span class="line">    <span class="function">U <span class="title">uniform</span> <span class="params">(<span class="number">0</span> <span class="number">0</span> <span class="number">0</span>)</span></span>; <span class="comment">// Specify the velocity components</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>Remember to select a pressure boundary condition that is consistent
+with your desired mass flow rate velocity condition and that reflects
+the physics of your problem. Always validate your choice through
+simulations and comparisons with experimental or analytical results if
+available.</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/27/vscode-c-cpp-properties/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1139,7 +1327,7 @@ target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment
               
                 <a href="/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
