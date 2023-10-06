@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="OpenFOAM,Tools," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="以前写过一些（理解还不太够），主要对法1的具体操作进行更新， OpenFOAM代码跳转设置 (qq.com) 代码跳转的本质：找到这个文件  找到所有OpenFOAM中（编译后）的lnInclude所在路径  find . -name &quot;lnInclude&quot; &gt; tttt.findlnInclude 将OpenFOAM所有的lnInclude都找到。将所有的lnInclude">
+<meta property="og:type" content="article">
+<meta property="og:title" content="更新版：OpenFOAM在vscode的代码跳转设置">
+<meta property="og:url" content="http://example.com/2023/09/27/of-intelli-includePath-vscode/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="以前写过一些（理解还不太够），主要对法1的具体操作进行更新， OpenFOAM代码跳转设置 (qq.com) 代码跳转的本质：找到这个文件  找到所有OpenFOAM中（编译后）的lnInclude所在路径  find . -name &quot;lnInclude&quot; &gt; tttt.findlnInclude 将OpenFOAM所有的lnInclude都找到。将所有的lnInclude">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20230927152604240.png">
+<meta property="og:image" content="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20231006215430931.png">
+<meta property="article:published_time" content="2023-09-27T07:01:37.000Z">
+<meta property="article:modified_time" content="2023-10-06T14:06:56.425Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="OpenFOAM">
+<meta property="article:tag" content="Tools">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20230927152604240.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2023/09/27/of-intelli-includePath-vscode/"/>
+
+
+
+
+
+  <title>更新版：OpenFOAM在vscode的代码跳转设置 | tttt's</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">tttt's</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/27/of-intelli-includePath-vscode/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tttt's">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">更新版：OpenFOAM在vscode的代码跳转设置</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-09-27T15:01:37+08:00">
+                2023-09-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>以前写过一些（理解还不太够），主要对法1的具体操作进行更新，</p>
+<p><a
+target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzU0OTUwOTAzOQ==&amp;mid=2247485437&amp;idx=1&amp;sn=d9ce41ce9323071e536044215498e409&amp;chksm=fbaf853dccd80c2bf002f159bdb780abd0da1a06c26ac9b5e3053dc0c096ddc0c632008c1cd2&amp;token=1144144318&amp;lang=zh_CN#rd">OpenFOAM代码跳转设置
+(qq.com)</a></p>
+<p>代码跳转的本质：<strong>找到这个文件</strong></p>
+<ul>
+<li>找到所有OpenFOAM中（编译后）的<code>lnInclude</code>所在路径</li>
+</ul>
+<p><code>find . -name "lnInclude" &gt; tttt.findlnInclude</code>
+将OpenFOAM所有的<code>lnInclude</code>都找到。将所有的<code>lnInclude</code>链接都加在includePath中（仅仅加上Make/options下链接到的库还不够，代码中还是有不能跳转的地方）。</p>
+<p>VScode: <code>ctrl + shift + P</code>， 搜索C++。</p>
+<p>​
+同理，代码不用编译都可以跳转，在windows下一样的。只要找到合适的lnInclude路径。</p>
+<ul>
+<li><p>linux下OpenFOAM7的<code>lnInclude</code>。<code>/home/tttt/OpenFOAM</code>前面替换一下即可。</p></li>
+<li><p>一个例子：<code>#include &lt;typeinfo&gt;</code>
+是标准库中的头文件，要跳转这个，可以加上C++编译器的includePath，方法如下：</p></li>
+</ul>
+<p><img src="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20230927152604240.png" alt="image-20230927152604240" style="zoom:33%;" /></p>
+<p><code>gcc -E -v -</code> 查看这个命令打印信息中的这些：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/usr/lib/gcc/x86_64-linux-gnu/<span class="number">11</span>/include</span><br><span class="line">/usr/local/include</span><br><span class="line">/usr/include/x86_64-linux-gnu</span><br><span class="line">/usr/include</span><br></pre></td></tr></table></figure>
+<p>将这些粘贴到includePatch中（注意修改前缀）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionModels/thermalBaffleModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionModels/pyrolysisModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionModels/regionCoupling/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionModels/surfaceFilmModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionModels/surfaceFilmModels/derivedFvPatchFields/wallFunctions/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionModels/regionModel/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/fvMotionSolver/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/dynamicFvMesh/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/sampling/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/fvOptions/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/TurbulenceModels/phaseCompressible/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/TurbulenceModels/incompressible/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/TurbulenceModels/turbulenceModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/TurbulenceModels/compressible/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/TurbulenceModels/phaseIncompressible/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/dummyThirdParty/ptscotchDecomp/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/dummyThirdParty/scotchDecomp/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/dummyThirdParty/metisDecomp/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/dummyThirdParty/MGridGen/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/surfMesh/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/conversion/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/ODE/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/radiationModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/transportModels/incompressible/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/transportModels/twoPhaseProperties/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/transportModels/twoPhaseMixture/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/transportModels/compressible/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/transportModels/interfaceProperties/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/fvAgglomerationMethods/pairPatchAgglomeration/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/mesh/extrudeModel/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/mesh/snappyHexMesh/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/mesh/blockMesh/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/atmosphericModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/sixDoFRigidBodyState/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/SLGThermo/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/thermophysicalProperties/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/laminarFlameSpeed/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/solidSpecie/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/solidChemistryModel/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/barotropicCompressibilityModel/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/specie/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/basic/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/solidThermo/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/chemistryModel/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/thermophysicalModels/reactionThermo/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/OSspecific/POSIX/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/spray/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/coalCombustion/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/molecularDynamics/molecularMeasurements/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/molecularDynamics/molecule/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/molecularDynamics/potential/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/intermediate/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/DSMC/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/solidParticle/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/distributionModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/turbulence/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/lagrangian/basic/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/rigidBodyState/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/OpenFOAM/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/functionObjects/field/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/functionObjects/lagrangian/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/functionObjects/solvers/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/functionObjects/utilities/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/functionObjects/forces/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/dynamicMesh/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/engine/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/rigidBodyMeshMotion/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/sixDoFRigidBodyMotion/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/randomProcesses/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/meshTools/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/waves/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/fileFormats/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/finiteVolume/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/topoChangerFvMesh/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/regionCoupled/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/Pstream/dummy/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/Pstream/mpi/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/renumber/zoltanRenumber/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/renumber/renumberMethods/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/combustionModels/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/distributed/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/reconstruct/reconstruct/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/decompose/ptscotchDecomp/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/decompose/scotchDecomp/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/decompose/decompose/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/decompose/decompositionMethods/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/parallel/decompose/metisDecomp/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/rigidBodyDynamics/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/genericPatchFields/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/triSurface/lnInclude/**</span><br><span class="line">/home/tttt/OpenFOAM/OpenFOAM-7/src/semiPermeableBaffle/lnInclude/**</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>Windows下（没编没有lnInclde，链到上一个路径也可以，<strong>注意windows和linux的文件分隔符</strong>），这个是<strong>没有编译</strong>，在windows中直接解压从GitHub下载的OpenFOAM包。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionModels\thermalBaffleModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionModels\pyrolysisModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionModels\regionCoupling\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionModels\surfaceFilmModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionModels\surfaceFilmModels\derivedFvPatchFields\wallFunctions\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionModels\regionModel\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\fvMotionSolver\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\dynamicFvMesh\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\sampling\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\fvOptions\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\TurbulenceModels\phaseCompressible\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\TurbulenceModels\incompressible\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\TurbulenceModels\turbulenceModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\TurbulenceModels\compressible\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\TurbulenceModels\phaseIncompressible\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\dummyThirdParty\ptscotchDecomp\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\dummyThirdParty\scotchDecomp\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\dummyThirdParty\metisDecomp\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\dummyThirdParty\MGridGen\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\surfMesh\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\conversion\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\ODE\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\radiationModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\transportModels\incompressible\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\transportModels\immiscibleIncompressibleTwoPhaseMixture\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\transportModels\twoPhaseProperties\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\transportModels\twoPhaseMixture\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\transportModels\compressible\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\transportModels\interfaceProperties\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\fvAgglomerationMethods\pairPatchAgglomeration\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\mesh\extrudeModel\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\mesh\snappyHexMesh\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\mesh\blockMesh\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\atmosphericModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\sixDoFRigidBodyState\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\SLGThermo\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\thermophysicalProperties\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\laminarFlameSpeed\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\solidSpecie\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\solidChemistryModel\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\barotropicCompressibilityModel\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\specie\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\basic\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\solidThermo\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\chemistryModel\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\thermophysicalModels\reactionThermo\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\OSspecific\POSIX\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\spray\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\coalCombustion\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\molecularDynamics\molecularMeasurements\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\molecularDynamics\molecule\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\molecularDynamics\potential\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\intermediate\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\DSMC\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\solidParticle\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\distributionModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\turbulence\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\lagrangian\basic\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\rigidBodyState\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\OpenFOAM\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\functionObjects\field\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\functionObjects\lagrangian\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\functionObjects\solvers\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\functionObjects\utilities\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\functionObjects\forces\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\dynamicMesh\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\engine\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\rigidBodyMeshMotion\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\sixDoFRigidBodyMotion\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\randomProcesses\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\meshTools\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\waves\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\fileFormats\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\finiteVolume\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\topoChangerFvMesh\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\regionCoupled\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\Pstream\dummy\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\Pstream\mpi\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\renumber\zoltanRenumber\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\renumber\renumberMethods\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\combustionModels\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\distributed\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\reconstruct\reconstruct\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\decompose\ptscotchDecomp\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\decompose\scotchDecomp\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\decompose\decompose\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\decompose\decompositionMethods\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\parallel\decompose\metisDecomp\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\rigidBodyDynamics\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\genericPatchFields\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\triSurface\**</span><br><span class="line">D:\02_DevProject\00_OpenFOAM\OpenFOAM-7-master\src\semiPermeableBaffle\**</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>设置后的效果：</p>
+<p><img src="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20231006215430931.png" alt="悬停提示和代码跳转" style="zoom:50%;" /></p>
+<p><strong>类似的可以对Eigen进行同种操作</strong></p>
+<ul>
+<li>Eigen代码跳转</li>
+</ul>
+<p>设置： <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/Users/tongyanjun/tttt_file/zz_lib_tttt/eigen<span class="number">-3.4</span><span class="number">.0</span><span class="comment">/**</span></span><br></pre></td></tr></table></figure></p>
+<p>测试代码： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">//这里eigen库可以成功跳转了</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;Eigen/Dense&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> Eigen::MatrixXd;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="function">MatrixXd <span class="title">m</span><span class="params">(<span class="number">2</span>,<span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="built_in">m</span>(<span class="number">0</span>,<span class="number">0</span>) = <span class="number">3</span>;</span><br><span class="line"><span class="built_in">m</span>(<span class="number">1</span>,<span class="number">0</span>) = <span class="number">2.5</span>;</span><br><span class="line"><span class="built_in">m</span>(<span class="number">0</span>,<span class="number">1</span>) = <span class="number">-1</span>;</span><br><span class="line"><span class="built_in">m</span>(<span class="number">1</span>,<span class="number">1</span>) = <span class="built_in">m</span>(<span class="number">1</span>,<span class="number">0</span>) + <span class="built_in">m</span>(<span class="number">0</span>,<span class="number">1</span>);</span><br><span class="line">std::cout &lt;&lt; m &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/OpenFOAM/" rel="tag"># OpenFOAM</a>
+          
+            <a href="/tags/Tools/" rel="tag"># Tools</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2023/09/26/gen-doxgen-cpp/" rel="next" title="用doxygen生成类似OpenFOAM的继承关系图和接口手册">
+                <i class="fa fa-chevron-left"></i> 用doxygen生成类似OpenFOAM的继承关系图和接口手册
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tttt</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
