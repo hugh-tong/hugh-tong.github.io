@@ -229,6 +229,189 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/10/08/nm-ldd-init-tttt-test/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tttt's">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2023/10/08/nm-ldd-init-tttt-test/" itemprop="url">nm_ldd_init_tttt_test</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-10-08T21:24:48+08:00">
+                2023-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h4 id="nm命令">nm命令</h4>
+<p><code>nm</code>
+命令是一个用于查看<strong>二进制文件、库文件、可执行文件</strong>中符号信息的命令行工具。它通常用于分析程序的二进制文件，以获取关于程序结构的信息。</p>
+<blockquote>
+<p>Ref: <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363014233#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8%E5%88%B0nm">linux下强大的文件分析工具
+-- nm - 知乎 (zhihu.com)</a></p>
+</blockquote>
+<p>以OpenFOAM中的一个<code>.o</code>文件为例，<code>OpenFOAM/OpenFOAM-7/platforms/linux64GccDPInt32Opt/applications/solvers/DNS/dnsFoam/dnsFoam.o</code>
+用<code>nm</code>命令可以查看其中的符号，<code>nm  -C dnsFoam.o</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">0000000000000000 V vtable for Foam::DimensionedField&lt;double, Foam::volMesh&gt;</span><br><span class="line">0000000000000000 V vtable for Foam::fvMatrix&lt;Foam::Vector&lt;double&gt; &gt;</span><br><span class="line">0000000000000000 V vtable for Foam::fvMatrix&lt;double&gt;</span><br><span class="line">0000000000000000 V vtable for Foam::LduMatrix&lt;Foam::Vector&lt;double&gt;, double, double&gt;::solver</span><br><span class="line">0000000000000000 V vtable for Foam::LduMatrix&lt;double, double, double&gt;::solver</span><br><span class="line">0000000000000000 V vtable for Foam::Residuals&lt;Foam::Vector&lt;double&gt; &gt;</span><br><span class="line">0000000000000000 V vtable for Foam::Residuals&lt;double&gt;</span><br><span class="line">0000000000000010 W non-virtual thunk to Foam::fvMesh::thisDb() const</span><br><span class="line">                 U operator delete[](void*)</span><br><span class="line">                 U operator delete(void*)</span><br><span class="line">                 U operator new[](unsigned long)</span><br><span class="line">                 U operator new(unsigned long)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>以下是 <code>nm</code> 命令的一些常用输出格式：</p>
+<ol type="1">
+<li><strong><code>U</code>：未定义符号</strong>，表示该符号在当前目标文件中被引用，但并未在当前目标文件中定义，需要在链接时从其他地方解析。</li>
+<li><strong><code>T</code>：文本段（代码段）符号</strong>，表示对应的符号在代码段中，通常是可执行程序的一部分。</li>
+<li><strong><code>D</code>：数据段符号</strong>，表示对应的符号在数据段中，通常是全局变量。</li>
+<li><strong><code>B</code>：BSS段符号</strong>，表示对应的符号在BSS段中，通常是未初始化的全局变量。</li>
+<li><strong><code>W</code>：弱符号</strong>，表示对应的符号是一个可以被重定位或被其他模块覆盖的符号。</li>
+<li><strong><code>S</code>：特殊符号</strong>，通常用于标记一些特殊的符号，比如函数的开始和结束。</li>
+<li><strong>地址</strong>：符号的内存地址，可以是十六进制数。</li>
+<li><strong>符号名</strong>：函数名、变量名等。</li>
+</ol>
+<p>TODO:
+结合C++的type_trait，typeid等函数来解释符号表。引入函数签名等。</p>
+<p>一个示例演示： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;typeinfo&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> x = <span class="number">10</span>;</span><br><span class="line">    <span class="type">double</span> y = <span class="number">20.5</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用typeid获取变量的类型信息</span></span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoX = <span class="built_in">typeid</span>(x);</span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoY = <span class="built_in">typeid</span>(y);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 输出类型信息的名称</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of x: &quot;</span> &lt;&lt; typeInfoX.<span class="built_in">name</span>() &lt;&lt; std::endl;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of y: &quot;</span> &lt;&lt; typeInfoY.<span class="built_in">name</span>() &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>这种获取类型信息的方式允许程序在运行时获取对象的实际类型，也就是RTTI(Run-Time
+Type Information)</p>
+</blockquote>
+<p>编译后，运行结果： <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Type of x: i</span><br><span class="line">Type of y: d</span><br></pre></td></tr></table></figure></p>
+<p><code>nm -C a.out</code>查看其符号表可以发现，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0000000000003d80 V typeinfo for double@CXXABI_1.3</span><br><span class="line">0000000000003d70 V typeinfo for int@CXXABI_1.3</span><br></pre></td></tr></table></figure>
+<p>NOTE：实际在运用<code>typeid</code>的时候，一般会将其转换为人可读的（用<code>cxxabi.h</code>库来实现）。比如下面：</p>
+<blockquote>
+<p>Ask gpt: <code>cxxabi.h</code> 是 C++
+标准库中的一个头文件，提供了用于操作 C++ ABI（Application Binary
+Interface，应用程序二进制接口）的一些函数。</p>
+<p>C++ ABI 定义了在不同编译器和平台下，C++
+编译器如何生成二进制代码以及如何在不同模块之间进行交互。这包括函数名的重整、异常处理、虚函数表等方面的规范。</p>
+<p><code>cxxabi.h</code>
+中的函数可以用于对符号（比如函数名）进行反解析，将符号的字符串表示形式转换为其内部的实际表示形式，或者反之。</p>
+<p>其中最常用的函数可能就是
+<code>abi::__cxa_demangle()</code>，它用于将符号的字符串表示解析成人类可读的形式。</p>
+<p>举例来说，如果你有一个 C++ 函数名的字符串（例如
+"_ZN5MyClass3fooEv"），你可以使用 <code>__cxa_demangle()</code>
+将其解析成对应的函数名（例如 "MyClass::foo()"）。</p>
+<p>总的来说，<code>cxxabi.h</code> 提供了一些工具，使得在运行时可以对
+C++
+符号进行更灵活的处理，这对于某些需要动态获取或者修改函数信息的场景可能会非常有用。</p>
+</blockquote>
+<p>所以，修改后的代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;typeinfo&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cxxabi.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> x = <span class="number">10</span>;</span><br><span class="line">    <span class="type">double</span> y = <span class="number">20.5</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用typeid获取变量的类型信息</span></span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoX = <span class="built_in">typeid</span>(x);</span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoY = <span class="built_in">typeid</span>(y);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用cxxabi.h中的接口来转换为人类可读形式</span></span><br><span class="line">    <span class="type">int</span> status;</span><br><span class="line">    <span class="type">char</span>* demangledNameX = abi::__cxa_demangle(typeInfoX.<span class="built_in">name</span>(), <span class="literal">nullptr</span>, <span class="literal">nullptr</span>, &amp;status);</span><br><span class="line">    <span class="type">char</span>* demangledNameY = abi::__cxa_demangle(typeInfoY.<span class="built_in">name</span>(), <span class="literal">nullptr</span>, <span class="literal">nullptr</span>, &amp;status);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 输出转换后的类型名</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of x: &quot;</span> &lt;&lt; demangledNameX &lt;&lt; std::endl;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of y: &quot;</span> &lt;&lt; demangledNameY &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 释放内存</span></span><br><span class="line">    <span class="built_in">free</span>(demangledNameX);</span><br><span class="line">    <span class="built_in">free</span>(demangledNameY);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>得到的结果： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Type of x: int</span><br><span class="line">Type of y: double</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>注意：不用的编译器，如gnu，clang，MSVC的typeid行为可能不用，详细可见：
+<a target="_blank" rel="noopener" href="https://github.com/parallel101/course">parallel101/course:
+高性能并行编程与优化 - 课件 (github.com)</a></p>
+</blockquote>
+<h4 id="最近用nm干了啥">最近用nm干了啥</h4>
+<p>最近用nm来查看这个库中有没有某个符号（报错出现了<code>undefined reference</code>）。最后发现是代码的CMake找错了库
+= =!</p>
+<ol type="1">
+<li><strong><code>U</code>：未定义符号</strong>，表示该符号在当前目标文件中被引用，但并未在当前目标文件中定义，需要在链接时从其他地方解析。</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/27/of-intelli-includePath-vscode/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1614,126 +1797,6 @@ hexo更换主题后报错</a></p>
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/19/test-my-file/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="tttt's">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2023/08/19/test-my-file/" itemprop="url">test_my_file</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-08-19T01:17:47+08:00">
-                2023-08-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1784,7 +1847,7 @@ hexo更换主题后报错</a></p>
               
                 <a href="/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1797,7 +1860,7 @@ hexo更换主题后报错</a></p>
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>

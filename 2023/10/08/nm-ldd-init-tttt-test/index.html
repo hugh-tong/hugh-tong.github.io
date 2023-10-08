@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Tools,code技巧," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="nm命令 nm 命令是一个用于查看二进制文件、库文件、可执行文件中符号信息的命令行工具。它通常用于分析程序的二进制文件，以获取关于程序结构的信息。  Ref: linux下强大的文件分析工具 -- nm - 知乎 (zhihu.com)  以OpenFOAM中的一个.o文件为例，OpenFOAM&#x2F;OpenFOAM-7&#x2F;platforms&#x2F;linux64GccDPInt32Opt&#x2F;ap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nm_ldd_init_tttt_test">
+<meta property="og:url" content="http://example.com/2023/10/08/nm-ldd-init-tttt-test/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="nm命令 nm 命令是一个用于查看二进制文件、库文件、可执行文件中符号信息的命令行工具。它通常用于分析程序的二进制文件，以获取关于程序结构的信息。  Ref: linux下强大的文件分析工具 -- nm - 知乎 (zhihu.com)  以OpenFOAM中的一个.o文件为例，OpenFOAM&#x2F;OpenFOAM-7&#x2F;platforms&#x2F;linux64GccDPInt32Opt&#x2F;ap">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-10-08T13:24:48.000Z">
+<meta property="article:modified_time" content="2023-10-08T14:26:17.704Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="Tools">
+<meta property="article:tag" content="code技巧">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2023/10/08/nm-ldd-init-tttt-test/"/>
+
+
+
+
+
+  <title>nm_ldd_init_tttt_test | tttt's</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">tttt's</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/10/08/nm-ldd-init-tttt-test/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tttt's">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">nm_ldd_init_tttt_test</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-10-08T21:24:48+08:00">
+                2023-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="nm命令">nm命令</h4>
+<p><code>nm</code>
+命令是一个用于查看<strong>二进制文件、库文件、可执行文件</strong>中符号信息的命令行工具。它通常用于分析程序的二进制文件，以获取关于程序结构的信息。</p>
+<blockquote>
+<p>Ref: <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363014233#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8%E5%88%B0nm">linux下强大的文件分析工具
+-- nm - 知乎 (zhihu.com)</a></p>
+</blockquote>
+<p>以OpenFOAM中的一个<code>.o</code>文件为例，<code>OpenFOAM/OpenFOAM-7/platforms/linux64GccDPInt32Opt/applications/solvers/DNS/dnsFoam/dnsFoam.o</code>
+用<code>nm</code>命令可以查看其中的符号，<code>nm  -C dnsFoam.o</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">0000000000000000 V vtable for Foam::DimensionedField&lt;double, Foam::volMesh&gt;</span><br><span class="line">0000000000000000 V vtable for Foam::fvMatrix&lt;Foam::Vector&lt;double&gt; &gt;</span><br><span class="line">0000000000000000 V vtable for Foam::fvMatrix&lt;double&gt;</span><br><span class="line">0000000000000000 V vtable for Foam::LduMatrix&lt;Foam::Vector&lt;double&gt;, double, double&gt;::solver</span><br><span class="line">0000000000000000 V vtable for Foam::LduMatrix&lt;double, double, double&gt;::solver</span><br><span class="line">0000000000000000 V vtable for Foam::Residuals&lt;Foam::Vector&lt;double&gt; &gt;</span><br><span class="line">0000000000000000 V vtable for Foam::Residuals&lt;double&gt;</span><br><span class="line">0000000000000010 W non-virtual thunk to Foam::fvMesh::thisDb() const</span><br><span class="line">                 U operator delete[](void*)</span><br><span class="line">                 U operator delete(void*)</span><br><span class="line">                 U operator new[](unsigned long)</span><br><span class="line">                 U operator new(unsigned long)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>以下是 <code>nm</code> 命令的一些常用输出格式：</p>
+<ol type="1">
+<li><strong><code>U</code>：未定义符号</strong>，表示该符号在当前目标文件中被引用，但并未在当前目标文件中定义，需要在链接时从其他地方解析。</li>
+<li><strong><code>T</code>：文本段（代码段）符号</strong>，表示对应的符号在代码段中，通常是可执行程序的一部分。</li>
+<li><strong><code>D</code>：数据段符号</strong>，表示对应的符号在数据段中，通常是全局变量。</li>
+<li><strong><code>B</code>：BSS段符号</strong>，表示对应的符号在BSS段中，通常是未初始化的全局变量。</li>
+<li><strong><code>W</code>：弱符号</strong>，表示对应的符号是一个可以被重定位或被其他模块覆盖的符号。</li>
+<li><strong><code>S</code>：特殊符号</strong>，通常用于标记一些特殊的符号，比如函数的开始和结束。</li>
+<li><strong>地址</strong>：符号的内存地址，可以是十六进制数。</li>
+<li><strong>符号名</strong>：函数名、变量名等。</li>
+</ol>
+<p>TODO:
+结合C++的type_trait，typeid等函数来解释符号表。引入函数签名等。</p>
+<p>一个示例演示： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;typeinfo&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> x = <span class="number">10</span>;</span><br><span class="line">    <span class="type">double</span> y = <span class="number">20.5</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用typeid获取变量的类型信息</span></span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoX = <span class="built_in">typeid</span>(x);</span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoY = <span class="built_in">typeid</span>(y);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 输出类型信息的名称</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of x: &quot;</span> &lt;&lt; typeInfoX.<span class="built_in">name</span>() &lt;&lt; std::endl;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of y: &quot;</span> &lt;&lt; typeInfoY.<span class="built_in">name</span>() &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>这种获取类型信息的方式允许程序在运行时获取对象的实际类型，也就是RTTI(Run-Time
+Type Information)</p>
+</blockquote>
+<p>编译后，运行结果： <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Type of x: i</span><br><span class="line">Type of y: d</span><br></pre></td></tr></table></figure></p>
+<p><code>nm -C a.out</code>查看其符号表可以发现，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0000000000003d80 V typeinfo for double@CXXABI_1.3</span><br><span class="line">0000000000003d70 V typeinfo for int@CXXABI_1.3</span><br></pre></td></tr></table></figure>
+<p>NOTE：实际在运用<code>typeid</code>的时候，一般会将其转换为人可读的（用<code>cxxabi.h</code>库来实现）。比如下面：</p>
+<blockquote>
+<p>Ask gpt: <code>cxxabi.h</code> 是 C++
+标准库中的一个头文件，提供了用于操作 C++ ABI（Application Binary
+Interface，应用程序二进制接口）的一些函数。</p>
+<p>C++ ABI 定义了在不同编译器和平台下，C++
+编译器如何生成二进制代码以及如何在不同模块之间进行交互。这包括函数名的重整、异常处理、虚函数表等方面的规范。</p>
+<p><code>cxxabi.h</code>
+中的函数可以用于对符号（比如函数名）进行反解析，将符号的字符串表示形式转换为其内部的实际表示形式，或者反之。</p>
+<p>其中最常用的函数可能就是
+<code>abi::__cxa_demangle()</code>，它用于将符号的字符串表示解析成人类可读的形式。</p>
+<p>举例来说，如果你有一个 C++ 函数名的字符串（例如
+"_ZN5MyClass3fooEv"），你可以使用 <code>__cxa_demangle()</code>
+将其解析成对应的函数名（例如 "MyClass::foo()"）。</p>
+<p>总的来说，<code>cxxabi.h</code> 提供了一些工具，使得在运行时可以对
+C++
+符号进行更灵活的处理，这对于某些需要动态获取或者修改函数信息的场景可能会非常有用。</p>
+</blockquote>
+<p>所以，修改后的代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;typeinfo&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cxxabi.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> x = <span class="number">10</span>;</span><br><span class="line">    <span class="type">double</span> y = <span class="number">20.5</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用typeid获取变量的类型信息</span></span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoX = <span class="built_in">typeid</span>(x);</span><br><span class="line">    <span class="type">const</span> std::type_info&amp; typeInfoY = <span class="built_in">typeid</span>(y);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用cxxabi.h中的接口来转换为人类可读形式</span></span><br><span class="line">    <span class="type">int</span> status;</span><br><span class="line">    <span class="type">char</span>* demangledNameX = abi::__cxa_demangle(typeInfoX.<span class="built_in">name</span>(), <span class="literal">nullptr</span>, <span class="literal">nullptr</span>, &amp;status);</span><br><span class="line">    <span class="type">char</span>* demangledNameY = abi::__cxa_demangle(typeInfoY.<span class="built_in">name</span>(), <span class="literal">nullptr</span>, <span class="literal">nullptr</span>, &amp;status);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 输出转换后的类型名</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of x: &quot;</span> &lt;&lt; demangledNameX &lt;&lt; std::endl;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Type of y: &quot;</span> &lt;&lt; demangledNameY &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 释放内存</span></span><br><span class="line">    <span class="built_in">free</span>(demangledNameX);</span><br><span class="line">    <span class="built_in">free</span>(demangledNameY);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>得到的结果： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Type of x: int</span><br><span class="line">Type of y: double</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>注意：不用的编译器，如gnu，clang，MSVC的typeid行为可能不用，详细可见：
+<a target="_blank" rel="noopener" href="https://github.com/parallel101/course">parallel101/course:
+高性能并行编程与优化 - 课件 (github.com)</a></p>
+</blockquote>
+<h4 id="最近用nm干了啥">最近用nm干了啥</h4>
+<p>最近用nm来查看这个库中有没有某个符号（报错出现了<code>undefined reference</code>）。最后发现是代码的CMake找错了库
+= =!</p>
+<ol type="1">
+<li><strong><code>U</code>：未定义符号</strong>，表示该符号在当前目标文件中被引用，但并未在当前目标文件中定义，需要在链接时从其他地方解析。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Tools/" rel="tag"># Tools</a>
+          
+            <a href="/tags/code%E6%8A%80%E5%B7%A7/" rel="tag"># code技巧</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2023/09/27/of-intelli-includePath-vscode/" rel="next" title="更新版：OpenFOAM在vscode的代码跳转设置">
+                <i class="fa fa-chevron-left"></i> 更新版：OpenFOAM在vscode的代码跳转设置
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#nm%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">nm命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E8%BF%91%E7%94%A8nm%E5%B9%B2%E4%BA%86%E5%95%A5"><span class="nav-number">2.</span> <span class="nav-text">最近用nm干了啥</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tttt</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
