@@ -1,0 +1,164 @@
+{
+  "main": {
+    "id": "58bb9202cc195aae",
+    "type": "split",
+    "children": [
+      {
+        "id": "6f891ed91dc61f43",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "25cc0ba5cacfc8aa",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "_posts/nm-ldd-init-tttt-test.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e144216c395e4333",
+    "type": "split",
+    "children": [
+      {
+        "id": "cbebee1084714e9b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ba45c12357ed3f63",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "7b8f9791c7844c14",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "dd18a7b866f0e3fb",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "051a0464ada4ae79",
+    "type": "split",
+    "children": [
+      {
+        "id": "c5c46e7fe46719e5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8d2b0ff70f1ac0d8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "_posts/nm-ldd-init-tttt-test.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "55dd4dccc2547cc3",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "_posts/nm-ldd-init-tttt-test.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "6bddcb8fe7167d76",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "17197fcace18c988",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "_posts/nm-ldd-init-tttt-test.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false
+    }
+  },
+  "active": "25cc0ba5cacfc8aa",
+  "lastOpenFiles": [
+    "_posts/hello-world.md",
+    "_posts/nm-ldd-init-tttt-test.md",
+    "_posts/HelloMyFriends.md",
+    "_posts/vscode-c-cpp-properties.md",
+    "_posts/set-p-bc-in-fluentNOF.md",
+    "_posts/openfoam-fluent-simple-k-e.md",
+    "_posts/of-intelli-includePath-vscode.md",
+    "_posts/gen-doxgen-cpp.md",
+    "_posts/install-zsh.md",
+    "_posts/test-math-func.md",
+    "_posts/install-ansys-fluent.md",
+    "_posts/gen-doxgen-cpp-1.md"
+  ]
+}
