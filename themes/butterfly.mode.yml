@@ -1,0 +1,3 @@
+# 发布时主题切换示例:叠加在 _config.yml 之上的最小覆盖
+# 用法: npx hexo g --config _config.yml,themes/butterfly.mode.yml
+theme: butterfly
