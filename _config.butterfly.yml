@@ -56,6 +56,11 @@ readmode: true
 auto_dark_mode:
   enable: false
 
+# 数学公式:per_page 模式,文章 front-matter 加 mathjax: true 才加载
+math:
+  use: mathjax
+  per_page: true
+
 # 本地搜索(需 hexo-generator-searchdb,见 package.json)
 search:
   use: local_search
