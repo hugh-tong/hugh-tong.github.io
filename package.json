@@ -6,7 +6,13 @@
     "build": "hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
-    "server": "hexo server"
+    "server": "hexo server",
+    "build:butterfly": "hexo generate --config _config.yml,themes/butterfly.mode.yml",
+    "build:next": "hexo generate --config _config.yml,themes/next.mode.yml",
+    "server:butterfly": "hexo server --config _config.yml,themes/butterfly.mode.yml",
+    "server:next": "hexo server --config _config.yml,themes/next.mode.yml",
+    "deploy:butterfly": "hexo deploy --config _config.yml,themes/butterfly.mode.yml",
+    "deploy:next": "hexo deploy --config _config.yml,themes/next.mode.yml"
   },
   "hexo": {
     "version": "6.3.0"
@@ -17,12 +23,15 @@
     "hexo-generator-archive": "^2.0.0",
     "hexo-generator-category": "^2.0.0",
     "hexo-generator-index": "^3.0.0",
+    "hexo-generator-searchdb": "^1.5.0",
     "hexo-generator-tag": "^2.0.0",
     "hexo-renderer-ejs": "^2.0.0",
-    "hexo-renderer-pandoc": "^0.4.0",
+    "hexo-renderer-marked": "^7.0.1",
+    "hexo-renderer-pug": "^3.0.0",
     "hexo-renderer-stylus": "^2.1.0",
     "hexo-renderer-swig": "^1.1.0",
     "hexo-server": "^3.0.0",
+    "hexo-theme-butterfly": "^5.7.0",
     "hexo-theme-landscape": "^1.0.0"
   }
 }
