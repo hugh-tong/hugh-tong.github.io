@@ -1,0 +1,62 @@
+# Butterfly 主题覆盖配置(深合并到 node_modules/hexo-theme-butterfly/_config.yml)
+# 机制:Hexo 5+ 会自动读取站点根目录的 _config.[theme].yml 并深合并,主题包可随时 npm update 不丢配置
+
+# ---------- 科技感视觉 ----------
+darkmode:
+  enable: true
+  button: true
+
+# canvas 粒子连线背景(科技感核心)
+canvas_nest:
+  enable: true
+  color: '0,128,255'
+  opacity: 0.6
+  zIndex: -1
+  count: 120
+  mobile: false
+
+# 鼠标点击烟花
+fireworks:
+  enable: true
+  zIndex: 9999
+  mobile: false
+
+# 代码高亮风格(darker 是暗色终端风)
+highlight_theme: darker
+highlight_height_limit: 200
+
+# ---------- 站点信息 ----------
+avatar:
+  img: /img/butterfly-icon.png
+  effect: true
+
+aside:
+  enable: true
+  position: right
+  display:
+    archive: true
+    tag: true
+    category: true
+  card_announcement:
+    enable: true
+    content: 博客已恢复维护,欢迎常来 🎉
+  card_recent_post:
+    enable: true
+    limit: 5
+
+footer:
+  owner:
+    enable: true
+    since: 2023
+  copyright: false
+
+# ---------- 阅读体验 ----------
+copy_btn: true
+readmode: true
+auto_dark_mode:
+  enable: false
+
+# 本地搜索(需 hexo-generator-searchdb,见 package.json)
+search:
+  use: local_search
+  placeholder: 搜索文章…
