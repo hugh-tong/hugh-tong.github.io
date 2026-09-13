@@ -25,11 +25,22 @@ npx hexo d                 # 部署:force-push 生成结果到 main;等价 npm r
 
 顺序:`clean → g → s 验证 → d`。部署后 GitHub Pages 生效有延迟。
 
+## 双主题与发布时切换
+
+已装两套主题,`_config.yml` 默认 `theme: next`:
+
+- **NexT v8.20.0**:`themes/next` gitlink(见坑 1),配置在 `themes/next/_config.yml`
+- **Butterfly 5.7.0**:npm 安装(`node_modules/hexo-theme-butterfly`),配置覆盖在根目录 `_config.butterfly.yml`(深合并,主题可随 npm update 不丢配置)
+
+切换命令(npm scripts 已定义):`build:butterfly` / `build:next` / `server:butterfly` / `server:next` / `deploy:butterfly` / `deploy:next`。
+
+机制:Hexo 6.3.0 的 `--config a.yml,b.yml`(逗号列表)是**深合并,后者优先**;单文件 `--config custom.yml` 会**整体替换** `_config.yml`,不要单文件用。mode 文件在 `themes/*.mode.yml`,只含一行 `theme: xxx`。生成的 `_multiconfig.yml` 是临时产物,已入 .gitignore。
+
 ## 坑(踩过才知道)
 
 - **`themes/next` 是无 `.gitmodules` 的裸 gitlink**(现指向 `v8.20.0` tag,commit `ba7ec07`;原始 commit `9c8cea6` 已被上游 force-push 消失,无法 fetch)。克隆/切换到 dev_tttt 后该目录是**空的**,`hexo g` 直接失败。需先手动补主题:`git clone https://github.com/next-theme/hexo-theme-next.git themes/next && git -C themes/next checkout v8.20.0`。根治方案是改造成正规 submodule 或用 npm 安装主题。
-- **依赖 `hexo-renderer-pandoc`** → 系统必须装有 `pandoc` 可执行文件,否则 markdown 渲染失败。WSL/Linux 上先 `apt install pandoc` 或从官网装。
-- 双锁文件并存(`package-lock.json` + `yarn.lock`),从未统一。建议统一 npm(scripts 已按 npm 定义)。
+- ~~依赖 `hexo-renderer-pandoc`~~ 已于 2026-09-13 换为 `hexo-renderer-marked`(消除系统 pandoc 依赖,且与 Butterfly 的高亮类兼容)。系统不再需要装 pandoc。
+- ~~双锁文件并存~~ 已于 2026-09-13 统一为 npm(删除 yarn.lock)。
 - ~~`_config.yml` 的 `url` 仍是默认 `http://example.com`~~ 已于 2026-09-13 修复为 `https://hugh-tong.github.io`;`deploy.repo` 同步改为 SSH 地址。
 - `_config.landscape.yml` 是旧主题残留;现行主题为 `next`(`theme: next`),其配置在 `themes/next/_config.yml`(因上面的 gitlink 问题常缺失,主题以默认配置跑)。
 - `source/.obsidian/` 是作者用 Obsidian 写作的配置,已入库,勿删勿改。
