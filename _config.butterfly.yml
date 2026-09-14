@@ -55,6 +55,8 @@ footer:
 inject:
   head:
     - <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+  bottom:
+    - <script defer src="/js/mathjax-global.js"></script>
 
 # ---------- 阅读体验 ----------
 copy_btn: true
@@ -62,7 +64,8 @@ readmode: true
 auto_dark_mode:
   enable: false
 
-# 数学公式:per_page 模式,文章 front-matter 加 mathjax: true 才加载
+# 数学公式:文章页由主题按 front-matter(mathjax: true)加载;
+# 首页/分类页摘要的公式由 inject 的 mathjax-global.js 补渲染
 math:
   use: mathjax
   per_page: true
