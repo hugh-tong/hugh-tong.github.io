@@ -1,6 +1,8 @@
 ---
 title: HelloMyFriends
 date: 2023-08-19 02:34:48
+categories:
+  - [本站]
 tags: init_test
 ---
 

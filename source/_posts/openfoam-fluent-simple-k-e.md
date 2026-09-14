@@ -1,6 +1,8 @@
 ---
 title: OpenFOAM和fluent的SIMPLE计算设置对比【还没写完】
 date: 2023-08-24 23:11:34
+categories:
+  - [CFD, OpenFOAM, Fluent]
 tags: OpenFOAM
 ---
 

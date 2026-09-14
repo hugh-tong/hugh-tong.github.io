@@ -1,6 +1,8 @@
 ---
 title: c_cpp_properties的设置
 date: 2023-08-27 23:31:45
+categories:
+  - [工具, VSCode, C/C++]
 tags: vscode
 ---
 

@@ -1,6 +1,8 @@
 ---
 title: ansys fluent 安装
 date: 2023-08-29 23:49:09
+categories:
+  - [CFD, Fluent, 安装]
 tags: Tools
 ---
 

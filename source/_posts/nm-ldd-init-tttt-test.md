@@ -1,6 +1,8 @@
 ---
 title: nm_ldd_init_tttt_test
 date: 2023-10-08 21:24:48
+categories:
+  - [工具, Linux, 二进制]
 tags:
   - Tools
   - code技巧

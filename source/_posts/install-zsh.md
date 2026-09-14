@@ -1,6 +1,8 @@
 ---
 title: 安装zsh以及oh my zsh
 date: 2023-08-29 23:46:54
+categories:
+  - [工具, Linux, WSL]
 tags: Tools
 ---
 

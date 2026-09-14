@@ -1,6 +1,8 @@
 ---
 title: 测试数学公式
 date: 2023-08-19 14:48:36
+categories:
+  - [本站]
 tags: init_test
 mathjax: true
 ---

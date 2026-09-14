@@ -1,6 +1,8 @@
 ---
 title: 用doxygen生成类似OpenFOAM的继承关系图和接口手册
 date: 2023-09-26 20:00:36
+categories:
+  - [CFD, OpenFOAM, 工具链]
 tags:
   - OpenFOAM
   - vscode

@@ -1,6 +1,8 @@
 ---
 title: 更新版：OpenFOAM在vscode的代码跳转设置
 date: 2023-09-27 15:01:37
+categories:
+  - [工具, VSCode, OpenFOAM]
 tags:
   - OpenFOAM
   - Tools

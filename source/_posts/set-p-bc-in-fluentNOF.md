@@ -1,6 +1,8 @@
 ---
 title: 学习在fluent和OpenFOAM中设置压力边界条件
 date: 2023-08-28 23:40:17
+categories:
+  - [CFD, 边界条件]
 tags:
   - OpenFOAM
 ---
