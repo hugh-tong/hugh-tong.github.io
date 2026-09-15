@@ -1,0 +1,887 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>网格诱导的数值问题 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="非正交性、歪斜、比率突变如何污染解:网格质量与数值误差的因果链。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网格诱导的数值问题">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/mesh-induced-numerical-problems/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="非正交性、歪斜、比率突变如何污染解:网格质量与数值误差的因果链。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:11:30.744Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="DES">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="CFD&#x2F;数值方法">
+<meta property="article:tag" content="NumericalProblems">
+<meta property="article:tag" content="MeshInduced">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "网格诱导的数值问题",
+  "url": "https://hugh-tong.github.io/2026/09/15/mesh-induced-numerical-problems/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T07:00:00.000Z",
+  "dateModified": "2026-09-15T08:11:30.744Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/mesh-induced-numerical-problems/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '网格诱导的数值问题',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">网格诱导的数值问题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">网格诱导的数值问题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T07:00:00.000Z" title="Created 2026-09-15 15:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:11:30.744Z" title="Updated 2026-09-15 16:11:30">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">数值方法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Skewness"><a href="#Skewness" class="headerlink" title="Skewness"></a>Skewness</h1><p><a target="_blank" rel="noopener" href="https://cfmesh.com/is-it-always-the-mesh-part-2-skewness/">https://cfmesh.com/is-it-always-the-mesh-part-2-skewness/</a></p>
+<p><img src="https://cfmesh.com/wp-content/uploads/2023/06/skewness-1.jpg" alt="mesh skewness"></p>
+<hr>
+<h2 id="🌐-1-Introduction-—-Role-of-Mesh-in-FVM"><a href="#🌐-1-Introduction-—-Role-of-Mesh-in-FVM" class="headerlink" title="🌐 1. Introduction — Role of Mesh in FVM"></a>🌐 1. Introduction — Role of Mesh in FVM</h2><p>In <strong>Finite Volume Method (FVM)</strong>, numerical accuracy directly depends on <strong>mesh geometry</strong>.<br>A high-quality mesh ensures:</p>
+<ul>
+<li>Consistent representation of gradients,</li>
+<li>Accurate flux calculations, and</li>
+<li>Reliable convergence behaviour.</li>
+</ul>
+<h3 id="📘-Key-Mesh-Requirements"><a href="#📘-Key-Mesh-Requirements" class="headerlink" title="📘 Key Mesh Requirements:"></a>📘 Key Mesh Requirements:</h3><ol>
+<li><strong>Non-overlapping</strong> cells — Each control volume must be unique.</li>
+<li><strong>Convexity</strong> of cells — Ensures valid interpolation and stable discretisation.</li>
+<li><strong>Consistent face normals</strong> — Face normal vectors must point outward properly.</li>
+</ol>
+<hr>
+<h2 id="📏-2-Core-Mesh-Quality-Metrics"><a href="#📏-2-Core-Mesh-Quality-Metrics" class="headerlink" title="📏 2. Core Mesh Quality Metrics"></a>📏 2. Core Mesh Quality Metrics</h2><h3 id="🔹-2-1-Non-Orthogonality-θ"><a href="#🔹-2-1-Non-Orthogonality-θ" class="headerlink" title="🔹 2.1 Non-Orthogonality (θ)"></a>🔹 2.1 Non-Orthogonality (θ)</h3><p>Measure of the <strong>angle</strong> between:</p>
+<ul>
+<li>The <strong>face normal vector</strong> and</li>
+<li>The <strong>vector connecting cell centroids</strong>.</li>
+</ul>
+<p>[ \text{Non-orthogonality angle} &#x3D; \angle(\mathbf{n}<em>{f}, \mathbf{d}</em>{PN}) ]</p>
+<ul>
+<li>Ideal value: <strong>0°</strong> (perfectly orthogonal cells)</li>
+<li>Large angle ⇒ gradient &amp; diffusion term errors grow.</li>
+<li>Critical for viscous regions (boundary layers).</li>
+</ul>
+<hr>
+<h3 id="🔹-2-2-Skewness-S"><a href="#🔹-2-2-Skewness-S" class="headerlink" title="🔹 2.2 Skewness (S)"></a>🔹 2.2 Skewness (S)</h3><p>Describes the <strong>offset of the face centroid</strong> from the vector connecting two neighboring cell centres.</p>
+<p>[ S &#x3D; \frac{|\mathbf{r}<em>f - \mathbf{r}</em>{d}|}{|\mathbf{r}_N - \mathbf{r}_P|} ]</p>
+<p>where:</p>
+<ul>
+<li><p>$\mathbf{r}_f$ &#x3D; actual face centroid,</p>
+</li>
+<li><p>$\mathbf{r}_d$ &#x3D; intersection point of line between cell centers.</p>
+</li>
+<li><p>Ideal: <strong>S &#x3D; 0</strong> (aligned geometry)</p>
+</li>
+<li><p>High skewness ⇒ interpolation error ↑ and stability ↓.</p>
+</li>
+</ul>
+<hr>
+<h3 id="🔹-2-3-Face-Uniformity-U"><a href="#🔹-2-3-Face-Uniformity-U" class="headerlink" title="🔹 2.3 Face Uniformity (U)"></a>🔹 2.3 Face Uniformity (U)</h3><p>Defines how evenly a face is located between two cell centres:</p>
+<p>[ U &#x3D; \frac{|\mathbf{r}_f - \mathbf{r}_P|}{|\mathbf{r}_P - \mathbf{r}_N|} ]</p>
+<ul>
+<li>Ideal: <strong>U &#x3D; 0.5</strong></li>
+<li>Deviation means cells differ in size or distribution across the face.</li>
+</ul>
+<hr>
+<h2 id="⚙️-3-Finite-Volume-Discretisation-—-Basic-Requirements"><a href="#⚙️-3-Finite-Volume-Discretisation-—-Basic-Requirements" class="headerlink" title="⚙️ 3. Finite Volume Discretisation — Basic Requirements"></a>⚙️ 3. Finite Volume Discretisation — Basic Requirements</h2><p>For an accurate discretisation scheme, four properties are essential:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Consistency</strong></td>
+<td>Coefficients represent correct physical meaning.</td>
+</tr>
+<tr>
+<td><strong>Stability</strong></td>
+<td>Prevents divergent behaviour in solution updates.</td>
+</tr>
+<tr>
+<td><strong>Conservation</strong></td>
+<td>Flux entering one cell must exit another.</td>
+</tr>
+<tr>
+<td><strong>Boundedness</strong></td>
+<td>Prevents unphysical oscillations or overshoots.</td>
+</tr>
+</tbody></table>
+<p>These properties depend not only on numerical schemes but also on <strong>mesh quality metrics</strong> described above.</p>
+<hr>
+<h2 id="📉-4-Sources-of-Discretisation-Error"><a href="#📉-4-Sources-of-Discretisation-Error" class="headerlink" title="📉 4. Sources of Discretisation Error"></a>📉 4. Sources of Discretisation Error</h2><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Effect on Accuracy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Cell size</strong></td>
+<td>Controls truncation error of source term.</td>
+</tr>
+<tr>
+<td><strong>Solution gradient</strong></td>
+<td>Larger gradients increase discretisation error.</td>
+</tr>
+<tr>
+<td><strong>Cell topology</strong></td>
+<td>Affects reconstruction of gradients.</td>
+</tr>
+<tr>
+<td><strong>Skewness</strong></td>
+<td>Impacts interpolation accuracy.</td>
+</tr>
+<tr>
+<td><strong>Face Uniformity</strong></td>
+<td>Affects divergence and flux balance.</td>
+</tr>
+</tbody></table>
+<p><strong>Note:</strong></p>
+<ul>
+<li><strong>Source term error</strong> depends mainly on mesh size.</li>
+<li><strong>Gradient and flux errors</strong> depend on <strong>skewness</strong> and <strong>uniformity</strong>.</li>
+<li><strong>Non-orthogonality</strong> crucially affects <strong>diffusion term accuracy</strong>, particularly in wall-bounded flows.</li>
+</ul>
+<hr>
+<h2 id="🧠-5-Practical-Insights"><a href="#🧠-5-Practical-Insights" class="headerlink" title="🧠 5. Practical Insights"></a>🧠 5. Practical Insights</h2><ul>
+<li>Maintaining <strong>low non-orthogonality (&lt; 60°)</strong> and <strong>skewness (&lt; 0.3)</strong> is desirable.</li>
+<li><strong>Boundary layer meshes</strong> must align with physical flow direction to maintain orthogonality.</li>
+<li>For <strong>coarse or poor-quality meshes</strong>, employ non-orthogonal correction schemes to reduce discretisation error.</li>
+</ul>
+<hr>
+<h2 id="🧩-6-cfMesh-CF-MESH-Overview"><a href="#🧩-6-cfMesh-CF-MESH-Overview" class="headerlink" title="🧩 6. cfMesh &amp; CF-MESH+ Overview"></a>🧩 6. cfMesh &amp; CF-MESH+ Overview</h2><h3 id="cfMesh-Open-Source"><a href="#cfMesh-Open-Source" class="headerlink" title="cfMesh (Open-Source)"></a><strong>cfMesh (Open-Source)</strong></h3><ul>
+<li>Automatically generates polyhedral meshes.</li>
+<li>Integrates with OpenFOAM.</li>
+<li>Supports volume refinement and snapping.</li>
+</ul>
+<h3 id="CF-MESH-Enhanced-Pro-Version"><a href="#CF-MESH-Enhanced-Pro-Version" class="headerlink" title="CF-MESH+ (Enhanced Pro Version)"></a><strong>CF-MESH+ (Enhanced Pro Version)</strong></h3><ul>
+<li>Provides advanced <strong>boundary layer meshing</strong>,</li>
+<li><strong>Geometry import and cleanup tools</strong>,</li>
+<li><strong>Custom refinement zones</strong> and improved <strong>mesh control</strong>.</li>
+<li>Optimized for industrial CFD workflows.</li>
+</ul>
+<p>🔗 <a target="_blank" rel="noopener" href="https://cfmesh.com/">Learn more at cfmesh.com</a></p>
+<hr>
+<h2 id="🎯-7-Key-Takeaways"><a href="#🎯-7-Key-Takeaways" class="headerlink" title="🎯 7. Key Takeaways"></a>🎯 7. Key Takeaways</h2><table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Non-orthogonality</strong></td>
+<td>Critical for viscous terms — maintain near orthogonality.</td>
+</tr>
+<tr>
+<td><strong>Skewness</strong></td>
+<td>Affects gradients — keep low for smooth interpolation.</td>
+</tr>
+<tr>
+<td><strong>Face Uniformity</strong></td>
+<td>Impacts divergence accuracy — aim for balanced face positions.</td>
+</tr>
+<tr>
+<td><strong>Mesh Size</strong></td>
+<td>Dominant factor in source term precision.</td>
+</tr>
+<tr>
+<td><strong>Mesh Generators</strong></td>
+<td>Tools like CF-MESH+ ensure robust control over quality parameters.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="📚-References"><a href="#📚-References" class="headerlink" title="📚 References"></a>📚 References</h2><ul>
+<li>Source: <em>Mesh Quality Metrics. Discretisation Basics</em> — CF-MESH+ Blog</li>
+<li>© Creative Fields Holding Ltd.</li>
+</ul>
+<h1 id="NonOrthgonal"><a href="#NonOrthgonal" class="headerlink" title="NonOrthgonal"></a>NonOrthgonal</h1><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/mPdGfQ3QwiqR-c-dLlGh-Q">网格质量和拉普拉斯离散格式(fvSchemes)的设置</a><br>上面推送阐述了三种正交性网格的情况：</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/P99n1fuKyYlLL1BicgvVKs29ICQySKkicE75KU0IuNmLmTzRRb0BqNJXV1j4Oibop806xbSgqrvB25E4ZgH0IrmQQ/640?wx_fmt=png&from=appmsg&tp=webp&wxfrom=5&wx_lazy=1#imgIndex=0" alt="3 kinds of non-Orthgonality"></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/361078319">面法向梯度的非正交修正理论和OpenFOAM源码分析 - 知乎</a></p>
+<p><a target="_blank" rel="noopener" href="https://doc.cfd.direct/openfoam/user-guide-v6/fvschemes">OpenFOAM v6 User Guide - 4.4 Numerical schemes</a></p>
+<blockquote>
+<p>An additional correction to account for mesh non-orthogonality is available in both SIMPLE and PISO in the standard OpenFOAM solver applications. A mesh is orthogonal if, for each face within it, the face normal is parallel to the vector between the centres of the cells that the face connects, e.g. a mesh of hexahedral cells whose faces are aligned with a Cartesian coordinate system. The number of non-orthogonal correctors is specified by the nNonOrthogonalCorrectors keyword as shown in the examples above and on page <a target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/user-guide/6-solving/6.3-solution-and-algorithm-control#x24-930006.3">227</a>. The number of non-orthogonal correctors should correspond to the mesh for the case being solved, <strong>i.e. 0 for an orthogonal mesh and increasing with the degree of non-orthogonality up to, say, 20 for the most non-orthogonal meshes.</strong><br>算法迭代层面的非正交修正可以设置到20。</p>
+</blockquote>
+<h3 id="nNonOrthogonalCorrectors"><a href="#nNonOrthogonalCorrectors" class="headerlink" title="nNonOrthogonalCorrectors"></a>nNonOrthogonalCorrectors</h3><h4 id="迭代位置"><a href="#迭代位置" class="headerlink" title="迭代位置"></a>迭代位置</h4><ul>
+<li>离散格式中修正和<code>SIMPLE/PISO/PIMPLE</code>算法迭代上的修正</li>
+</ul>
+<p>nNonOrthogonalCorrectors </p>
+<p><a target="_blank" rel="noopener" href="https://www.simscale.com/docs/simulation-setup/numerics/non-orthogonal-correctors/">Non-Orthogonal Correctors | CFD Numerics | SimScale</a><br>上面这个网页中，简要的说明了non-Orthogonal迭代修正的位置：</p>
+<p><img src="https://lh6.googleusercontent.com/kKLbVU6sh67P4R-XiNGezUFqRHzSsoa5jQ2_5Vpu090L-rMig1MXI_XCtGgRfoZQvvWCrIIbN2sZJjvVryOKmnpCUQWnxh3-LUM-uu1Ol9A_4OSJxfzUiE18mzOEAGHsNs_Xhd77" alt="non-orthCorrectors_correctLoop"></p>
+<p>So for a good mesh, with no need for non-orthogonal correctors, the default SIMPLE algorithm is performed, that includes the following steps:</p>
+<ol>
+<li>Momentum Equation;</li>
+<li>Pressure Equation;</li>
+<li>Check continuity;</li>
+<li>Energy Equation;</li>
+<li>Turbulence Equations etc.</li>
+</ol>
+<p>In case of a bad mesh, with two non-orthogonal correctors, two extra steps are added when solving the pressure equation during the SIMPLE algorithm, and the sequence is formed as follows:</p>
+<ol>
+<li>Momentum Equation</li>
+<li>Pressure Equation;<ul>
+<li>Pressure Equation ( correction 1)</li>
+<li>Pressure Equation ( correction 2)</li>
+</ul>
+</li>
+<li>Check continuity;</li>
+<li>Energy Equation;</li>
+<li>Turbulence Equations etc.</li>
+</ol>
+<p>The amount of non-orthogonal correctors that are selected should be corresponding to the mesh for the case being solved. Here are some recommended values for the non-orthogonal correctors based on mesh non-orthogonality:</p>
+<ul>
+<li>if non-orthogonality &lt; 70  : 0;</li>
+<li>if non-orthogonality &gt; 70  :  1;</li>
+<li>if non-orthogonality &gt; 80  :  2;</li>
+<li>if orthogonality &gt; 85, becomes challenging to converge.</li>
+</ul>
+<h4 id="Jasak’s-attitude-towards-non-orth-correctors"><a href="#Jasak’s-attitude-towards-non-orth-correctors" class="headerlink" title="Jasak’s attitude towards non-orth correctors"></a>Jasak’s attitude towards non-orth correctors</h4><p>下面这个网页有Jasak对<code>non-orthogonality</code>设置次数的看法：<br><a target="_blank" rel="noopener" href="https://www.cfd-online.com/Forums/openfoam/69257-nnonorthogonalcorrectors.html">nNonOrthogonalCorrectors – CFD Online Discussion Forums</a></p>
+<blockquote>
+<p>Not really “more accurate”. If you are running steady, you are doing iterations that will correct non-orthogonality (among other things), and in transient, you are running multiple PISO&#x2F;SIMPLE correctors which will do the same thing.<br><br>Non-orthogonal correctorsare here to save you if your code is blowing up because the mesh is so non-orthogonal that the first solution is driving the velocity to be stupid. If your velocity is OK, you just keep doing “normal” correctors, without special need for non-orthogonal ones.<br><br>I use them on bad meshes (some people call them “industrial”) <img src="https://www.cfd-online.com/Forums/images/smilies/smile.gif" title="Smile"> when the solver is giving me trouble. Usually, 1 is enough, and I never used more than 3.  </p>
+</blockquote>
+<p>Hope this helps,<br>  ?<br>Hrvoje</p>
+<h4 id="cfMesh-talk-about-nonorthgonal"><a href="#cfMesh-talk-about-nonorthgonal" class="headerlink" title="cfMesh talk about nonorthgonal"></a>cfMesh talk about nonorthgonal</h4><p><a target="_blank" rel="noopener" href="https://cfmesh.com/is-it-alway-the-mesh-part-3-non-orthogonality/">https://cfmesh.com/is-it-alway-the-mesh-part-3-non-orthogonality/</a></p>
+<p>Non-orthogonality is measured as the angle between the vector connecting neighbouring cell centres at the face and the face-area vector, see the figure below. Low non-orthogonality angles are desired. However, suppose the non-orthogonality increases by about 90 degrees. In that case, the mesh becomes invalid and the discretisation is no longer conservative because the vector connecting cell centres and the face are vector start pointing in opposite directions!</p>
+<p>非正交性被衡量为在网格面上连接相邻单元中心点的向量与网格面面积向量之间的夹角，如下图所示。我们希望非正交性角度尽可能小。但是，如果非正交性角度增加大约90度，则网格会变得无效，并且离散化将不再是守恒的，因为连接单元中心点的向量和网格面面积向量开始指向相反的方向！</p>
+<p><img src="https://cfmesh.com/wp-content/uploads/2023/09/non-orthogonality.png" alt="cfMesh: mesh nonOrthogonality"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	&quot;versionAtEmbed&quot;: &quot;0.3.4&quot;,</span><br><span class="line">	&quot;filepath&quot;: &quot;attachments/store_pic_in_note/Ink/Drawing/2025.11.21 - 15.35pm.drawing&quot;,</span><br><span class="line">	&quot;width&quot;: 500,</span><br><span class="line">	&quot;aspectRatio&quot;: 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>表面法向梯度计算方案会影响拉普拉斯项的精度，并且它取决于非正交性。对流项、散度项、梯度项和源项不受非正交性的影响。通常，表面法向梯度的计算方法如下：</p>
+<p><strong>Key takeaways about non-orthogonality</strong></p>
+<p>The most important takeaways about non-orthogonality, which I never seem to get tired of telling are:</p>
+<ol>
+<li>It does not affect accuracy in regions where the solution is uniform! Avoid it in jets, boundary layers, and other features where the higher-order gradients are significant.</li>
+<li>It does not affect convection and gradient terms. Hence, it is not the crucial quality measure for convection-dominated flows.</li>
+<li>The influence of non-orthogonality on the calculation of the Laplacian terms, important in the boundary layer region, can be reduced by paying attention to the input geometry used for meshing, as described in _<strong><a target="_blank" rel="noopener" href="https://cfmesh.com/tips-tricks-for-a-high-quality-meshing-process/">Tips &amp; tricks for a high-quality meshing process.</a></strong></li>
+</ol>
+<p>关于非正交性，我总是乐此不疲地强调以下几个最重要的结论：</p>
+<ul>
+<li>它不影响解均匀区域的精度！应避免在射流、边界层以及其他高阶梯度显著的特征中使用。</li>
+<li>它不影响对流项和梯度项。因此，它<strong>不是对流主导流动的关键质量指标</strong>。</li>
+<li>可以通过关注用于网格划分的输入几何，来减少非正交性对拉普拉斯项计算的影响，这在边界层区域非常重要。相关内容请参考“高质量网格划分的技巧与窍门”。</li>
+</ul>
+<h1 id="Volume-Ratio"><a href="#Volume-Ratio" class="headerlink" title="Volume Ratio"></a>Volume Ratio</h1><p><a target="_blank" rel="noopener" href="https://cfmesh.com/is-it-always-the-mesh-part-7-volume-ratio-the-secret-killer/">https://cfmesh.com/is-it-always-the-mesh-part-7-volume-ratio-the-secret-killer/</a></p>
+<blockquote>
+<p>The goal of this post is to demystify the impact of volume ratio on the accuracy and the stability <strong>of simulations solving the pressure equation.</strong></p>
+</blockquote>
+<p>volume ratio definition:</p>
+<p>$$<br>V_r &#x3D; \frac{V_N}{V_P}<br>$$</p>
+<p><img src="https://cfmesh.com/wp-content/uploads/2025/07/problematic-locations-in-the-mesh.png" alt="problematic locations in the mesh"></p>
+<blockquote>
+<p>When the pressure equation is discretised using the Finite Volume Method, we achieve strong coupling of pressure between the neighbouring cells in the spirit of the Rhie-Chow interpolation. However, the coefficient in front of the pressure gradient is dependent on the cell volume, and this requires some further analysis to understand how it influences the solution procedure. When the pressure equation is discretised using the Finite Volume Method, the integration over volume can be represented as a summation over faces:</p>
+</blockquote>
+<p>当使用有限体积法离散压力方程时，我们可以在相邻单元之间实现压力强的耦合，这与Rhie-Chow插值的精神一致。然而，压力梯度前的系数取决于单元体积，因此需要进一步分析以了解它如何影响求解过程。当使用有限体积法离散压力方程时，对体积的积分可以表示为对面上的求和：</p>
+<p>#TODO 这里要先梳理一下semi-discretised方程后再整理一下</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/mesh-induced-numerical-problems/">https://hugh-tong.github.io/2026/09/15/mesh-induced-numerical-problems/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/DES/">DES</a><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/CFD-%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">CFD/数值方法</a><a class="post-meta__tags" href="/tags/NumericalProblems/">NumericalProblems</a><a class="post-meta__tags" href="/tags/MeshInduced/">MeshInduced</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/of-regex/" title="OpenFOAM 中的正则表达式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">OpenFOAM 中的正则表达式</div></div><div class="info-2"><div class="info-item-1">OpenFOAM中的正则表达式在 OpenFOAM 的开发和工程应用中，正则表达式（Regular Expressions）是实现配置文件简洁化和批量处理的核心利器。OpenFOAM 内部通过 regExp 类封装了 POSIX 扩展正则表达式，允许我们在字典文件中使用通配符和模式匹配。 以下我为你整理了 OpenFOAM 官方案例（ESI 和 Foundation 版本）中正则表达式应用的几个经典维度：  1. 求解器控制与容差设置 (fvSolution)这是工程中最常见的应用。为了避免给  等每个场单独写一遍设置，我们通常使用括号和 |（逻辑或）进行分组。 官方案例参考： tutorials/incompressible/simpleFoam/motorBike/system/fvSolution 123456789101112131415161718192021solvers&#123;    // 使用正则表达式匹配所有以 p 开头的压力相关场（如 p, p_rgh）    &quot;p.*&quot;    &#123;        solver         ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/foamdictionary/" title="foamDictionary 用法详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">foamDictionary 用法详解</div></div><div class="info-2"><div class="info-item-1">foamDictionary 使用指南与实例foamDictionary 是 OpenFOAM 自带的字典读写工具，用于在命令行对字典文件（如 system/controlDict、constant/transportProperties、0/U 等）进行查询、修改、插入、删除、格式化输出。它可以避免手工编辑易出错，尤其适合脚本化和批处理。  常见用途概览 查看条目：读取某个键的值或子字典 设置&#x2F;更新值：修改标量、向量、字符串、列表、维度量 插入&#x2F;删除条目：添加新键、移除旧键 路径定位：支持嵌套子字典与层级键路径 格式化&#x2F;规范化：重新排版、统一键排序（可选） 输出重定向：将结果写回文件或输出到标准输出用于管道   基本语法1foamDictionary &lt;dictFile&gt; [选项] [操作]   &lt;dictFile&gt;：目标字典文件路径（相对或绝对） 常见选项： -entry &lt;keyPath&gt;：指定要操作的键或路径 -value &lt;val&gt;：设置时提供值 -remove：删除条目 -add：添加条目（...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/rhie-chow-interpolation/" title="Rhie-Chow 插值"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">Rhie-Chow 插值</div></div><div class="info-2"><div class="info-item-1">一、背景与问题来源Rhie–Chow 插值提出于 1983 年，出自 Rhie 和 Chow 在求解不可压缩流（incompressible flow）时的研究。它要解决的核心问题是：  如何在共位网格（collocated grid）中消除压力—速度解之间的“奇异振荡”（checkerboard pressure oscillations）？  背景：在不可压缩流体中，控制方程包括：  动量方程（求速度） 连续性方程（保证质量守恒，约束速度场散度为零）  若采用简单的有限体积方法（FVM），并把所有变量（$p, u, v, w$）都存储在单一的网格节点（如单元中心） 上，这就是所谓的 共位（collocated）布置。但这样布置时，会出现一个严重问题：  连续性方程在压力修正阶段对速度插值非常敏感；如果速度不是恰当地从单元中心插值到面中心，系统的压力解会发散或出现非物理的棋盘格振荡。   二、“棋盘格压力（checkerboard pressure）” 问题的来源对于不可压缩流，连续性方程形式是： $$ \nabla \cdot \mathbf{u} &#x3D; 0 $$ 在...</div></div></div></a><a class="pagination-related" href="/2026/09/15/divergence-free/" title="divergence-free 散度为零"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">divergence-free 散度为零</div></div><div class="info-2"><div class="info-item-1">CFD 中的 “divergence-free” 的意义在计算流体力学（CFD）中，“divergence-free”（也写作 “divergence free”、“无散度”、“散度为零”）通常指速度场满足 $\nabla \cdot \mathbf{u} &#x3D; 0$。它在物理与数值上都至关重要，尤其针对不可压缩流动。  1. 物理意义：质量守恒的强形式 不可压缩流动条件：对恒定密度流体（或密度变化可忽略），连续方程化为 $\nabla \cdot \mathbf{u} &#x3D; 0$，表示局部体积不膨胀或收缩，流体“既不在本地产生也不在本地消失”。 可压缩流动对比：可压缩情况下，连续方程为 $\partial_t \rho + \nabla \cdot (\rho \mathbf{u}) &#x3D; 0$。即使 $\nabla \cdot \mathbf{u} \neq 0$，质量仍可守恒，因为密度随时空变化。不可压缩的“无散度”是更强的约束。   2. 数值意义：压力–速度耦合与稳定性 压力作为约束的拉格朗日乘子  在不可压缩 NS 方程中，压力不是通过状态方程...</div></div></div></a><a class="pagination-related" href="/2026/09/15/term-stability-effects/" title="加减方程项对数值稳定性的影响"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">加减方程项对数值稳定性的影响</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中“正负号”的数值含义与编码影响（含例子演示）在 OpenFOAM 的数值实现中，正负号不仅仅是算术符号，还携带了物理方向、通量指向、源项正负贡献以及离散格式的稳定性含义。尤其是在求解守恒方程（质量、动量、组分、电荷等）时，“加上一个负值”和“减去一个正值”在语义与读写习惯上可能看似等价，但在代码可读性、物理含义以及与现有符号约定对齐方面会有差别，容易引入误解或错误。 本文从常见对象与操作入手，解释正负号的影响，并给出多个简明示例。  1) 常见对象中的正负号语义+ 通量 phi（surfaceScalarField）  面上定义，带有宿主面的几何法向。phi &gt; 0 表示沿面法向方向的净流出（相对 cell 的“正向”），phi &lt; 0 表示反向。 在离散化中，fvm::div(phi, U)、fvc::div(phi, Y) 等与符号直接决定迎风方向、界面插值方向。 若你写 phi = phiA - phiB，则负号表明你关心的是两通量的“相对向量投影”对守恒项的贡献。   源项&#x2F;沉积项 S（volScalarField&#x2F;vo...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ebd-chtmultiregionfoam/" title="chtMultiRegionFoam 共轭传热求解器:结构与实际案例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">chtMultiRegionFoam 共轭传热求解器:结构与实际案例</div></div><div class="info-2"><div class="info-item-1">chtMultiRegionFoam求解器- 文集 哔哩哔哩专栏 实际案例案例典型结构123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172~/O/OpenFOAM-v23/t/heatTransfer/chtMultiRegionFoam/snappyMultiRegionHeater &gt; tree -L 3                                                                                                                                                                                                                      17:35:59.├── 0.o...</div></div></div></a><a class="pagination-related" href="/2026/09/15/dyfluid-qa-20250918/" title="dyfluid 问答集(2025-09-18)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">dyfluid 问答集(2025-09-18)</div></div><div class="info-2"><div class="info-item-1">http://dyfluid.com/selftest.html 本页面主要用来想要参加LCO算法编程课的同学的基础自测。也可用于相关公司招聘时对应聘人员的CFD算法水平评估。相关问题均为普适性CFD问题，也即对于任意一个方向的CFD算法从业人员，都应该了解。对于下列问题，如果：  懂50%以下，需要补算法；如果来参加课程，学习后将会对所有问题有一阵见血的理解；  懂70%，可以用业余时间补算法。对于应聘人员可以通过初面；  懂90%。如果招聘为浮动工资（如应届生月薪2-3万），建议对这一类应聘人员最低提供中位工资（月薪2.5万以上）；   Warning 相关问题同时附带chatgpt的答案。对于AI能回答100%的问题，从事相关工作的人员要保持警惕，可能存在被替代导致失业的可能。 问题集将下述索引标识法的方程，转化为向量标识法： $$\begin{split}\begin{multline}\frac{\partial R}{\partial t}+\frac{\partial u_j R}{\partial x_j}\frac{\partial}{\partial x_j...</div></div></div></a><a class="pagination-related" href="/2026/09/15/bound-function/" title="OpenFOAM bound 函数(占位)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM bound 函数(占位)</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 的 bound 函数用于把场限制在物理下界(如 k、ε &gt; 0)。 资料索引 bound 函数的实现方法 - CFD-China —— 回复中提到 bound 有一些奇怪的操作  待补充  源码走读(bound 与 boundCheck)  与 MULES&#x2F;多相限幅器的关系  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">102</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">110</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">26</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Skewness"><span class="toc-number">1.</span> <span class="toc-text">Skewness</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%8C%90-1-Introduction-%E2%80%94-Role-of-Mesh-in-FVM"><span class="toc-number">1.1.</span> <span class="toc-text">🌐 1. Introduction — Role of Mesh in FVM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%98-Key-Mesh-Requirements"><span class="toc-number">1.1.1.</span> <span class="toc-text">📘 Key Mesh Requirements:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8F-2-Core-Mesh-Quality-Metrics"><span class="toc-number">1.2.</span> <span class="toc-text">📏 2. Core Mesh Quality Metrics</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%B9-2-1-Non-Orthogonality-%CE%B8"><span class="toc-number">1.2.1.</span> <span class="toc-text">🔹 2.1 Non-Orthogonality (θ)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%B9-2-2-Skewness-S"><span class="toc-number">1.2.2.</span> <span class="toc-text">🔹 2.2 Skewness (S)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%B9-2-3-Face-Uniformity-U"><span class="toc-number">1.2.3.</span> <span class="toc-text">🔹 2.3 Face Uniformity (U)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%99%EF%B8%8F-3-Finite-Volume-Discretisation-%E2%80%94-Basic-Requirements"><span class="toc-number">1.3.</span> <span class="toc-text">⚙️ 3. Finite Volume Discretisation — Basic Requirements</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%89-4-Sources-of-Discretisation-Error"><span class="toc-number">1.4.</span> <span class="toc-text">📉 4. Sources of Discretisation Error</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-5-Practical-Insights"><span class="toc-number">1.5.</span> <span class="toc-text">🧠 5. Practical Insights</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A9-6-cfMesh-CF-MESH-Overview"><span class="toc-number">1.6.</span> <span class="toc-text">🧩 6. cfMesh &amp; CF-MESH+ Overview</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cfMesh-Open-Source"><span class="toc-number">1.6.1.</span> <span class="toc-text">cfMesh (Open-Source)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CF-MESH-Enhanced-Pro-Version"><span class="toc-number">1.6.2.</span> <span class="toc-text">CF-MESH+ (Enhanced Pro Version)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%8E%AF-7-Key-Takeaways"><span class="toc-number">1.7.</span> <span class="toc-text">🎯 7. Key Takeaways</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%9A-References"><span class="toc-number">1.8.</span> <span class="toc-text">📚 References</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NonOrthgonal"><span class="toc-number">2.</span> <span class="toc-text">NonOrthgonal</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nNonOrthogonalCorrectors"><span class="toc-number">2.0.1.</span> <span class="toc-text">nNonOrthogonalCorrectors</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%AD%E4%BB%A3%E4%BD%8D%E7%BD%AE"><span class="toc-number">2.0.1.1.</span> <span class="toc-text">迭代位置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Jasak%E2%80%99s-attitude-towards-non-orth-correctors"><span class="toc-number">2.0.1.2.</span> <span class="toc-text">Jasak’s attitude towards non-orth correctors</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#cfMesh-talk-about-nonorthgonal"><span class="toc-number">2.0.1.3.</span> <span class="toc-text">cfMesh talk about nonorthgonal</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Volume-Ratio"><span class="toc-number">3.</span> <span class="toc-text">Volume Ratio</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/bound-function/" title="OpenFOAM bound 函数(占位)">OpenFOAM bound 函数(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/fractional-step-method/" title="分数步投影法(占位)">分数步投影法(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/matrix-solver-choice/" title="OpenFOAM 矩阵求解器选择(占位)">OpenFOAM 矩阵求解器选择(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/pyfoam/" title="PyFoam 工具集(占位)">PyFoam 工具集(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/redistributepar-tool/" title="redistributePar 工具(占位)">redistributePar 工具(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

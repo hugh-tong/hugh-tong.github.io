@@ -1,0 +1,715 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>divergence-free 散度为零 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="不可压缩约束 div(U)&#x3D;0 的数值实现与检查方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="divergence-free 散度为零">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/divergence-free/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="不可压缩约束 div(U)&#x3D;0 的数值实现与检查方法。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:11:30.744Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="RANS">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="CFD&#x2F;数值方法">
+<meta property="article:tag" content="LES">
+<meta property="article:tag" content="ParaView">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "divergence-free 散度为零",
+  "url": "https://hugh-tong.github.io/2026/09/15/divergence-free/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T07:00:00.000Z",
+  "dateModified": "2026-09-15T08:11:30.744Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/divergence-free/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'divergence-free 散度为零',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">divergence-free 散度为零</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">divergence-free 散度为零</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T07:00:00.000Z" title="Created 2026-09-15 15:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:11:30.744Z" title="Updated 2026-09-15 16:11:30">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">数值方法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="CFD-中的-“divergence-free”-的意义"><a href="#CFD-中的-“divergence-free”-的意义" class="headerlink" title="CFD 中的 “divergence-free” 的意义"></a>CFD 中的 “divergence-free” 的意义</h1><p>在计算流体力学（CFD）中，“divergence-free”（也写作 “divergence free”、“无散度”、“散度为零”）通常指速度场满足 $\nabla \cdot \mathbf{u} &#x3D; 0$。它在物理与数值上都至关重要，尤其针对不可压缩流动。</p>
+<hr>
+<h2 id="1-物理意义：质量守恒的强形式"><a href="#1-物理意义：质量守恒的强形式" class="headerlink" title="1. 物理意义：质量守恒的强形式"></a>1. 物理意义：质量守恒的强形式</h2><ul>
+<li><strong>不可压缩流动条件</strong>：对恒定密度流体（或密度变化可忽略），连续方程化为 $\nabla \cdot \mathbf{u} &#x3D; 0$，表示局部体积不膨胀或收缩，流体“既不在本地产生也不在本地消失”。</li>
+<li><strong>可压缩流动对比</strong>：可压缩情况下，连续方程为 $\partial_t \rho + \nabla \cdot (\rho \mathbf{u}) &#x3D; 0$。即使 $\nabla \cdot \mathbf{u} \neq 0$，质量仍可守恒，因为密度随时空变化。不可压缩的“无散度”是更强的约束。</li>
+</ul>
+<hr>
+<h2 id="2-数值意义：压力–速度耦合与稳定性"><a href="#2-数值意义：压力–速度耦合与稳定性" class="headerlink" title="2. 数值意义：压力–速度耦合与稳定性"></a>2. 数值意义：压力–速度耦合与稳定性</h2><ul>
+<li><p><strong>压力作为约束的拉格朗日乘子</strong><br>  在不可压缩 NS 方程中，压力不是通过状态方程确定，而是通过强制 $\nabla \cdot \mathbf{u} &#x3D; 0$ 的约束来求得。数值上通常通过解压力泊松方程或采用投影&#x2F;分裂法，调整速度场以满足无散度。</p>
+</li>
+<li><p><strong>投影法（Projection）&#x2F;压力校正法（SIMPLE, PISO）</strong></p>
+<ul>
+<li>先计算“预测速度” $\mathbf{u}^*$（通常不满足无散度）。</li>
+<li>解压力（或压力校正）泊松方程：$\nabla^2 p &#x3D; \frac{\rho}{\Delta t},\nabla \cdot \mathbf{u}^*.$</li>
+<li>用压力梯度修正速度：$\mathbf{u}^{n+1} &#x3D; \mathbf{u}^* - \frac{\Delta t}{\rho},\nabla p,$ 使得$\nabla \cdot \mathbf{u}^{n+1} &#x3D; 0$。</li>
+</ul>
+</li>
+<li><p><strong>数值稳定性与准确性</strong><br>  速度场的散度误差会引入非物理源汇，导致体积“漏失&#x2F;生成”，表现为压力振荡、密度漂移、非物理加速或误差累积。良好的离散和求解策略应将散度误差控制在截断误差量级。</p>
+</li>
+</ul>
+<hr>
+<h2 id="3-网格与离散层面的-“离散无散度”（discrete-divergence-free）"><a href="#3-网格与离散层面的-“离散无散度”（discrete-divergence-free）" class="headerlink" title="3. 网格与离散层面的 “离散无散度”（discrete divergence-free）"></a>3. 网格与离散层面的 “离散无散度”（discrete divergence-free）</h2><ul>
+<li><p><strong>离散一致性（discrete compatibility）</strong><br>  期望离散的梯度、散度、旋度算子满足离散向量微积分恒等式（例如离散地实现$\nabla \cdot (\nabla \times \cdot) \equiv 0)$，以实现数值上的“无散度”。</p>
+</li>
+<li><p><strong>结构化（交错）网格（staggered&#x2F;MAC）</strong><br>  在 MAC 网格上，速度分量定义在面中心、压力在单元中心，几何配合使离散的散度与梯度天然兼容，更易实现严格的离散无散度。</p>
+</li>
+<li><p><strong>共点（collocated）网格</strong><br>  需要压力–速度耦合技巧（如 Rhie–Chow 插值）抑制压力棋盘格，减少伪散度与奇异模式。</p>
+</li>
+<li><p><strong>有限体积法（FVM）</strong><br>  将无散度条件体积积分后得到“净通量为零”：每个控制体的入流通量等于出流通量，这是离散局部质量守恒的体现。</p>
+</li>
+</ul>
+<hr>
+<h2 id="4-在湍流建模与数值滤波中的作用"><a href="#4-在湍流建模与数值滤波中的作用" class="headerlink" title="4. 在湍流建模与数值滤波中的作用"></a>4. 在湍流建模与数值滤波中的作用</h2><ul>
+<li><p><strong>湍流分解</strong><br>  在不可压缩情形下，RANS&#x2F;LES 仍须保证瞬时或滤波后的速度场尽可能满足 $\nabla \cdot \mathbf{u} &#x3D; 0$。亚格子模型（如 Smagorinsky）通常在投影步骤后施加无散度约束。</p>
+</li>
+<li><p><strong>数值扩散与滤波</strong><br>  过大的数值扩散可能降低局部散度误差，但也会抹平物理结构。高阶、无振荡格式更有利于兼顾“离散无散度”和解析度。</p>
+</li>
+</ul>
+<hr>
+<h2 id="5-典型判断与诊断"><a href="#5-典型判断与诊断" class="headerlink" title="5. 典型判断与诊断"></a>5. 典型判断与诊断</h2><ul>
+<li><p><strong>监控指标</strong></p>
+<ul>
+<li>域内散度的 $L_2$ 范数或最大范数：$|\nabla \cdot \mathbf{u}|<em>2, |\nabla \cdot \mathbf{u}|</em>\infty$</li>
+<li>每步质量不平衡（global mass imbalance）</li>
+<li>控制体（或网格块）通量闭合误差</li>
+</ul>
+</li>
+<li><p><strong>可视化</strong><br>  在后处理（如 ParaView）中计算并显示 <code>div(U)</code> 的等值面或直方图。理想不可压缩解应接近零，误差常集中在边界层、几何拐角或网格&#x2F;多物理耦合界面附近。</p>
+</li>
+</ul>
+<hr>
+<h2 id="6-与-“solenoidal-螺线性”-的联系"><a href="#6-与-“solenoidal-螺线性”-的联系" class="headerlink" title="6. 与 “solenoidal&#x2F;螺线性” 的联系"></a>6. 与 “solenoidal&#x2F;螺线性” 的联系</h2><ul>
+<li>“divergence-free” 速度场也称为 <strong>solenoidal</strong> 场（螺线性场）。在向量分析中，满足 $\nabla \cdot \mathbf{u} &#x3D; 0$的向量场在适当条件下可表示为某个矢势的旋度：<br>  $\mathbf{u} &#x3D; \nabla \times \mathbf{A}.$ 在磁流体力学（MHD）中同理，磁感应方程要求$\nabla \cdot \mathbf{B} &#x3D; 0$。</li>
+</ul>
+<hr>
+<h2 id="7-何时不要求严格-divergence-free？"><a href="#7-何时不要求严格-divergence-free？" class="headerlink" title="7. 何时不要求严格 divergence-free？"></a>7. 何时不要求严格 divergence-free？</h2><ul>
+<li><p><strong>弱可压缩&#x2F;显式可压缩求解</strong><br>  若求解可压缩 NS 方程（有状态方程闭合），则不强加 $\nabla \cdot \mathbf{u} &#x3D; 0$，而由质量方程演化密度。在低马赫数但可压缩框架下，速度散度通常接近而非严格为零。</p>
+</li>
+<li><p><strong>多相与体积分数模型</strong><br>  总体仍需质量守恒，但由于相间通量耦合、相变源项等，单相视角下的“散度零”可被源项打破。应在离散上保证整体守恒。</p>
+</li>
+</ul>
+<hr>
+<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><ul>
+<li>“divergence-free” 在不可压缩 CFD 中等价于局部质量守恒，是确定压力场、维持数值稳定与物理可信度的关键约束。</li>
+<li>实现依赖：合适的网格布局（交错&#x2F;共点）、离散一致性（通量守恒）、以及压力–速度耦合算法（投影&#x2F;SIMPLE&#x2F;PISO）。</li>
+<li>诊断应监控散度范数与通量闭合误差，力求误差维持在截断误差量级并避免累积。</li>
+</ul>
+<p>如果你正在使用特定求解器（如 OpenFOAM、Fluent、COMSOL 或自研 FVM&#x2F;FEM 代码），告诉我你的设置与网格类型，我可以给出对应的参数建议与检查清单。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/divergence-free/">https://hugh-tong.github.io/2026/09/15/divergence-free/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/RANS/">RANS</a><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/CFD-%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">CFD/数值方法</a><a class="post-meta__tags" href="/tags/LES/">LES</a><a class="post-meta__tags" href="/tags/ParaView/">ParaView</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/dyfluid-qa-20250918/" title="dyfluid 问答集(2025-09-18)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">dyfluid 问答集(2025-09-18)</div></div><div class="info-2"><div class="info-item-1">http://dyfluid.com/selftest.html 本页面主要用来想要参加LCO算法编程课的同学的基础自测。也可用于相关公司招聘时对应聘人员的CFD算法水平评估。相关问题均为普适性CFD问题，也即对于任意一个方向的CFD算法从业人员，都应该了解。对于下列问题，如果：  懂50%以下，需要补算法；如果来参加课程，学习后将会对所有问题有一阵见血的理解；  懂70%，可以用业余时间补算法。对于应聘人员可以通过初面；  懂90%。如果招聘为浮动工资（如应届生月薪2-3万），建议对这一类应聘人员最低提供中位工资（月薪2.5万以上）；   Warning 相关问题同时附带chatgpt的答案。对于AI能回答100%的问题，从事相关工作的人员要保持警惕，可能存在被替代导致失业的可能。 问题集将下述索引标识法的方程，转化为向量标识法： $$\begin{split}\begin{multline}\frac{\partial R}{\partial t}+\frac{\partial u_j R}{\partial x_j}\frac{\partial}{\partial x_j...</div></div></div></a><a class="pagination-related" href="/2026/09/15/cumulative-error-growth/" title="cumulative error 持续增大的排查"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">cumulative error 持续增大的排查</div></div><div class="info-2"><div class="info-item-1">simpleFoam 中连续性误差（cumulative）持续增大、最终发散的常见原因与对策在 simpleFoam 的迭代日志里，像下面这行来自压力校正（p-equation）与通量校正（phi）的连续性检查： 1time step continuity errors : sum local = 2.44316043779e-09, global = -4.34080109975e-12, cumulative = -4.34080109975e-12   sum local：各个控制体的局部质量不平衡的绝对值总和（只反映量级）。 global：整个域的净质量不平衡（有符号），理想应接近 0。 cumulative：全局误差的累积和（随迭代更新），如果持续偏离 0 并增大，通常预示压力-速度耦合或边界流量不匹配的问题，可能走向发散。  下面按“成因分类 → 现象 → 快速检查 → 解决策略”的方式总结。  1) 边界条件不一致或不物理 典型症状  global 带固定符号并逐步累积（cumulative 单调漂移）。 入口&#x2F;出口设置导致总质量通量不平衡（如多个入口 f...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/rhie-chow-interpolation/" title="Rhie-Chow 插值"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">Rhie-Chow 插值</div></div><div class="info-2"><div class="info-item-1">一、背景与问题来源Rhie–Chow 插值提出于 1983 年，出自 Rhie 和 Chow 在求解不可压缩流（incompressible flow）时的研究。它要解决的核心问题是：  如何在共位网格（collocated grid）中消除压力—速度解之间的“奇异振荡”（checkerboard pressure oscillations）？  背景：在不可压缩流体中，控制方程包括：  动量方程（求速度） 连续性方程（保证质量守恒，约束速度场散度为零）  若采用简单的有限体积方法（FVM），并把所有变量（$p, u, v, w$）都存储在单一的网格节点（如单元中心） 上，这就是所谓的 共位（collocated）布置。但这样布置时，会出现一个严重问题：  连续性方程在压力修正阶段对速度插值非常敏感；如果速度不是恰当地从单元中心插值到面中心，系统的压力解会发散或出现非物理的棋盘格振荡。   二、“棋盘格压力（checkerboard pressure）” 问题的来源对于不可压缩流，连续性方程形式是： $$ \nabla \cdot \mathbf{u} &#x3D; 0 $$ 在...</div></div></div></a><a class="pagination-related" href="/2026/09/15/dyfluid-qa-20250918/" title="dyfluid 问答集(2025-09-18)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">dyfluid 问答集(2025-09-18)</div></div><div class="info-2"><div class="info-item-1">http://dyfluid.com/selftest.html 本页面主要用来想要参加LCO算法编程课的同学的基础自测。也可用于相关公司招聘时对应聘人员的CFD算法水平评估。相关问题均为普适性CFD问题，也即对于任意一个方向的CFD算法从业人员，都应该了解。对于下列问题，如果：  懂50%以下，需要补算法；如果来参加课程，学习后将会对所有问题有一阵见血的理解；  懂70%，可以用业余时间补算法。对于应聘人员可以通过初面；  懂90%。如果招聘为浮动工资（如应届生月薪2-3万），建议对这一类应聘人员最低提供中位工资（月薪2.5万以上）；   Warning 相关问题同时附带chatgpt的答案。对于AI能回答100%的问题，从事相关工作的人员要保持警惕，可能存在被替代导致失业的可能。 问题集将下述索引标识法的方程，转化为向量标识法： $$\begin{split}\begin{multline}\frac{\partial R}{\partial t}+\frac{\partial u_j R}{\partial x_j}\frac{\partial}{\partial x_j...</div></div></div></a><a class="pagination-related" href="/2026/09/15/term-stability-effects/" title="加减方程项对数值稳定性的影响"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">加减方程项对数值稳定性的影响</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中“正负号”的数值含义与编码影响（含例子演示）在 OpenFOAM 的数值实现中，正负号不仅仅是算术符号，还携带了物理方向、通量指向、源项正负贡献以及离散格式的稳定性含义。尤其是在求解守恒方程（质量、动量、组分、电荷等）时，“加上一个负值”和“减去一个正值”在语义与读写习惯上可能看似等价，但在代码可读性、物理含义以及与现有符号约定对齐方面会有差别，容易引入误解或错误。 本文从常见对象与操作入手，解释正负号的影响，并给出多个简明示例。  1) 常见对象中的正负号语义+ 通量 phi（surfaceScalarField）  面上定义，带有宿主面的几何法向。phi &gt; 0 表示沿面法向方向的净流出（相对 cell 的“正向”），phi &lt; 0 表示反向。 在离散化中，fvm::div(phi, U)、fvc::div(phi, Y) 等与符号直接决定迎风方向、界面插值方向。 若你写 phi = phiA - phiB，则负号表明你关心的是两通量的“相对向量投影”对守恒项的贡献。   源项&#x2F;沉积项 S（volScalarField&#x2F;vo...</div></div></div></a><a class="pagination-related" href="/2026/09/15/p_vs_prgh/" title="p 与 p_rgh:静水压力处理的两条路线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">p 与 p_rgh:静水压力处理的两条路线</div></div><div class="info-2"><div class="info-item-1">101OpenFOAM: User Guide: Hydrostatic pressure effects For cases that the hydrostatic pressure contribution ρ(g∙h) is important, e.g. for buoyant and multiphase cases, it is numerically convenient to solve for an alternative pressure defined by p′&#x3D;p−ρ(g∙h). In OpenFOAM solver applications the p′ pressure term is named p_rgh. The momentum equation ∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p+ρg is transformed to use p′: p′&#x3D;p−ρ(g∙h). After the following substititions: −p−∇p&#x3D;−p′−ρ(g∙h)&#x3...</div></div></div></a><a class="pagination-related" href="/2026/09/15/redistributePar_VS_reconstructPar/" title="redistributePar vs reconstructPar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">redistributePar vs reconstructPar</div></div><div class="info-2"><div class="info-item-1">redistributePar_VS_reconstructPar在 OpenFOAM 中，redistributePar 和 reconstructPar 都是处理并行计算数据的工具，但它们的方向和功能强度完全不同。 简单来说：  reconstructPar 是做“合体”的（把分散的数据拼回一个整体）。 redistributePar 是做“重组”的（不仅能合体，还能拆分，还能重新分配）。  以下是详细的对比：  1. 功能核心区别   特性 reconstructPar (传统&#x2F;单一) redistributePar (现代&#x2F;全能)    核心动作 合并 (Merge) 再分配 (Decompose &amp; Reconstruct &amp; Balance)   数据流向 processor* $\rightarrow$ 0, constant, system processor* $\leftrightarrow$ processor*  或者 processor* $\leftrightarrow$ 单核   主要用途 算完后把结果合并，方便 ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/mesh-induced-numerical-problems/" title="网格诱导的数值问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">网格诱导的数值问题</div></div><div class="info-2"><div class="info-item-1">Skewnesshttps://cfmesh.com/is-it-always-the-mesh-part-2-skewness/   🌐 1. Introduction — Role of Mesh in FVMIn Finite Volume Method (FVM), numerical accuracy directly depends on mesh geometry.A high-quality mesh ensures:  Consistent representation of gradients, Accurate flux calculations, and Reliable convergence behaviour.  📘 Key Mesh Requirements: Non-overlapping cells — Each control volume must be unique. Convexity of cells — Ensures valid interpolation and stable discretisation. Consiste...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">102</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">110</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">26</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CFD-%E4%B8%AD%E7%9A%84-%E2%80%9Cdivergence-free%E2%80%9D-%E7%9A%84%E6%84%8F%E4%B9%89"><span class="toc-number">1.</span> <span class="toc-text">CFD 中的 “divergence-free” 的意义</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%89%A9%E7%90%86%E6%84%8F%E4%B9%89%EF%BC%9A%E8%B4%A8%E9%87%8F%E5%AE%88%E6%81%92%E7%9A%84%E5%BC%BA%E5%BD%A2%E5%BC%8F"><span class="toc-number">1.1.</span> <span class="toc-text">1. 物理意义：质量守恒的强形式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%95%B0%E5%80%BC%E6%84%8F%E4%B9%89%EF%BC%9A%E5%8E%8B%E5%8A%9B%E2%80%93%E9%80%9F%E5%BA%A6%E8%80%A6%E5%90%88%E4%B8%8E%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">2. 数值意义：压力–速度耦合与稳定性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%BD%91%E6%A0%BC%E4%B8%8E%E7%A6%BB%E6%95%A3%E5%B1%82%E9%9D%A2%E7%9A%84-%E2%80%9C%E7%A6%BB%E6%95%A3%E6%97%A0%E6%95%A3%E5%BA%A6%E2%80%9D%EF%BC%88discrete-divergence-free%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">3. 网格与离散层面的 “离散无散度”（discrete divergence-free）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%9C%A8%E6%B9%8D%E6%B5%81%E5%BB%BA%E6%A8%A1%E4%B8%8E%E6%95%B0%E5%80%BC%E6%BB%A4%E6%B3%A2%E4%B8%AD%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.4.</span> <span class="toc-text">4. 在湍流建模与数值滤波中的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%85%B8%E5%9E%8B%E5%88%A4%E6%96%AD%E4%B8%8E%E8%AF%8A%E6%96%AD"><span class="toc-number">1.5.</span> <span class="toc-text">5. 典型判断与诊断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E4%B8%8E-%E2%80%9Csolenoidal-%E8%9E%BA%E7%BA%BF%E6%80%A7%E2%80%9D-%E7%9A%84%E8%81%94%E7%B3%BB"><span class="toc-number">1.6.</span> <span class="toc-text">6. 与 “solenoidal&#x2F;螺线性” 的联系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E4%BD%95%E6%97%B6%E4%B8%8D%E8%A6%81%E6%B1%82%E4%B8%A5%E6%A0%BC-divergence-free%EF%BC%9F"><span class="toc-number">1.7.</span> <span class="toc-text">7. 何时不要求严格 divergence-free？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%B0%8F%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">8. 小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/bound-function/" title="OpenFOAM bound 函数(占位)">OpenFOAM bound 函数(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/fractional-step-method/" title="分数步投影法(占位)">分数步投影法(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/matrix-solver-choice/" title="OpenFOAM 矩阵求解器选择(占位)">OpenFOAM 矩阵求解器选择(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/pyfoam/" title="PyFoam 工具集(占位)">PyFoam 工具集(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/redistributepar-tool/" title="redistributePar 工具(占位)">redistributePar 工具(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OpenFOAM 中的正则表达式 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="OpenFOAM 字典与命令行中正则表达式的语法要点与应用实例。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenFOAM 中的正则表达式">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/of-regex/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="OpenFOAM 字典与命令行中正则表达式的语法要点与应用实例。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:11:30.748Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;工具">
+<meta property="article:tag" content="simpleFoam">
+<meta property="article:tag" content="多相流">
+<meta property="article:tag" content="interFoam">
+<meta property="article:tag" content="OF">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OpenFOAM 中的正则表达式",
+  "url": "https://hugh-tong.github.io/2026/09/15/of-regex/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T07:00:00.000Z",
+  "dateModified": "2026-09-15T08:11:30.748Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/of-regex/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OpenFOAM 中的正则表达式',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">OpenFOAM 中的正则表达式</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">OpenFOAM 中的正则表达式</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T07:00:00.000Z" title="Created 2026-09-15 15:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:11:30.748Z" title="Updated 2026-09-15 16:11:30">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">数值方法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="OpenFOAM中的正则表达式"><a href="#OpenFOAM中的正则表达式" class="headerlink" title="OpenFOAM中的正则表达式"></a>OpenFOAM中的正则表达式</h2><p>在 OpenFOAM 的开发和工程应用中，正则表达式（Regular Expressions）是实现<strong>配置文件简洁化</strong>和<strong>批量处理</strong>的核心利器。OpenFOAM 内部通过 <code>regExp</code> 类封装了 POSIX 扩展正则表达式，允许我们在字典文件中使用通配符和模式匹配。</p>
+<p>以下我为你整理了 OpenFOAM 官方案例（ESI 和 Foundation 版本）中正则表达式应用的几个经典维度：</p>
+<hr>
+<h3 id="1-求解器控制与容差设置-fvSolution"><a href="#1-求解器控制与容差设置-fvSolution" class="headerlink" title="1. 求解器控制与容差设置 (fvSolution)"></a>1. 求解器控制与容差设置 (<code>fvSolution</code>)</h3><p>这是工程中最常见的应用。为了避免给  等每个场单独写一遍设置，我们通常使用括号和 <code>|</code>（逻辑或）进行分组。</p>
+<p><strong>官方案例参考：</strong> <code>tutorials/incompressible/simpleFoam/motorBike/system/fvSolution</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">solvers</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 使用正则表达式匹配所有以 p 开头的压力相关场（如 p, p_rgh）</span></span><br><span class="line">    <span class="string">&quot;p.*&quot;</span></span><br><span class="line">    &#123;</span><br><span class="line">        solver          GAMG;</span><br><span class="line">        tolerance       <span class="number">1e-06</span>;</span><br><span class="line">        relTol          <span class="number">0.01</span>;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 匹配速度场、湍流物理量以及其他标量场</span></span><br><span class="line">    <span class="string">&quot;(U|k|epsilon|omega|f|v2)&quot;</span></span><br><span class="line">    &#123;</span><br><span class="line">        solver          smoothSolver;</span><br><span class="line">        smoother        symGaussSeidel;</span><br><span class="line">        tolerance       <span class="number">1e-08</span>;</span><br><span class="line">        relTol          <span class="number">0.1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-边界条件批量定义-0-文件夹"><a href="#2-边界条件批量定义-0-文件夹" class="headerlink" title="2. 边界条件批量定义 (0/ 文件夹)"></a>2. 边界条件批量定义 (<code>0/</code> 文件夹)</h3><p>在复杂几何（如你的泄洪道或汽车外流场）中，边界（Patch）可能多达几十个。通过正则匹配，可以一键给所有壁面赋予相同的壁面函数。</p>
+<p><strong>官方案例参考：</strong> <code>tutorials/incompressible/pisoFoam/RAS/cavity/0/nut</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">boundaryField</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 匹配所有包含 &quot;wall&quot; 字符串的边界（如 bottomWall, topWall, pipe_wall）</span></span><br><span class="line">    <span class="string">&quot;.*Wall.*&quot;</span></span><br><span class="line">    &#123;</span><br><span class="line">        type            nutkWallFunction;</span><br><span class="line">        value           $internalField;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 针对特定前缀的匹配（在 motorBike 案例中常见）</span></span><br><span class="line">    <span class="string">&quot;motorBike_.*&quot;</span></span><br><span class="line">    &#123;</span><br><span class="line">        type            nutkWallFunction;</span><br><span class="line">        value           $internalField;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="3-离散格式统一指定-fvSchemes"><a href="#3-离散格式统一指定-fvSchemes" class="headerlink" title="3. 离散格式统一指定 (fvSchemes)"></a>3. 离散格式统一指定 (<code>fvSchemes</code>)</h3><p>如果你希望对所有的对流项使用同一种格式，或者对某一类标量进行统一限制，正则非常有帮助。</p>
+<p><strong>官方案例参考：</strong> 广泛应用于复杂多相流案例</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">divSchemes</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">default</span>         none;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 匹配所有 div(phi, 变量) 形式的项</span></span><br><span class="line">    <span class="string">&quot;div\(phi,.*\)&quot;</span>  <span class="function">Gauss linearUpwind <span class="title">grad</span><span class="params">(U)</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 专门匹配湍流物理量的对流项</span></span><br><span class="line">    <span class="string">&quot;div\(phi,(k|epsilon|omega|nuTilda)\)&quot;</span> Gauss limitedLinear <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意：</strong> 在 OpenFOAM 字典中，某些特殊字符如 <code>(</code> 或 <code>)</code> 需要使用反斜杠 <code>\</code> 转义，或者将整个表达式放入双引号中。</p>
+</blockquote>
+<hr>
+<h3 id="4-并行计算划分-decomposeParDict"><a href="#4-并行计算划分-decomposeParDict" class="headerlink" title="4. 并行计算划分 (decomposeParDict)"></a>4. 并行计算划分 (<code>decomposeParDict</code>)</h3><p>在进行区域分解时，如果我们希望某些特定的边界不被切分，或者属于特定的处理器约束，可以使用正则。</p>
+<p><strong>官方案例参考：</strong> <code>tutorials/multiphase/interFoam/RAS/damBreak/system/decomposeParDict</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">constraints</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 约束特定的 patch 不在分解时被跨越</span></span><br><span class="line">    preservePatches</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 匹配所有以 &quot;inlet&quot; 或 &quot;outlet&quot; 结尾的边界</span></span><br><span class="line">        <span class="built_in">patches</span>         (<span class="string">&quot;.*inlet&quot;</span> <span class="string">&quot;.*outlet&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-功能对象与监控-functionObjects"><a href="#5-功能对象与监控-functionObjects" class="headerlink" title="5. 功能对象与监控 (functionObjects)"></a>5. 功能对象与监控 (<code>functionObjects</code>)</h3><p>在 <code>controlDict</code> 中设置监控时，如果需要同时对多个场求平均或计算力，正则可以极大地减少代码量。</p>
+<p><strong>官方案例参考：</strong> <code>system/controlDict</code> 中的 <code>fieldAverage</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">functions</span><br><span class="line">&#123;</span><br><span class="line">    fieldAverage1</span><br><span class="line">    &#123;</span><br><span class="line">        type            fieldAverage;</span><br><span class="line">        <span class="built_in">libs</span>            (fieldFunctionObjects);</span><br><span class="line">        writeControl    writeTime;</span><br><span class="line">        <span class="comment">// 匹配所有需要计算平均值的场</span></span><br><span class="line">        <span class="built_in">fields</span></span><br><span class="line">        (</span><br><span class="line">            <span class="string">&quot;U.*&quot;</span>  <span class="comment">// 匹配 U, Um, Umean 等</span></span><br><span class="line">            &#123;</span><br><span class="line">                mean        on;</span><br><span class="line">                prime2Mean  on;</span><br><span class="line">                base        time;</span><br><span class="line">            &#125;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-开发者进阶：正则在代码中的实现"><a href="#6-开发者进阶：正则在代码中的实现" class="headerlink" title="6. 开发者进阶：正则在代码中的实现"></a>6. 开发者进阶：正则在代码中的实现</h3><p>如果你在进行二次开发（C++），你可以直接调用 OpenFOAM 的 <code>regExp</code> 类。</p>
+<p><strong>底层代码片段示例：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;regExp.H&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个正则表达式对象</span></span><br><span class="line"><span class="function">regExp <span class="title">wallMatcher</span><span class="params">(<span class="string">&quot;.*Wall.*&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查某个 patch 名称是否匹配</span></span><br><span class="line"><span class="keyword">if</span> (wallMatcher.<span class="built_in">match</span>(patchName))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 执行相关逻辑</span></span><br><span class="line">    Info&lt;&lt; <span class="string">&quot;Applying logic to wall: &quot;</span> &lt;&lt; patchName &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="总结：常用正则符号速查表"><a href="#总结：常用正则符号速查表" class="headerlink" title="总结：常用正则符号速查表"></a>总结：常用正则符号速查表</h3><table>
+<thead>
+<tr>
+<th>符号</th>
+<th>含义</th>
+<th>OpenFOAM 典型用法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.</code></td>
+<td>匹配任意单个字符</td>
+<td><code>p.</code> 匹配 p1, p2</td>
+</tr>
+<tr>
+<td><code>.*</code></td>
+<td>匹配零个或多个任意字符</td>
+<td><code>.*Wall</code> 匹配所有墙</td>
+</tr>
+<tr>
+<td>&#96;</td>
+<td>&#96;</td>
+<td>逻辑或</td>
+</tr>
+<tr>
+<td><code>[]</code></td>
+<td>字符集合</td>
+<td><code>patch[1-3]</code> 匹配 patch1, 2, 3</td>
+</tr>
+<tr>
+<td><code>^</code></td>
+<td>匹配行首</td>
+<td>通常用于某些字符串过滤</td>
+</tr>
+<tr>
+<td><code>$</code></td>
+<td>匹配行尾</td>
+<td><code>.*Inlet$</code> 匹配以 Inlet 结尾的边界</td>
+</tr>
+</tbody></table>
+<h3 id="专家提醒："><a href="#专家提醒：" class="headerlink" title="专家提醒："></a>专家提醒：</h3><ol>
+<li><strong>引号的使用：</strong> 包含 <code>*</code> 或 <code>|</code> 的正则表达式<strong>务必使用双引号</strong>包裹，例如 <code>&quot;U|k|omega&quot;</code>，否则 OpenFOAM 会将其识别为普通的非法字符。</li>
+<li><strong>测试技巧：</strong> 如果不确定正则是否生效，可以使用 <code>foamDictionary</code> 工具进行测试。</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试在 fvSolution 中正则是否正确匹配了字段</span></span><br><span class="line">foamDictionary system/fvSolution -entry solvers</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>下一步建议：</strong><br>针对你的泄洪道 1000 万网格案例，如果边界 Patch 非常零碎（比如 ICEM 导出的多个面），你想让我帮你写一个特定的正则表达式，把所有的“侧墙”、“底板”和“跌坎”分别归类到统一的边界条件中吗？只需告诉我你的 Patch 命名规律即可。</p>
+<h2 id="face-011到face-067正则"><a href="#face-011到face-067正则" class="headerlink" title="face_011到face_067正则"></a>face_011到face_067正则</h2><p>在 OpenFOAM 中，手动列出从 <code>face_011</code> 到 <code>face_067</code> 显然太繁琐。利用 <strong>POSIX 正则表达式</strong>，我们可以根据数字的分布规律进行压缩。</p>
+<p>针对你的需求，这里有三种由简入深的写法，建议根据你的网格中是否存在其他类似命名的 Patch 来选择：</p>
+<h3 id="1-最简洁写法：基于通配符（推荐）"><a href="#1-最简洁写法：基于通配符（推荐）" class="headerlink" title="1. 最简洁写法：基于通配符（推荐）"></a>1. 最简洁写法：基于通配符（推荐）</h3><p>如果你确定 <code>face_</code> 开头的编号中，你只想处理这部分，且没有 <code>face_100</code> 以上或 <code>face_001</code> 以下的干扰项，可以直接使用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;face_0.*&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>含义</strong>：匹配所有以 <code>face_0</code> 开头的边界名。</li>
+<li><strong>适用场景</strong>：最常用，只要编号都在 <code>0xx</code> 范围内且没有其他不相关的 <code>face_0</code> 边界。</li>
+</ul>
+<hr>
+<h3 id="2-范围精确写法：基于字符集"><a href="#2-范围精确写法：基于字符集" class="headerlink" title="2. 范围精确写法：基于字符集"></a>2. 范围精确写法：基于字符集</h3><p>如果你需要限制在 <code>011</code> 到 <code>067</code> 之间，且担心匹配到 <code>face_001</code> 或 <code>face_070</code>，可以使用字符集组合：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;face_0[1-6][0-9]&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>解析</strong>：</p>
+</li>
+<li><p><code>face_0</code>：固定前缀。</p>
+</li>
+<li><p><code>[1-6]</code>：第二位数字在 1 到 6 之间。</p>
+</li>
+<li><p><code>[0-9]</code>：第三位数字是任意 0 到 9。</p>
+</li>
+<li><p><strong>注意</strong>：这个写法实际匹配的是 <code>010</code> 到 <code>069</code>。如果你的 Patch 刚好是从 <code>011</code> 到 <code>067</code>，且不存在 <code>010</code>, <code>068</code>, <code>069</code> 这三个 Patch，这是<strong>工程上最优雅的写法</strong>。</p>
+</li>
+</ul>
+<hr>
+<h3 id="3-严格区间写法：基于逻辑分支"><a href="#3-严格区间写法：基于逻辑分支" class="headerlink" title="3. 严格区间写法：基于逻辑分支"></a>3. 严格区间写法：基于逻辑分支</h3><p>如果你是一个完美主义者，必须<strong>严格只匹配</strong> <code>011-067</code>，不许有多余的数字进入，写法如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;face_0(1[1-9]|[2-5][0-9]|6[0-7])&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>解析（使用 <code>|</code> 逻辑或）</strong>：</p>
+</li>
+<li><p><code>1[1-9]</code>：匹配 011 到 019。</p>
+</li>
+<li><p><code>[2-5][0-9]</code>：匹配 020 到 059。</p>
+</li>
+<li><p><code>6[0-7]</code>：匹配 060 到 067。</p>
+</li>
+<li><p><strong>适用场景</strong>：Patch 命名极其混乱，周围充满了不相关的编号。</p>
+</li>
+</ul>
+<hr>
+<h3 id="工程师的操作技巧：如何在-0-U-等字典中应用？"><a href="#工程师的操作技巧：如何在-0-U-等字典中应用？" class="headerlink" title="工程师的操作技巧：如何在 0/U 等字典中应用？"></a>工程师的操作技巧：如何在 <code>0/U</code> 等字典中应用？</h3><p>在泄洪道案例中，如果你要给这些面统一设置壁面函数，建议这样写：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">boundaryField</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 使用双引号包裹正则表达式</span></span><br><span class="line">    <span class="string">&quot;face_0[1-6][0-9]&quot;</span></span><br><span class="line">    &#123;</span><br><span class="line">        type            nutkWallFunction;</span><br><span class="line">        value           $internalField;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 其他边界...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="调试小工具"><a href="#调试小工具" class="headerlink" title="调试小工具"></a>调试小工具</h3><p>如果你不确定正则写得对不对，不需要运行求解器，直接在终端输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有匹配该正则的 patch 名称（假设当前在 case 目录下）</span></span><br><span class="line">foamDictionary -entry <span class="string">&quot;boundaryField&quot;</span> 0/U | grep -E <span class="string">&quot;face_0[1-6][0-9]&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么我建议你用方案 2？</strong><br>在 1000 万网格的复杂案例中（尤其是 ICEM 导出的网格），Patch 命名通常会有微小的跳号。使用稍微宽松一点的正则（如方案 2）可以增强脚本的<strong>鲁棒性</strong>，即使后续网格微调增加了一个 <code>face_068</code>，你的边界条件依然能自动覆盖它，而不需要重写正则。</p>
+<p>你想让我帮你把这些 Patch 的正则应用到 <code>fvSolution</code> 里的线性求解器分组中，还是应用到 <code>0/</code> 文件夹的边界条件设置里？</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/of-regex/">https://hugh-tong.github.io/2026/09/15/of-regex/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E5%B7%A5%E5%85%B7/">CFD/OpenFOAM/工具</a><a class="post-meta__tags" href="/tags/simpleFoam/">simpleFoam</a><a class="post-meta__tags" href="/tags/%E5%A4%9A%E7%9B%B8%E6%B5%81/">多相流</a><a class="post-meta__tags" href="/tags/interFoam/">interFoam</a><a class="post-meta__tags" href="/tags/OF/">OF</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/of-runtest-tools-design/" title="OpenFOAM 跑测试的工具链设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">OpenFOAM 跑测试的工具链设计</div></div><div class="info-2"><div class="info-item-1">AI+ProductManQ:我想基于我日常使用OpenFOAM的习惯定制一个Python+shell+conda安装，可以直接在终端运行命令的runTest工具。我需要怎么样prompt，得到一个完整的项目。给我一个模版 这是一个非常实用且典型的开发辅助工具需求。要得到一个完整、可用、结构清晰的项目，你的 Prompt 需要扮演一个**“产品经理+技术架构师”**的角色，清晰地告诉 AI 你的工作流、痛点以及期望的技术栈。 下面是一个为你量身定制的 Prompt 模板。你可以直接复制并根据你的具体习惯微调括号里的内容。  🚀 定制 OpenFOAM runTest 工具的 Prompt 模版Role (角色设定): 你是一名资深的 CFD 工程师兼 DevOps 专家，精通 OpenFOAM 工作流、Python 脚本自动化、Shell 编程以及 Conda 环境管理。你擅长编写鲁棒性强、易于维护的命令行工具（CLI）。 Goal (目标): 我需要你为一个 OpenFOAM 自动化测试与运行工具生成完整的项目结构和代码。该工具名为 runTest，旨在简化我日常的 CFD ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/mesh-induced-numerical-problems/" title="网格诱导的数值问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">网格诱导的数值问题</div></div><div class="info-2"><div class="info-item-1">Skewnesshttps://cfmesh.com/is-it-always-the-mesh-part-2-skewness/   🌐 1. Introduction — Role of Mesh in FVMIn Finite Volume Method (FVM), numerical accuracy directly depends on mesh geometry.A high-quality mesh ensures:  Consistent representation of gradients, Accurate flux calculations, and Reliable convergence behaviour.  📘 Key Mesh Requirements: Non-overlapping cells — Each control volume must be unique. Convexity of cells — Ensures valid interpolation and stable discretisation. Consiste...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/of-runtest-tools-design/" title="OpenFOAM 跑测试的工具链设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 跑测试的工具链设计</div></div><div class="info-2"><div class="info-item-1">AI+ProductManQ:我想基于我日常使用OpenFOAM的习惯定制一个Python+shell+conda安装，可以直接在终端运行命令的runTest工具。我需要怎么样prompt，得到一个完整的项目。给我一个模版 这是一个非常实用且典型的开发辅助工具需求。要得到一个完整、可用、结构清晰的项目，你的 Prompt 需要扮演一个**“产品经理+技术架构师”**的角色，清晰地告诉 AI 你的工作流、痛点以及期望的技术栈。 下面是一个为你量身定制的 Prompt 模板。你可以直接复制并根据你的具体习惯微调括号里的内容。  🚀 定制 OpenFOAM runTest 工具的 Prompt 模版Role (角色设定): 你是一名资深的 CFD 工程师兼 DevOps 专家，精通 OpenFOAM 工作流、Python 脚本自动化、Shell 编程以及 Conda 环境管理。你擅长编写鲁棒性强、易于维护的命令行工具（CLI）。 Goal (目标): 我需要你为一个 OpenFOAM 自动化测试与运行工具生成完整的项目结构和代码。该工具名为 runTest，旨在简化我日常的 CFD ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-bc-overview-2026/" title="OpenFOAM 边界条件整理(2026)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 边界条件整理(2026)</div></div><div class="info-2"><div class="info-item-1">在 OpenFOAM 的不可压缩流体模拟中（如 simpleFoam, pisoFoam, interFoam），边界条件的设置直接决定了计算的收敛性和物理准确性。针对管内流动&#x2F;室内通风场景，以下是单相流与两相流（VOF）的压力与速度边界条件总结。  一、 单相不可压缩流动 (Single-Phase)适用求解器： simpleFoam (稳态), pisoFoam &#x2F; pimleFoam (瞬态)核心注意： 压力场 p 的量纲通常是 $m^2&#x2F;s^2$（即 $P&#x2F;\rho$）。    边界位置 速度场 (U) 压力场 (p) 说明    入口 (Inlet) fixedValue zeroGradient 或 fixedFluxPressure 给定已知流速（如 uniform (1 0 0)）。   出口 (Outlet) zeroGradient fixedValue 通常设出口压力为 0（参考压）。   壁面 (Wall) noSlip zeroGradient 或 fixedFluxPressure fixedFluxPressu...</div></div></div></a><a class="pagination-related" href="/2026/09/15/p_vs_prgh/" title="p 与 p_rgh:静水压力处理的两条路线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">p 与 p_rgh:静水压力处理的两条路线</div></div><div class="info-2"><div class="info-item-1">101OpenFOAM: User Guide: Hydrostatic pressure effects For cases that the hydrostatic pressure contribution ρ(g∙h) is important, e.g. for buoyant and multiphase cases, it is numerically convenient to solve for an alternative pressure defined by p′&#x3D;p−ρ(g∙h). In OpenFOAM solver applications the p′ pressure term is named p_rgh. The momentum equation ∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p+ρg is transformed to use p′: p′&#x3D;p−ρ(g∙h). After the following substititions: −p−∇p&#x3D;−p′−ρ(g∙h)&#x3...</div></div></div></a><a class="pagination-related" href="/2026/09/15/foamdictionary/" title="foamDictionary 用法详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">foamDictionary 用法详解</div></div><div class="info-2"><div class="info-item-1">foamDictionary 使用指南与实例foamDictionary 是 OpenFOAM 自带的字典读写工具，用于在命令行对字典文件（如 system/controlDict、constant/transportProperties、0/U 等）进行查询、修改、插入、删除、格式化输出。它可以避免手工编辑易出错，尤其适合脚本化和批处理。  常见用途概览 查看条目：读取某个键的值或子字典 设置&#x2F;更新值：修改标量、向量、字符串、列表、维度量 插入&#x2F;删除条目：添加新键、移除旧键 路径定位：支持嵌套子字典与层级键路径 格式化&#x2F;规范化：重新排版、统一键排序（可选） 输出重定向：将结果写回文件或输出到标准输出用于管道   基本语法1foamDictionary &lt;dictFile&gt; [选项] [操作]   &lt;dictFile&gt;：目标字典文件路径（相对或绝对） 常见选项： -entry &lt;keyPath&gt;：指定要操作的键或路径 -value &lt;val&gt;：设置时提供值 -remove：删除条目 -add：添加条目（...</div></div></div></a><a class="pagination-related" href="/2026/09/15/empty/" title="OpenFOAM empty 边界条件的含义"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM empty 边界条件的含义</div></div><div class="info-2"><div class="info-item-1">OpenFOAM如果一个内部的边界设置为empty，意味着什么？在 OpenFOAM 中，如果把一个内部边界（Internal Boundary） 设置为 empty 类型，这通常是一个非常特殊甚至危险的操作，除非你非常清楚自己在做一个伪 2D 模拟。 以下是它的具体含义和后果： 1. 核心含义：维度的“降维打击”empty 边界条件的唯一合法用途是指示 OpenFOAM 进行 2D 模拟。它告诉求解器：“沿着这个面的法线方向，没有物理变化，也不需要求解方程。请忽略这个维度的存在。”  标准用法：通常只用于网格的 Front 和 Back 面（前后板），且这两个面必须是平行的。这会让三维网格在计算上变成二维切片。  2. 如果用在“内部”意味着什么？假设你在流场中间有一个 Patch（比如一个挡板面或者内嵌面），你把它设为了 empty，后果如下： A. 物理上：绝对的隔离与滑移 (Perfect Slip &amp; Insulation) 无通量 (Zero Flux)：流体无法穿过这个面。质量通量为 0。 零梯度 (Zero Gradient)：标量（如温度、压力）在这个面...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-bc-matrix-impact/" title="边界条件如何进入 OpenFOAM 矩阵组装"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">边界条件如何进入 OpenFOAM 矩阵组装</div></div><div class="info-2"><div class="info-item-1">前言：本篇探究边界条件在OpenFOAM求解中的影响。 可以发现，边界条件影响求解过程的地方较多。边界条件通过影响矩阵系数值来影响求解的结果。  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">102</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">110</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">26</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenFOAM%E4%B8%AD%E7%9A%84%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">OpenFOAM中的正则表达式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B1%82%E8%A7%A3%E5%99%A8%E6%8E%A7%E5%88%B6%E4%B8%8E%E5%AE%B9%E5%B7%AE%E8%AE%BE%E7%BD%AE-fvSolution"><span class="toc-number">1.1.</span> <span class="toc-text">1. 求解器控制与容差设置 (fvSolution)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6%E6%89%B9%E9%87%8F%E5%AE%9A%E4%B9%89-0-%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-number">1.2.</span> <span class="toc-text">2. 边界条件批量定义 (0&#x2F; 文件夹)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%A6%BB%E6%95%A3%E6%A0%BC%E5%BC%8F%E7%BB%9F%E4%B8%80%E6%8C%87%E5%AE%9A-fvSchemes"><span class="toc-number">1.3.</span> <span class="toc-text">3. 离散格式统一指定 (fvSchemes)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E5%88%92%E5%88%86-decomposeParDict"><span class="toc-number">1.4.</span> <span class="toc-text">4. 并行计算划分 (decomposeParDict)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%8A%9F%E8%83%BD%E5%AF%B9%E8%B1%A1%E4%B8%8E%E7%9B%91%E6%8E%A7-functionObjects"><span class="toc-number">1.5.</span> <span class="toc-text">5. 功能对象与监控 (functionObjects)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%BC%80%E5%8F%91%E8%80%85%E8%BF%9B%E9%98%B6%EF%BC%9A%E6%AD%A3%E5%88%99%E5%9C%A8%E4%BB%A3%E7%A0%81%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.6.</span> <span class="toc-text">6. 开发者进阶：正则在代码中的实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E5%B8%B8%E7%94%A8%E6%AD%A3%E5%88%99%E7%AC%A6%E5%8F%B7%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.7.</span> <span class="toc-text">总结：常用正则符号速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%93%E5%AE%B6%E6%8F%90%E9%86%92%EF%BC%9A"><span class="toc-number">1.8.</span> <span class="toc-text">专家提醒：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#face-011%E5%88%B0face-067%E6%AD%A3%E5%88%99"><span class="toc-number">2.</span> <span class="toc-text">face_011到face_067正则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9C%80%E7%AE%80%E6%B4%81%E5%86%99%E6%B3%95%EF%BC%9A%E5%9F%BA%E4%BA%8E%E9%80%9A%E9%85%8D%E7%AC%A6%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">1. 最简洁写法：基于通配符（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%8C%83%E5%9B%B4%E7%B2%BE%E7%A1%AE%E5%86%99%E6%B3%95%EF%BC%9A%E5%9F%BA%E4%BA%8E%E5%AD%97%E7%AC%A6%E9%9B%86"><span class="toc-number">2.2.</span> <span class="toc-text">2. 范围精确写法：基于字符集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%A5%E6%A0%BC%E5%8C%BA%E9%97%B4%E5%86%99%E6%B3%95%EF%BC%9A%E5%9F%BA%E4%BA%8E%E9%80%BB%E8%BE%91%E5%88%86%E6%94%AF"><span class="toc-number">2.3.</span> <span class="toc-text">3. 严格区间写法：基于逻辑分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%B8%88%E7%9A%84%E6%93%8D%E4%BD%9C%E6%8A%80%E5%B7%A7%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9C%A8-0-U-%E7%AD%89%E5%AD%97%E5%85%B8%E4%B8%AD%E5%BA%94%E7%94%A8%EF%BC%9F"><span class="toc-number">2.4.</span> <span class="toc-text">工程师的操作技巧：如何在 0&#x2F;U 等字典中应用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E5%B0%8F%E5%B7%A5%E5%85%B7"><span class="toc-number">2.5.</span> <span class="toc-text">调试小工具</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/bound-function/" title="OpenFOAM bound 函数(占位)">OpenFOAM bound 函数(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/fractional-step-method/" title="分数步投影法(占位)">分数步投影法(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/matrix-solver-choice/" title="OpenFOAM 矩阵求解器选择(占位)">OpenFOAM 矩阵求解器选择(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/pyfoam/" title="PyFoam 工具集(占位)">PyFoam 工具集(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/redistributepar-tool/" title="redistributePar 工具(占位)">redistributePar 工具(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

@@ -1,0 +1,763 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Rhie-Chow 插值 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Rhie-Chow 插值:消除同位网格压力棋盘振荡的关键技术。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rhie-Chow 插值">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/rhie-chow-interpolation/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="Rhie-Chow 插值:消除同位网格压力棋盘振荡的关键技术。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:11:30.748Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="CFD&#x2F;数值方法">
+<meta property="article:tag" content="LES">
+<meta property="article:tag" content="插值">
+<meta property="article:tag" content="Rhie">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Rhie-Chow 插值",
+  "url": "https://hugh-tong.github.io/2026/09/15/rhie-chow-interpolation/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T07:00:00.000Z",
+  "dateModified": "2026-09-15T08:11:30.748Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/rhie-chow-interpolation/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Rhie-Chow 插值',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">Rhie-Chow 插值</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">Rhie-Chow 插值</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T07:00:00.000Z" title="Created 2026-09-15 15:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:11:30.748Z" title="Updated 2026-09-15 16:11:30">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">数值方法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="一、背景与问题来源"><a href="#一、背景与问题来源" class="headerlink" title="一、背景与问题来源"></a>一、背景与问题来源</h2><p>Rhie–Chow 插值提出于 1983 年，出自 Rhie 和 Chow 在求解不可压缩流（incompressible flow）时的研究。<br>它要解决的核心问题是：</p>
+<blockquote>
+<p><strong>如何在共位网格（collocated grid）中消除压力—速度解之间的“奇异振荡”（checkerboard pressure oscillations）？</strong></p>
+</blockquote>
+<h3 id="背景："><a href="#背景：" class="headerlink" title="背景："></a>背景：</h3><p>在不可压缩流体中，控制方程包括：</p>
+<ul>
+<li>动量方程（求速度）</li>
+<li>连续性方程（保证质量守恒，约束速度场散度为零）</li>
+</ul>
+<p>若采用<strong>简单的有限体积方法（FVM）</strong>，并把所有变量（$p, u, v, w$）都存储在<strong>单一的网格节点（如单元中心）</strong> 上，这就是所谓的 <strong>共位（collocated）布置</strong>。<br>但这样布置时，会出现一个严重问题：</p>
+<blockquote>
+<p>连续性方程在压力修正阶段对速度插值非常敏感；如果速度不是恰当地从单元中心插值到面中心，系统的压力解会发散或出现非物理的棋盘格振荡。</p>
+</blockquote>
+<hr>
+<h2 id="二、“棋盘格压力（checkerboard-pressure）”-问题的来源"><a href="#二、“棋盘格压力（checkerboard-pressure）”-问题的来源" class="headerlink" title="二、“棋盘格压力（checkerboard pressure）” 问题的来源"></a>二、“棋盘格压力（checkerboard pressure）” 问题的来源</h2><p>对于不可压缩流，连续性方程形式是：</p>
+<p>$$ \nabla \cdot \mathbf{u} &#x3D; 0 $$</p>
+<p>在有限体积离散中需要计算面通量： $$ F_f &#x3D; (\mathbf{u} \cdot \mathbf{n})_f A_f $$ 若直接用中心差分线性插值来求面速度（例如直接取两边单元中心速度的平均）， 则压力梯度项在动量方程修正阶段对面速度的影响可能被完全抵消。</p>
+<p>结果是：<br>不同单元的压力场之间可以互相“漂浮”而不引起通量变化，导致<strong>虚假的自由度</strong>，表现为棋盘格状的压力分布（$p_{i,j}$ 在网格上像黑白格子交替一样振荡），但连续性误差却几乎为零。</p>
+<hr>
+<h2 id="三、Rhie–Chow-插值的核心思想"><a href="#三、Rhie–Chow-插值的核心思想" class="headerlink" title="三、Rhie–Chow 插值的核心思想"></a>三、Rhie–Chow 插值的核心思想</h2><p>Rhie–Chow 的关键思想是：</p>
+<blockquote>
+<p>在计算面通量（或面上速度）时，不直接线性插值动量方程解出的单元中心速度，而是通过动量方程构造<strong>一个带有压力差校正项</strong>的“中间速度”。</p>
+</blockquote>
+<p>简单来说，</p>
+<ul>
+<li>面上的速度不是简单平均两边单元的速度；</li>
+<li>要额外加上一个由<strong>面两侧压力差与动量方程系数</strong>计算得到的修正项。</li>
+</ul>
+<h3 id="数学表达式"><a href="#数学表达式" class="headerlink" title="数学表达式"></a>数学表达式</h3><p>以一维为例，动量方程离散可近似写为：</p>
+<p>$$ a_P u_P &#x3D; \sum_N a_N u_N + (p_N - p_P) A &#x2F; \Delta x + b_P $$</p>
+<p>则面上的速度 $u_f$ 不是简单的 $(u_P + u_N)&#x2F;2$，而是：</p>
+<p>$$ u_f &#x3D; \left(\frac{a_P u_P + a_N u_N}{a_P + a_N}\right)</p>
+<ul>
+<li>\frac{A}{a_P + a_N}(p_N - p_P) $$</li>
+</ul>
+<p>右边最后一项便是 <strong>Rhie–Chow 修正项</strong>， 其中 $A$ 是面面积法向，$a_P$, $a_N$ 是动量方程离散后的对角系数。</p>
+<p>这项修正确保了：</p>
+<ul>
+<li>面上的速度通量会对压力梯度“正确”地敏感；</li>
+<li>避免了中心差分引起的离散退化；</li>
+<li>保证压力与速度场之间的耦合合理。</li>
+</ul>
+<hr>
+<h2 id="四、从物理上理解"><a href="#四、从物理上理解" class="headerlink" title="四、从物理上理解"></a>四、从物理上理解</h2><p>从物理角度看，Rhie–Chow 插值使得：</p>
+<ul>
+<li>面速度不仅取决于单元中心速度的平均，还考虑了<strong>两侧压力驱动对流体运动的真实影响</strong>。</li>
+<li>即使在不可压缩流中，压力梯度不再“失效”，它能正确地反映在面通量的变化中。</li>
+</ul>
+<p>因此，压力修正方程（例如 SIMPLE 或 PISO 中的压力校正步骤）能稳定地收敛，防止压力振荡。</p>
+<hr>
+<h2 id="五、在算法实现中的位置"><a href="#五、在算法实现中的位置" class="headerlink" title="五、在算法实现中的位置"></a>五、在算法实现中的位置</h2><p>Rhie-Chow 插值通常出现在：</p>
+<ul>
+<li><strong>SIMPLE &#x2F; SIMPLER &#x2F; PISO 等基于压力校正的算法</strong>；</li>
+<li>采用**共位网格（collocated grids）**的有限体积法 (FVM)；</li>
+<li>应用于不可压缩流体求解器中（如稳态流动、LES、RANS）。</li>
+</ul>
+<p>对应位置通常是：</p>
+<ul>
+<li>在组装质量方程（连续性方程）时；</li>
+<li>在计算面通量（$u_f$）时调用 Rhie–Chow 插值。</li>
+</ul>
+<hr>
+<h2 id="六、实际作用总结"><a href="#六、实际作用总结" class="headerlink" title="六、实际作用总结"></a>六、实际作用总结</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>问题</th>
+<th>Rhie–Chow 插值的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>网格布置</td>
+<td>共位网格中压力与速度共点</td>
+<td>提供压力与速度正确耦合</td>
+</tr>
+<tr>
+<td>压力场</td>
+<td>出现棋盘格“振荡”</td>
+<td>消除棋盘格振荡</td>
+</tr>
+<tr>
+<td>连续性方程</td>
+<td>离散质量方程可能退化</td>
+<td>保证通量对压力敏感，方程稳定</td>
+</tr>
+<tr>
+<td>收敛性</td>
+<td>非物理解、发散</td>
+<td>改善收敛与物理一致性</td>
+</tr>
+<tr>
+<td>实现</td>
+<td>各CFD软件（Fluent, OpenFOAM, 自编代码）</td>
+<td>采用Rhie-Chow修正计算面通量</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="七、扩展与改进"><a href="#七、扩展与改进" class="headerlink" title="七、扩展与改进"></a>七、扩展与改进</h2><p>之后的研究中，Rhie–Chow 插值也有进一步改进：</p>
+<ul>
+<li><strong>改进的Rhie–Chow方案（Modified RC）</strong>：处理高雷诺数流动时的过度数值扩散问题；</li>
+<li><strong>压力平滑插值（Pressure-weighted interpolation）</strong>：在非结构网格中推广；</li>
+<li><strong>基于面中心压力修正</strong>：用于高阶有限体积法。</li>
+</ul>
+<p>这些扩展仍保留其核心思想：“通过压力梯度修正面速度插值，避免奇异压力振荡”。</p>
+<hr>
+<p>✅ <strong>简而言之总结</strong></p>
+<blockquote>
+<p>Rhie–Chow 插值是一种在共位网格上防止压力–速度解发散的关键算法手段。<br>它通过在面速度的插值公式中引入以动量方程为基础的压力修正项，保证压力方程的正确耦合和数值稳定性。<br>若没有它，共位网格中解出的压力场会产生非物理的棋盘波动。</p>
+</blockquote>
+<hr>
+<p>如果你想，我可以用一张示意图帮你直观展示：</p>
+<ul>
+<li>棋盘格压力是怎么形成的；</li>
+<li>Rhie–Chow 修正项在面速度计算中是如何起作用的。</li>
+</ul>
+<p>是否希望我画一张这样的示意图？</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/rhie-chow-interpolation/">https://hugh-tong.github.io/2026/09/15/rhie-chow-interpolation/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/CFD-%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95/">CFD/数值方法</a><a class="post-meta__tags" href="/tags/LES/">LES</a><a class="post-meta__tags" href="/tags/%E6%8F%92%E5%80%BC/">插值</a><a class="post-meta__tags" href="/tags/Rhie/">Rhie</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/simple-piso-pimple-algorithms/" title="SIMPLE/PISO/PIMPLE 算法总览"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">SIMPLE/PISO/PIMPLE 算法总览</div></div><div class="info-2"><div class="info-item-1">SIMPLE&#x2F;PISO算法Semi-Implicit Method for Pressure Linked Equations Pressure Implicit with Splitting of Operators 资料(for more details)OpenFOAM: User Guide: SIMPLE algorithm 2.2 SIMPLE系列算法 | 2.3 PISO算法（OpenFOAM理论笔记系列）_CloudBird07的博客-CSDN博客_piso算法 OpenFOAM中的数据结构-icoFoam为例【未完成】 - 知乎 (zhihu.com) OpenFOAM guide&#x2F;The SIMPLE algorithm in OpenFOAM - OpenFOAMWiki OpenFOAM guide&#x2F;The PISO algorithm in OpenFOAM - OpenFOAMWiki SIMPLE——From User Guide  The sequence for each iteration follows:  Ad...</div></div></div></a><a class="pagination-related" href="/2026/09/15/realizable-k-eps/" title="Realizable k-ε 模型解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Realizable k-ε 模型解析</div></div><div class="info-2"><div class="info-item-1">Realizable $k-\epsilon$（Realizable k-epsilon）是标准 $k-\epsilon$ 模型最著名的改进版本之一（另一个是 RNG $k-\epsilon$）。 如果说 SST 是 k-omega 家族的“王者”，那么 Realizable 则是 k-epsilon 家族中处理强旋流和射流的“专家”。 它和普通（Standard）$k-\epsilon$ 的核心区别主要在于两点：“数学上的合规性”和“耗散率方程的重写”。  区别一：它解决了“负能量”的 BUG（Realizability）这是该模型名字“Realizable”（可实现的&#x2F;符合物理现实的）的由来。  普通 k-epsilon 的 BUG：在计算湍流粘度 $\mu_t$ 时，标准模型使用固定公式 $\mu_t &#x3D; \rho C_\mu \frac{k^2}{\epsilon}$，其中 $C_\mu$ 是一个常数（通常是 0.09）。但在某些极端情况下（比如流体急剧加速或者强烈的剪切时），这个简单的公式会导致数学上的荒谬结果：正应力（Normal Stress）变...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/divergence-free/" title="divergence-free 散度为零"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">divergence-free 散度为零</div></div><div class="info-2"><div class="info-item-1">CFD 中的 “divergence-free” 的意义在计算流体力学（CFD）中，“divergence-free”（也写作 “divergence free”、“无散度”、“散度为零”）通常指速度场满足 $\nabla \cdot \mathbf{u} &#x3D; 0$。它在物理与数值上都至关重要，尤其针对不可压缩流动。  1. 物理意义：质量守恒的强形式 不可压缩流动条件：对恒定密度流体（或密度变化可忽略），连续方程化为 $\nabla \cdot \mathbf{u} &#x3D; 0$，表示局部体积不膨胀或收缩，流体“既不在本地产生也不在本地消失”。 可压缩流动对比：可压缩情况下，连续方程为 $\partial_t \rho + \nabla \cdot (\rho \mathbf{u}) &#x3D; 0$。即使 $\nabla \cdot \mathbf{u} \neq 0$，质量仍可守恒，因为密度随时空变化。不可压缩的“无散度”是更强的约束。   2. 数值意义：压力–速度耦合与稳定性 压力作为约束的拉格朗日乘子  在不可压缩 NS 方程中，压力不是通过状态方程...</div></div></div></a><a class="pagination-related" href="/2026/09/15/term-stability-effects/" title="加减方程项对数值稳定性的影响"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">加减方程项对数值稳定性的影响</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中“正负号”的数值含义与编码影响（含例子演示）在 OpenFOAM 的数值实现中，正负号不仅仅是算术符号，还携带了物理方向、通量指向、源项正负贡献以及离散格式的稳定性含义。尤其是在求解守恒方程（质量、动量、组分、电荷等）时，“加上一个负值”和“减去一个正值”在语义与读写习惯上可能看似等价，但在代码可读性、物理含义以及与现有符号约定对齐方面会有差别，容易引入误解或错误。 本文从常见对象与操作入手，解释正负号的影响，并给出多个简明示例。  1) 常见对象中的正负号语义+ 通量 phi（surfaceScalarField）  面上定义，带有宿主面的几何法向。phi &gt; 0 表示沿面法向方向的净流出（相对 cell 的“正向”），phi &lt; 0 表示反向。 在离散化中，fvm::div(phi, U)、fvc::div(phi, Y) 等与符号直接决定迎风方向、界面插值方向。 若你写 phi = phiA - phiB，则负号表明你关心的是两通量的“相对向量投影”对守恒项的贡献。   源项&#x2F;沉积项 S（volScalarField&#x2F;vo...</div></div></div></a><a class="pagination-related" href="/2026/09/15/splitMesh-splitMeshRegions/" title="splitMesh 与 splitMeshRegions"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">splitMesh 与 splitMeshRegions</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: Manual Pages: splitMesh 02 chtMultiRegionFoam求解器- splitMesh - 哔哩哔哩 OpenFOAM-v2406采用splitMeshRegions的一个例子。 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138139140141142143144145146147148149150151152153154155156157158159160161162163...</div></div></div></a><a class="pagination-related" href="/2026/09/15/dyfluid-qa-20250918/" title="dyfluid 问答集(2025-09-18)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">dyfluid 问答集(2025-09-18)</div></div><div class="info-2"><div class="info-item-1">http://dyfluid.com/selftest.html 本页面主要用来想要参加LCO算法编程课的同学的基础自测。也可用于相关公司招聘时对应聘人员的CFD算法水平评估。相关问题均为普适性CFD问题，也即对于任意一个方向的CFD算法从业人员，都应该了解。对于下列问题，如果：  懂50%以下，需要补算法；如果来参加课程，学习后将会对所有问题有一阵见血的理解；  懂70%，可以用业余时间补算法。对于应聘人员可以通过初面；  懂90%。如果招聘为浮动工资（如应届生月薪2-3万），建议对这一类应聘人员最低提供中位工资（月薪2.5万以上）；   Warning 相关问题同时附带chatgpt的答案。对于AI能回答100%的问题，从事相关工作的人员要保持警惕，可能存在被替代导致失业的可能。 问题集将下述索引标识法的方程，转化为向量标识法： $$\begin{split}\begin{multline}\frac{\partial R}{\partial t}+\frac{\partial u_j R}{\partial x_j}\frac{\partial}{\partial x_j...</div></div></div></a><a class="pagination-related" href="/2026/09/15/mesh-induced-numerical-problems/" title="网格诱导的数值问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">网格诱导的数值问题</div></div><div class="info-2"><div class="info-item-1">Skewnesshttps://cfmesh.com/is-it-always-the-mesh-part-2-skewness/   🌐 1. Introduction — Role of Mesh in FVMIn Finite Volume Method (FVM), numerical accuracy directly depends on mesh geometry.A high-quality mesh ensures:  Consistent representation of gradients, Accurate flux calculations, and Reliable convergence behaviour.  📘 Key Mesh Requirements: Non-overlapping cells — Each control volume must be unique. Convexity of cells — Ensures valid interpolation and stable discretisation. Consiste...</div></div></div></a><a class="pagination-related" href="/2026/09/15/matrix-solver-choice/" title="OpenFOAM 矩阵求解器选择(占位)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 矩阵求解器选择(占位)</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 线性求解器的选择(PBiCGStab、GAMG、PCG 等)。 资料索引(原始素材为 PDF 页嵌入,待转写) wolf_of_all 教材 p.642:Matrix solvers available in OpenFOAM wolf_of_all 教材 p.643:通常情况下的选择  待补充  各求解器适用矩阵类型速查表  GAMG 的层级参数调优  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">102</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">110</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">26</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF%E4%B8%8E%E9%97%AE%E9%A2%98%E6%9D%A5%E6%BA%90"><span class="toc-number">1.</span> <span class="toc-text">一、背景与问题来源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">背景：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E2%80%9C%E6%A3%8B%E7%9B%98%E6%A0%BC%E5%8E%8B%E5%8A%9B%EF%BC%88checkerboard-pressure%EF%BC%89%E2%80%9D-%E9%97%AE%E9%A2%98%E7%9A%84%E6%9D%A5%E6%BA%90"><span class="toc-number">2.</span> <span class="toc-text">二、“棋盘格压力（checkerboard pressure）” 问题的来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Rhie%E2%80%93Chow-%E6%8F%92%E5%80%BC%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">3.</span> <span class="toc-text">三、Rhie–Chow 插值的核心思想</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E5%AD%A6%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">3.1.</span> <span class="toc-text">数学表达式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%BB%8E%E7%89%A9%E7%90%86%E4%B8%8A%E7%90%86%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">四、从物理上理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9C%A8%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">5.</span> <span class="toc-text">五、在算法实现中的位置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%AE%9E%E9%99%85%E4%BD%9C%E7%94%A8%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">六、实际作用总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%89%A9%E5%B1%95%E4%B8%8E%E6%94%B9%E8%BF%9B"><span class="toc-number">7.</span> <span class="toc-text">七、扩展与改进</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/bound-function/" title="OpenFOAM bound 函数(占位)">OpenFOAM bound 函数(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/fractional-step-method/" title="分数步投影法(占位)">分数步投影法(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/matrix-solver-choice/" title="OpenFOAM 矩阵求解器选择(占位)">OpenFOAM 矩阵求解器选择(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/pyfoam/" title="PyFoam 工具集(占位)">PyFoam 工具集(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/redistributepar-tool/" title="redistributePar 工具(占位)">redistributePar 工具(占位)</a><time datetime="2026-09-15T07:10:00.000Z" title="Created 2026-09-15 15:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
