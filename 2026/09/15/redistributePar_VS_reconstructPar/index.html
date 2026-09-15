@@ -1,0 +1,801 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>redistributePar vs reconstructPar | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="两种并行网格重分布&#x2F;重构工具的对比:用途、开销与分解-重构工作流。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redistributePar vs reconstructPar">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/redistributePar_VS_reconstructPar/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="两种并行网格重分布&#x2F;重构工具的对比:用途、开销与分解-重构工作流。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:01:57.176Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="OpenFOAM">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;网格">
+<meta property="article:tag" content="网格">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="ParaView">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "redistributePar vs reconstructPar",
+  "url": "https://hugh-tong.github.io/2026/09/15/redistributePar_VS_reconstructPar/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T04:00:00.000Z",
+  "dateModified": "2026-09-15T07:01:57.176Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/redistributePar_VS_reconstructPar/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'redistributePar vs reconstructPar',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">redistributePar vs reconstructPar</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">redistributePar vs reconstructPar</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:01:57.176Z" title="Updated 2026-09-15 15:01:57">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E7%BD%91%E6%A0%BC/">网格</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="redistributePar-VS-reconstructPar"><a href="#redistributePar-VS-reconstructPar" class="headerlink" title="redistributePar_VS_reconstructPar"></a>redistributePar_VS_reconstructPar</h2><p>在 OpenFOAM 中，<code>redistributePar</code> 和 <code>reconstructPar</code> 都是处理<strong>并行计算数据</strong>的工具，但它们的<strong>方向</strong>和<strong>功能强度</strong>完全不同。</p>
+<p>简单来说：</p>
+<ul>
+<li><strong><code>reconstructPar</code></strong> 是做“合体”的（把分散的数据拼回一个整体）。</li>
+<li><strong><code>redistributePar</code></strong> 是做“重组”的（不仅能合体，还能拆分，还能重新分配）。</li>
+</ul>
+<p>以下是详细的对比：</p>
+<hr>
+<h3 id="1-功能核心区别"><a href="#1-功能核心区别" class="headerlink" title="1. 功能核心区别"></a>1. 功能核心区别</h3><table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left"><code>reconstructPar</code> (传统&#x2F;单一)</th>
+<th align="left"><code>redistributePar</code> (现代&#x2F;全能)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>核心动作</strong></td>
+<td align="left"><strong>合并</strong> (Merge)</td>
+<td align="left"><strong>再分配</strong> (Decompose &amp; Reconstruct &amp; Balance)</td>
+</tr>
+<tr>
+<td align="left"><strong>数据流向</strong></td>
+<td align="left"><code>processor*</code> $\rightarrow$ <code>0</code>, <code>constant</code>, <code>system</code></td>
+<td align="left"><code>processor*</code> $\leftrightarrow$ <code>processor*</code> <br> 或者 <code>processor*</code> $\leftrightarrow$ 单核</td>
+</tr>
+<tr>
+<td align="left"><strong>主要用途</strong></td>
+<td align="left">算完后把结果合并，方便 ParaView 查看。</td>
+<td align="left"><strong>中途改变核数</strong>（比如从 8 核变成 16 核继续算），或者做负载平衡。</td>
+</tr>
+<tr>
+<td align="left"><strong>依赖文件</strong></td>
+<td align="left">不需要 <code>decomposeParDict</code> (只需读取现有分块)</td>
+<td align="left"><strong>必须</strong>有 <code>decomposeParDict</code> (以此为规则进行重组)</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="2-具体使用场景"><a href="#2-具体使用场景" class="headerlink" title="2. 具体使用场景"></a>2. 具体使用场景</h3><h4 id="场景-A：算完要看结果-后处理"><a href="#场景-A：算完要看结果-后处理" class="headerlink" title="场景 A：算完要看结果 (后处理)"></a>场景 A：算完要看结果 (后处理)</h4><ul>
+<li><strong>常用</strong>: <code>reconstructPar</code></li>
+<li><strong>操作</strong>: 你用 4 个核算完了，生成了 <code>processor0</code> 到 <code>processor3</code>。你想在 ParaView 里看整体结果（虽然 ParaView 可以直接看分解的，但合并后方便归档）。</li>
+<li><strong>命令</strong>: <code>reconstructPar</code></li>
+</ul>
+<h4 id="场景-B：计算中途想增加-减少核数-重分布"><a href="#场景-B：计算中途想增加-减少核数-重分布" class="headerlink" title="场景 B：计算中途想增加&#x2F;减少核数 (重分布)"></a>场景 B：计算中途想增加&#x2F;减少核数 (重分布)</h4><ul>
+<li><strong>必须用</strong>: <code>redistributePar</code></li>
+<li><strong>操作</strong>: 你用 4 个核算了一半，发现太慢了，想改成 8 个核继续算。<ol>
+<li>修改 <code>system/decomposeParDict</code>，把 <code>numberOfSubdomains</code> 改成 8。</li>
+<li>运行 <code>redistributePar -parallel</code>。它会自动把原本 4 个文件夹里的数据打散，重新分配到 8 个文件夹里。</li>
+</ol>
+</li>
+<li><strong>注意</strong>: 旧版本的 OpenFOAM 这种操作需要先 <code>reconstructPar</code> 再 <code>decomposePar</code>，效率极低。<code>redistributePar</code> 是直接在内存或并行间操作，非常快。</li>
+</ul>
+<h4 id="场景-C：网格负载不平衡-负载均衡"><a href="#场景-C：网格负载不平衡-负载均衡" class="headerlink" title="场景 C：网格负载不平衡 (负载均衡)"></a>场景 C：网格负载不平衡 (负载均衡)</h4><ul>
+<li><strong>必须用</strong>: <code>redistributePar</code></li>
+<li><strong>操作</strong>: 或者是自适应网格加密 (AMR) 后，某个核的网格太多，其他核太少。运行此命令可以根据权重重新划分网格，让每个核的负载平衡。</li>
+</ul>
+<hr>
+<h3 id="3-命令行参数的微妙差异"><a href="#3-命令行参数的微妙差异" class="headerlink" title="3. 命令行参数的微妙差异"></a>3. 命令行参数的微妙差异</h3><ul>
+<li><p><strong><code>reconstructPar</code></strong>:</p>
+<ul>
+<li>默认处理所有时间步。</li>
+<li><code>-latestTime</code>: 只合并最后一步（最常用）。</li>
+<li><strong>不需要 MPI</strong> (通常单核运行)。</li>
+</ul>
+</li>
+<li><p><strong><code>redistributePar</code></strong>:</p>
+<ul>
+<li><strong>必须并行运行</strong>: 通常需要配合 <code>mpirun</code> 使用，因为它需要同时读取旧的分布并写入新的分布。</li>
+<li>例如：<code>mpirun -np 4 redistributePar -parallel</code> (假设你现在有4个核的数据)。</li>
+<li>参数 <code>-decompose</code>: 强制执行分解操作（功能等于 <code>decomposePar</code>）。</li>
+<li>参数 <code>-reconstruct</code>: 强制执行合并操作（功能等于 <code>reconstructPar</code>）。</li>
+</ul>
+</li>
+</ul>
+<h3 id="总结建议"><a href="#总结建议" class="headerlink" title="总结建议"></a>总结建议</h3><ol>
+<li>如果你只是<strong>算完了想合起来</strong>看云图：用 <strong><code>reconstructPar</code></strong>。</li>
+<li>如果你想<strong>中途改变核数</strong>，或者处理**AMR（自适应网格）**导致的负载不均：必须用 <strong><code>redistributePar</code></strong>。</li>
+<li><strong>技术趋势</strong>：<code>redistributePar</code> 是一个更高级的工具，包含了 <code>decomposePar</code> 和 <code>reconstructPar</code> 的所有功能。在一些高级脚本中，人们倾向于只用这一个工具来处理所有并行相关的网格操作。</li>
+</ol>
+<h2 id="redistributePar-reconstruct-overwrite和reconstructPar"><a href="#redistributePar-reconstruct-overwrite和reconstructPar" class="headerlink" title="redistributePar -reconstruct -overwrite和reconstructPar"></a>redistributePar -reconstruct -overwrite和reconstructPar</h2><p>你的观察非常敏锐。<strong>从结果上看，它们确实是一个意思</strong>。</p>
+<p>最终目的都是：<strong>把分散在 <code>processor*</code> 文件夹里的数据，合并回原本的 <code>0</code>, <code>constant</code>, <code>system</code> 或者时间步文件夹里。</strong></p>
+<p>但是，在<strong>执行过程</strong>和<strong>底层逻辑</strong>上，它们有几个关键的区别。理解这些区别可以帮你避开一些“内存爆炸”的大坑。</p>
+<h3 id="1-核心区别对比表"><a href="#1-核心区别对比表" class="headerlink" title="1. 核心区别对比表"></a>1. 核心区别对比表</h3><table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left"><code>reconstructPar</code></th>
+<th align="left"><code>redistributePar -reconstruct</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>运行方式</strong></td>
+<td align="left"><strong>串行 (Serial)</strong></td>
+<td align="left"><strong>并行 (Parallel)</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>CPU 消耗</strong></td>
+<td align="left">只用 1 个核</td>
+<td align="left">动用所有核 (需 <code>mpirun</code>)</td>
+</tr>
+<tr>
+<td align="left"><strong>内存 (RAM) 消耗</strong></td>
+<td align="left"><strong>极高</strong> (需加载整个网格到内存)</td>
+<td align="left"><strong>分散</strong> (每个核只处理一部分)</td>
+</tr>
+<tr>
+<td align="left"><strong>处理动态网格 (AMR)</strong></td>
+<td align="left">经常报错或不支持</td>
+<td align="left"><strong>原生支持，非常稳健</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>依赖文件</strong></td>
+<td align="left">只需要 <code>processor*</code> 文件夹</td>
+<td align="left">需要 <code>decomposeParDict</code> 存在</td>
+</tr>
+<tr>
+<td align="left"><strong>速度</strong></td>
+<td align="left">小网格快，大网格极慢</td>
+<td align="left">大网格有优势 (主要受磁盘I&#x2F;O限制)</td>
+</tr>
+</tbody></table>
+<h3 id="2-为什么会有这种区别？"><a href="#2-为什么会有这种区别？" class="headerlink" title="2. 为什么会有这种区别？"></a>2. 为什么会有这种区别？</h3><h4 id="A-内存瓶颈-Memory-Wall"><a href="#A-内存瓶颈-Memory-Wall" class="headerlink" title="A. 内存瓶颈 (Memory Wall)"></a>A. 内存瓶颈 (Memory Wall)</h4><p>这是最大的区别。</p>
+<ul>
+<li><p><strong><code>reconstructPar</code></strong>: 它是一个单核程序。假设你的网格有 <strong>5000 万</strong> 网格。当你运行 <code>reconstructPar</code> 时，你的<strong>主节点（Master Node）</strong> 需要把这 5000 万网格<strong>全部</strong>读入到内存里才能进行拼合。</p>
+<ul>
+<li><em>后果</em>：如果你的单条内存不够大（比如只有 16GB），电脑会直接卡死或报错 <code>std::bad_alloc</code>。</li>
+</ul>
+</li>
+<li><p><strong><code>redistributePar -reconstruct</code></strong>: 它是并行程序。虽然最终写入是一个串行过程（写到一个文件），但在<strong>读取</strong>和<strong>处理映射</strong>阶段，它是分散在各个核上的。</p>
+<ul>
+<li><em>优势</em>：它不太容易瞬间撑爆主节点的内存。</li>
+</ul>
+</li>
+</ul>
+<h4 id="B-动态网格与拓扑变化-AMR"><a href="#B-动态网格与拓扑变化-AMR" class="headerlink" title="B. 动态网格与拓扑变化 (AMR)"></a>B. 动态网格与拓扑变化 (AMR)</h4><p>如果你使用了 <strong>自适应网格加密 (AMR&#x2F;dyM)</strong>：</p>
+<ul>
+<li>网格在计算过程中变了（增加了、减少了）。</li>
+<li><strong><code>reconstructPar</code></strong> 往往会失效，因为它依赖初始的网格拓扑信息，而现在的网格已经乱了。</li>
+<li><strong><code>redistributePar</code></strong> 本身就是为了处理网格重分布设计的，所以它能完美处理拓扑变化后的合并。</li>
+</ul>
+<h3 id="3-关于-overwrite"><a href="#3-关于-overwrite" class="headerlink" title="3. 关于 -overwrite"></a>3. 关于 <code>-overwrite</code></h3><p>你提到的命令里有 <code>-overwrite</code>。</p>
+<ul>
+<li><strong><code>reconstructPar</code></strong> 默认行为是新建一个时间步文件夹（例如 <code>0.1</code>），把合并后的数据放进去。如果你想覆盖，需要手动加 <code>-overwrite</code> 标志（如果有这个选项的话，通常 <code>reconstructPar</code> 更多是新建）。</li>
+<li><strong><code>redistributePar</code></strong> 的行为更具侵略性，加上 <code>-overwrite</code> 会直接修改当前的时间步数据，而不是新建。</li>
+</ul>
+<h3 id="4-结论与建议"><a href="#4-结论与建议" class="headerlink" title="4. 结论与建议"></a>4. 结论与建议</h3><ul>
+<li><p><strong>情况 1：网格很小（几百万），且是静态网格</strong> 👉 用 <code>reconstructPar</code>。 <em>理由</em>：简单，不需要启动 MPI，敲键盘少。</p>
+</li>
+<li><p><strong>情况 2：网格巨大（几千万上亿）</strong> 👉 用 <code>mpirun -np N redistributePar -parallel -reconstruct</code>。 <em>理由</em>：防止内存溢出。</p>
+</li>
+<li><p><strong>情况 3：使用了 AMR（自适应网格）</strong> 👉 必须用 <code>redistributePar</code>。 <em>理由</em>：<code>reconstructPar</code> 可能会因为找不到面对应关系而报错。</p>
+</li>
+</ul>
+<p><strong>总结：</strong> 你的理解是对的，它们<strong>殊途同归</strong>。但在工业级的大规模计算中，<code>redistributePar</code> 是更现代、更健壮的选择。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/redistributePar_VS_reconstructPar/">https://hugh-tong.github.io/2026/09/15/redistributePar_VS_reconstructPar/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/OpenFOAM/">OpenFOAM</a><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E7%BD%91%E6%A0%BC/">CFD/OpenFOAM/网格</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E6%A0%BC/">网格</a><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/ParaView/">ParaView</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/splitMesh-splitMeshRegions/" title="splitMesh 与 splitMeshRegions"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">splitMesh 与 splitMeshRegions</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: Manual Pages: splitMesh 02 chtMultiRegionFoam求解器- splitMesh - 哔哩哔哩 OpenFOAM-v2406采用splitMeshRegions的一个例子。 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138139140141142143144145146147148149150151152153154155156157158159160161162163...</div></div></div></a><a class="pagination-related" href="/2026/09/15/p_vs_prgh/" title="p 与 p_rgh:静水压力处理的两条路线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">p 与 p_rgh:静水压力处理的两条路线</div></div><div class="info-2"><div class="info-item-1">101OpenFOAM: User Guide: Hydrostatic pressure effects For cases that the hydrostatic pressure contribution ρ(g∙h) is important, e.g. for buoyant and multiphase cases, it is numerically convenient to solve for an alternative pressure defined by p′&#x3D;p−ρ(g∙h). In OpenFOAM solver applications the p′ pressure term is named p_rgh. The momentum equation ∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p+ρg is transformed to use p′: p′&#x3D;p−ρ(g∙h). After the following substititions: −p−∇p&#x3D;−p′−ρ(g∙h)&#x3...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/splitMesh-splitMeshRegions/" title="splitMesh 与 splitMeshRegions"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">splitMesh 与 splitMeshRegions</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: Manual Pages: splitMesh 02 chtMultiRegionFoam求解器- splitMesh - 哔哩哔哩 OpenFOAM-v2406采用splitMeshRegions的一个例子。 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138139140141142143144145146147148149150151152153154155156157158159160161162163...</div></div></div></a><a class="pagination-related" href="/2026/09/15/zoneGenerator/" title="zoneGenerator 与 CFD 直接网格分区"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">zoneGenerator 与 CFD 直接网格分区</div></div><div class="info-2"><div class="info-item-1">OpenFOAM v13更新详情-8：更优雅的网格操控之道 在之前的OpenFOAM版本中，网格区域（pointZone、cellZone、faceZone）的管理往往需要多个工具配合使用，操作流程相对繁琐。v13版本全新开发的动态区域生成系统彻底改变了这一局面。 核心亮点：新的zoneGenerator能一键生成包含pointZone、cellZone、faceZone任意组合的zoneSet，再也不用手动挨个创建区域了。 具体来说，该系统包含了多个zoneGenerator，用于创建和控制动态区域。另外，faceZone的flipMap（方向翻转映射）也迎来了人性化调整：现在它变成可选配置了，如果后续需要调整方向，用flipMap zone generator就能轻松补上。再也不用为了一个可选的方向参数，在配置文件里写一堆冗余代码了。 代码层面的改进主要体现在commit da974812、b4339ca4和a578e1e8等提交中，引入了全新的动态区域生成架构。 CFD direct Introhttps://cfd.direct/openfoam/free-softwar...</div></div></div></a><a class="pagination-related" href="/2026/09/15/code_meshRefinementBaffles/" title="castellatedMeshControls 与 baffle 生成代码解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">castellatedMeshControls 与 baffle 生成代码解读</div></div><div class="info-2"><div class="info-item-1">来源：https://www.openfoam.com/news/main-news/openfoam-v2312/pre-processing  snappyHexMesh: writing faces from the automatic leak path closure  https://develop.openfoam.com/Development/openfoam/-/blob/master/src/mesh/snappyHexMesh/meshRefinement/meshRefinementBaffles.C AIRef解读好的，这是按照您要求整理的 src_mesh_snappyHexMesh_meshRefinement_meshRefinementBaffles.C 文件主要函数列表： 核心挡板生成与处理   函数名 作用    createBaffles 通用挡板生成入口。根据传入的面列表，通过拓扑变化将这些内部面切开，转换为成对的边界面（挡板）。   createZoneBaffles 基于 FaceZone 生成挡板。查找位于指定 faceZone ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/overSetMesh/" title="overset 重叠网格在 OpenFOAM 中的计算流程(v2406)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">overset 重叠网格在 OpenFOAM 中的计算流程(v2406)</div></div><div class="info-2"><div class="info-item-1">v2406-overset整体计算流程twoSimpleRotorAllrun.pre12345678910111213141516171819202122#!/bin/shcd &quot;$&#123;0%/*&#125;&quot; || exit                                # Run from this directory. $&#123;WM_PROJECT_DIR:?&#125;/bin/tools/RunFunctions        # Tutorial run functions#------------------------------------------------------------------------------runApplication blockMesh# Select cellSetsrunApplication -s 1 topoSetrunApplication subsetMesh box -patch hole -overwrite# Select cellSetsrunApplicat...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-mesh-quality-improvement/" title="OpenFOAM 网格质量提升方法综述"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 网格质量提升方法综述</div></div><div class="info-2"><div class="info-item-1">从网格质量提升的层面，了解到了:  genetic and evolutionary algorithm genetic_evolutionary_algo  Linkin上分享的文章https://www.linkedin.com/pulse/refining-unstructured-mesh-quality-openfoam-from-holger-marschall-mp7ye/ Creating high‑quality unstructured meshes is fundamental to stable and accurate CFD simulations. Even when geometry discretisation produces cells of general topology, cell non‑orthogonality, skewness and extreme aspect ratios can cause divergence or deteriorate solution accuracy. Mesh quality improve...</div></div></div></a><a class="pagination-related" href="/2026/09/15/improveMeshQuality/" title="improveMeshQuality 工具实测"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">improveMeshQuality 工具实测</div></div><div class="info-2"><div class="info-item-1">https://www.openfoam.com/documentation/guides/v2112/man/improveMeshQuality.html 123(cfmesh)Performs point relocations in the mesh (smoothing) in order to improve qualitymeasures.   improveMeshQuality 是 cfMesh 套件中一个非常有用的后处理工具。 如果把 checkMesh 比作体检医生（只告诉你哪里有病），那么 improveMeshQuality 就是理疗师（不进行大手术，而是通过按摩推拿来缓解病痛）。 参考开源代码逻辑，以下是它具体“干了什么”的深度解析： 1. 核心机制：节点重定位 (Point Relocation &#x2F; Smoothing)这是它最核心的功能。它绝对不会改变网格的拓扑结构（即：它不会增加、删除或合并网格，也不会切割网格）。 它做的仅仅是移动网格顶点的坐标 (Move Vertices)。  原理：它构建了一个以网格质量为目标的优化函数。可以把它...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">60</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">75</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#redistributePar-VS-reconstructPar"><span class="toc-number">1.</span> <span class="toc-text">redistributePar_VS_reconstructPar</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8A%9F%E8%83%BD%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB"><span class="toc-number">1.1.</span> <span class="toc-text">1. 功能核心区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%85%B7%E4%BD%93%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.2.</span> <span class="toc-text">2. 具体使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-A%EF%BC%9A%E7%AE%97%E5%AE%8C%E8%A6%81%E7%9C%8B%E7%BB%93%E6%9E%9C-%E5%90%8E%E5%A4%84%E7%90%86"><span class="toc-number">1.2.1.</span> <span class="toc-text">场景 A：算完要看结果 (后处理)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-B%EF%BC%9A%E8%AE%A1%E7%AE%97%E4%B8%AD%E9%80%94%E6%83%B3%E5%A2%9E%E5%8A%A0-%E5%87%8F%E5%B0%91%E6%A0%B8%E6%95%B0-%E9%87%8D%E5%88%86%E5%B8%83"><span class="toc-number">1.2.2.</span> <span class="toc-text">场景 B：计算中途想增加&#x2F;减少核数 (重分布)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-C%EF%BC%9A%E7%BD%91%E6%A0%BC%E8%B4%9F%E8%BD%BD%E4%B8%8D%E5%B9%B3%E8%A1%A1-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">1.2.3.</span> <span class="toc-text">场景 C：网格负载不平衡 (负载均衡)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%9A%84%E5%BE%AE%E5%A6%99%E5%B7%AE%E5%BC%82"><span class="toc-number">1.3.</span> <span class="toc-text">3. 命令行参数的微妙差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.4.</span> <span class="toc-text">总结建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#redistributePar-reconstruct-overwrite%E5%92%8CreconstructPar"><span class="toc-number">2.</span> <span class="toc-text">redistributePar -reconstruct -overwrite和reconstructPar</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">2.1.</span> <span class="toc-text">1. 核心区别对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%9C%89%E8%BF%99%E7%A7%8D%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">2.2.</span> <span class="toc-text">2. 为什么会有这种区别？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#A-%E5%86%85%E5%AD%98%E7%93%B6%E9%A2%88-Memory-Wall"><span class="toc-number">2.2.1.</span> <span class="toc-text">A. 内存瓶颈 (Memory Wall)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#B-%E5%8A%A8%E6%80%81%E7%BD%91%E6%A0%BC%E4%B8%8E%E6%8B%93%E6%89%91%E5%8F%98%E5%8C%96-AMR"><span class="toc-number">2.2.2.</span> <span class="toc-text">B. 动态网格与拓扑变化 (AMR)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%85%B3%E4%BA%8E-overwrite"><span class="toc-number">2.3.</span> <span class="toc-text">3. 关于 -overwrite</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BB%93%E8%AE%BA%E4%B8%8E%E5%BB%BA%E8%AE%AE"><span class="toc-number">2.4.</span> <span class="toc-text">4. 结论与建议</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件">atmBoundaryLayer 大气边界层边界条件</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)">坏网格图鉴(BadMesh Store)</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱">高质量网格的 5 个技巧与陷阱</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解">拓扑连通区域(Topologically Connected Region)理解</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/VTK_VTM_VTU/" title="VTK/VTM/VTU 文件格式速查">VTK/VTM/VTU 文件格式速查</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

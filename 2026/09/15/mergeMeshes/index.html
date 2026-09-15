@@ -1,0 +1,722 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>mergeMeshes 与 stitchMesh 的区别和选择 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="多块网格合并的两条路线:顶点融合 vs 面缝合,各自适用场景与操作要点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mergeMeshes 与 stitchMesh 的区别和选择">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/mergeMeshes/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="多块网格合并的两条路线:顶点融合 vs 面缝合,各自适用场景与操作要点。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:01:57.176Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;网格">
+<meta property="article:tag" content="网格">
+<meta property="article:tag" content="Bash">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "mergeMeshes 与 stitchMesh 的区别和选择",
+  "url": "https://hugh-tong.github.io/2026/09/15/mergeMeshes/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T04:00:00.000Z",
+  "dateModified": "2026-09-15T07:01:57.176Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/mergeMeshes/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'mergeMeshes 与 stitchMesh 的区别和选择',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">mergeMeshes 与 stitchMesh 的区别和选择</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">mergeMeshes 与 stitchMesh 的区别和选择</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:01:57.176Z" title="Updated 2026-09-15 15:01:57">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E7%BD%91%E6%A0%BC/">网格</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="mergeMeshes-vs-stitchMesh"><a href="#mergeMeshes-vs-stitchMesh" class="headerlink" title="mergeMeshes vs stitchMesh"></a>mergeMeshes vs stitchMesh</h1><p>这两个命令虽然都是“合并”，但它们的<strong>作用层级</strong>和<strong>物理意义</strong>完全不同。</p>
+<p>一句话总结：<br><strong><code>mergeMeshes</code> 是把两个网格文件放在一起（物理上还是断开的），而 <code>stitchMesh</code> 是把两个断开的面缝合起来（物理上连通）。</strong></p>
+<p>通常的操作流程是：<strong>先用 <code>mergeMeshes</code> 把两个部件合到一个算例里，再用 <code>stitchMesh</code> 把它们连通。</strong></p>
+<hr>
+<h3 id="1-mergeMeshes（拼积木）"><a href="#1-mergeMeshes（拼积木）" class="headerlink" title="1. mergeMeshes（拼积木）"></a>1. mergeMeshes（拼积木）</h3><ul>
+<li><strong>作用对象</strong>：两个<strong>独立</strong>的网格算例（Case）。</li>
+<li><strong>功能</strong>：将“网格B”的数据直接追加写入到“网格A”的文件中。</li>
+<li><strong>结果</strong>：<ul>
+<li>你会得到一个包含 A 和 B 所有网格的大网格。</li>
+<li><strong>关键点</strong>：此时 A 和 B 虽然在一个文件里，但它们是<strong>互不相连</strong>的。流体流不过去。它们接触的地方依然是两个独立的边界（Patch），各管各的。</li>
+</ul>
+</li>
+<li><strong>类比</strong>：你把两块乐高积木放在桌子上靠在一起。虽然它们都在桌子上（同一个算例），但它们并没有卡扣在一起（拓扑未连接）。</li>
+</ul>
+<p><strong>命令示例：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 把 rotor 网格合并到 stator 网格里</span></span><br><span class="line">mergeMeshes . stator . rotor</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-stitchMesh（缝合-焊接）"><a href="#2-stitchMesh（缝合-焊接）" class="headerlink" title="2. stitchMesh（缝合&#x2F;焊接）"></a>2. stitchMesh（缝合&#x2F;焊接）</h3><ul>
+<li><strong>作用对象</strong>：同一个网格算例里的<strong>两个边界（Patch）</strong>。</li>
+<li><strong>功能</strong>：找到这两个位置重合的 Patch，把它们的面上的节点合并，消除这两个 Patch，将其转化为<strong>内部面（Internal Faces）</strong>。</li>
+<li><strong>结果</strong>：<ul>
+<li>网格拓扑被打通了。</li>
+<li>流体可以从 A 区域流到 B 区域。</li>
+</ul>
+</li>
+<li><strong>类比</strong>：你用胶水把刚才那两块靠在一起的乐高积木粘死，让它们变成一个整体。</li>
+</ul>
+<p><strong>命令示例：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 把刚才合并进来的 rotor 接口和 stator 接口缝死</span></span><br><span class="line">stitchMesh -perfect stator_interface rotor_interface</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="总结对比表"><a href="#总结对比表" class="headerlink" title="总结对比表"></a>总结对比表</h3><table>
+<thead>
+<tr>
+<th align="left">特征</th>
+<th align="left">mergeMeshes</th>
+<th align="left">stitchMesh</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>输入</strong></td>
+<td align="left"><strong>两个不同的算例路径</strong> (Case A + Case B)</td>
+<td align="left"><strong>两个 Patch 名称</strong> (同一个 mesh 内)</td>
+</tr>
+<tr>
+<td align="left"><strong>物理动作</strong></td>
+<td align="left"><strong>叠加&#x2F;追加</strong> (Add)</td>
+<td align="left"><strong>连接&#x2F;修补</strong> (Connect)</td>
+</tr>
+<tr>
+<td align="left"><strong>拓扑连通性</strong></td>
+<td align="left"><strong>不连通</strong> (界面处仍是两堵墙)</td>
+<td align="left"><strong>连通</strong> (墙消失，变成内部流场)</td>
+</tr>
+<tr>
+<td align="left"><strong>点&#x2F;面数量</strong></td>
+<td align="left">简单的 A + B</td>
+<td align="left">会减少 (因为重合的点被合并了)</td>
+</tr>
+<tr>
+<td align="left"><strong>典型场景</strong></td>
+<td align="left">把旋转区网格加到背景网格里</td>
+<td align="left">把旋转区和背景网格的交界面打通</td>
+</tr>
+<tr>
+<td align="left"><strong>比喻</strong></td>
+<td align="left">把两张纸放在同一个文件夹里</td>
+<td align="left">用胶带把两张纸粘成一张大纸</td>
+</tr>
+</tbody></table>
+<h3 id="常见组合拳流程"><a href="#常见组合拳流程" class="headerlink" title="常见组合拳流程"></a>常见组合拳流程</h3><p>如果你有两个分开画的网格（比如 pipe1 和 pipe2），想把它们接起来算一个流场：</p>
+<ol>
+<li><strong><code>mergeMeshes . pipe1 . pipe2</code></strong><br><em>(现在你有了一个包含两段管子的网格，但中间被堵住了)</em></li>
+<li><strong><code>topoSet</code> &#x2F; <code>createPatch</code></strong> (可选)<br><em>(如果名字没对上，可能需要整理一下接口的名字)</em></li>
+<li><strong><code>stitchMesh -perfect outlet1 inlet2</code></strong><br><em>(打通中间的堵头，现在变成了一根长管子)</em></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/mergeMeshes/">https://hugh-tong.github.io/2026/09/15/mergeMeshes/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E7%BD%91%E6%A0%BC/">CFD/OpenFOAM/网格</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E6%A0%BC/">网格</a><a class="post-meta__tags" href="/tags/Bash/">Bash</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/mergeOrSplitBaffles/" title="mergeOrSplitBaffles:buat baffle 的合并与拆分"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">mergeOrSplitBaffles:buat baffle 的合并与拆分</div></div><div class="info-2"><div class="info-item-1">mergeOrSplitBaffles 是 OpenFOAM 中一个功能强大但常被忽视的工具，主要用于处理网格中的挡板（Baffles）。它是 createBaffles 的“升级版”或“互补版”，专注于根据几何特征自动识别并处理挡板。 以下是关于它的发展历程及使用说明的简述： 📅 发展历程 (Evolution)mergeOrSplitBaffles 的出现是为了解决手动定义挡板的繁琐问题，以及处理复杂的网格拓扑修复需求。  早期 (The createBaffles Era):  最初，OpenFOAM 用户主要依靠 createBaffles。这需要用户编写详细的 createBafflesDict 字典，明确指定哪些面（Faces）或者哪些 SearchableSurface 需要变成挡板。 痛点：对于已经生成的网格，如果想“反悔”（把挡板变回内部面），或者自动探测几何上重合的边界面，操作非常麻烦。   中期 (引入 mergeOrSplitBaffles):  为了更智能地处理拓扑，OpenFOAM 引入了这个工具。 核心突破：它具备了几何探测能力。它不需要你告诉它具...</div></div></div></a><a class="pagination-related" href="/2026/09/15/improveMeshQuality/" title="improveMeshQuality 工具实测"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">improveMeshQuality 工具实测</div></div><div class="info-2"><div class="info-item-1">https://www.openfoam.com/documentation/guides/v2112/man/improveMeshQuality.html 123(cfmesh)Performs point relocations in the mesh (smoothing) in order to improve qualitymeasures.   improveMeshQuality 是 cfMesh 套件中一个非常有用的后处理工具。 如果把 checkMesh 比作体检医生（只告诉你哪里有病），那么 improveMeshQuality 就是理疗师（不进行大手术，而是通过按摩推拿来缓解病痛）。 参考开源代码逻辑，以下是它具体“干了什么”的深度解析： 1. 核心机制：节点重定位 (Point Relocation &#x2F; Smoothing)这是它最核心的功能。它绝对不会改变网格的拓扑结构（即：它不会增加、删除或合并网格，也不会切割网格）。 它做的仅仅是移动网格顶点的坐标 (Move Vertices)。  原理：它构建了一个以网格质量为目标的优化函数。可以把它...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/mergeOrSplitBaffles/" title="mergeOrSplitBaffles:buat baffle 的合并与拆分"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">mergeOrSplitBaffles:buat baffle 的合并与拆分</div></div><div class="info-2"><div class="info-item-1">mergeOrSplitBaffles 是 OpenFOAM 中一个功能强大但常被忽视的工具，主要用于处理网格中的挡板（Baffles）。它是 createBaffles 的“升级版”或“互补版”，专注于根据几何特征自动识别并处理挡板。 以下是关于它的发展历程及使用说明的简述： 📅 发展历程 (Evolution)mergeOrSplitBaffles 的出现是为了解决手动定义挡板的繁琐问题，以及处理复杂的网格拓扑修复需求。  早期 (The createBaffles Era):  最初，OpenFOAM 用户主要依靠 createBaffles。这需要用户编写详细的 createBafflesDict 字典，明确指定哪些面（Faces）或者哪些 SearchableSurface 需要变成挡板。 痛点：对于已经生成的网格，如果想“反悔”（把挡板变回内部面），或者自动探测几何上重合的边界面，操作非常麻烦。   中期 (引入 mergeOrSplitBaffles):  为了更智能地处理拓扑，OpenFOAM 引入了这个工具。 核心突破：它具备了几何探测能力。它不需要你告诉它具...</div></div></div></a><a class="pagination-related" href="/2026/09/15/improveMeshQuality/" title="improveMeshQuality 工具实测"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">improveMeshQuality 工具实测</div></div><div class="info-2"><div class="info-item-1">https://www.openfoam.com/documentation/guides/v2112/man/improveMeshQuality.html 123(cfmesh)Performs point relocations in the mesh (smoothing) in order to improve qualitymeasures.   improveMeshQuality 是 cfMesh 套件中一个非常有用的后处理工具。 如果把 checkMesh 比作体检医生（只告诉你哪里有病），那么 improveMeshQuality 就是理疗师（不进行大手术，而是通过按摩推拿来缓解病痛）。 参考开源代码逻辑，以下是它具体“干了什么”的深度解析： 1. 核心机制：节点重定位 (Point Relocation &#x2F; Smoothing)这是它最核心的功能。它绝对不会改变网格的拓扑结构（即：它不会增加、删除或合并网格，也不会切割网格）。 它做的仅仅是移动网格顶点的坐标 (Move Vertices)。  原理：它构建了一个以网格质量为目标的优化函数。可以把它...</div></div></div></a><a class="pagination-related" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">拓扑连通区域(Topologically Connected Region)理解</div></div><div class="info-2"><div class="info-item-1">在 CFD（计算流体力学）和网格处理的语境下，“Topologically connected region”（拓扑连通区域） 意味着： 在这个区域内，你可以从任意一个网格单元（Cell）出发，经过相邻的内部面，走到区域内的任意另一个网格单元，而不需要“跳跃”或穿过物理边界。 简单来说，就是**“铁索连舟”**，所有的网格都是连成一片的，没有断开，也没有被完全隔绝的孤岛。  1. 核心概念：什么是“连通”？ 连通 (Connected)：流体可以流过去。两个网格单元共用一个面，且这个面是 internalFace（内部面），那它们就是连通的。 不连通 (Disconnected)：流体流不过去。两个网格单元之间隔着墙（Wall），或者它们根本就不挨着，这就是不连通。  2. 形象的例子为了方便理解，我们把网格看作房间，把面看作门或墙。 ✅ 例子 A：完全连通区域 (Single Connected Region) 场景：一个普通的空房间。 描述：你可以从房间的任何一个角落走到另一个角落，中间没有障碍物阻挡。 CFD 对应：一根完整的直管道网格。 region0: 包含了管道内所有...</div></div></div></a><a class="pagination-related" href="/2026/09/15/stitchMesh/" title="stitchMesh 官方案例流程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">stitchMesh 官方案例流程</div></div><div class="info-2"><div class="info-item-1">https://www.openfoam.com/news/main-news/openfoam-v1712/pre-processing  stitchMesh  The stitchMesh utility stitches two volumetric meshes by manipulating the interfacing faces to create topologically conformal interface.stitchMesh 工具通过调整相接面的网格面来拼接两个体网格，以创建在拓扑上相容的接口。 Use of the utility is limited on situation with simple patches, as the only information processed are the faces, no edges or line elements are taken into the account.由于该实用工具仅处理面信息，而忽略了边和线元素，因此它仅适用于简单的补丁情况。 Further user should make ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/overSetMesh/" title="overset 重叠网格在 OpenFOAM 中的计算流程(v2406)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">overset 重叠网格在 OpenFOAM 中的计算流程(v2406)</div></div><div class="info-2"><div class="info-item-1">v2406-overset整体计算流程twoSimpleRotorAllrun.pre12345678910111213141516171819202122#!/bin/shcd &quot;$&#123;0%/*&#125;&quot; || exit                                # Run from this directory. $&#123;WM_PROJECT_DIR:?&#125;/bin/tools/RunFunctions        # Tutorial run functions#------------------------------------------------------------------------------runApplication blockMesh# Select cellSetsrunApplication -s 1 topoSetrunApplication subsetMesh box -patch hole -overwrite# Select cellSetsrunApplicat...</div></div></div></a><a class="pagination-related" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">高质量网格的 5 个技巧与陷阱</div></div><div class="info-2"><div class="info-item-1">https://cfmesh.com/tips-tricks-for-a-high-quality-meshing-process/ 🧩 5 Tips and Tricks for a High-Quality Meshing Process(Based on CF-MESH+ Blog Summary) Preparing clean and well-defined geometry is essential for CF-MESH+ to generate high-quality meshes.The following five tips help ensure smooth meshing and accurate CFD results.  🧠 OverviewFive key tips for high-quality meshing:  Apply cell size smaller than half of the gap dimension. Modify geometry where the feature size tends to zero. De...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">60</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">75</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#mergeMeshes-vs-stitchMesh"><span class="toc-number">1.</span> <span class="toc-text">mergeMeshes vs stitchMesh</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-mergeMeshes%EF%BC%88%E6%8B%BC%E7%A7%AF%E6%9C%A8%EF%BC%89"><span class="toc-number">1.0.1.</span> <span class="toc-text">1. mergeMeshes（拼积木）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-stitchMesh%EF%BC%88%E7%BC%9D%E5%90%88-%E7%84%8A%E6%8E%A5%EF%BC%89"><span class="toc-number">1.0.2.</span> <span class="toc-text">2. stitchMesh（缝合&#x2F;焊接）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">1.0.3.</span> <span class="toc-text">总结对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%BB%84%E5%90%88%E6%8B%B3%E6%B5%81%E7%A8%8B"><span class="toc-number">1.0.4.</span> <span class="toc-text">常见组合拳流程</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件">atmBoundaryLayer 大气边界层边界条件</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)">坏网格图鉴(BadMesh Store)</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱">高质量网格的 5 个技巧与陷阱</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解">拓扑连通区域(Topologically Connected Region)理解</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/VTK_VTM_VTU/" title="VTK/VTM/VTU 文件格式速查">VTK/VTM/VTU 文件格式速查</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

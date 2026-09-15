@@ -1,0 +1,900 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>overset 重叠网格在 OpenFOAM 中的计算流程(v2406) | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="oversetMesh 从挖洞、插值到求解的完整流程,附双旋翼算例演示图。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="overset 重叠网格在 OpenFOAM 中的计算流程(v2406)">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/overSetMesh/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="oversetMesh 从挖洞、插值到求解的完整流程,附双旋翼算例演示图。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:13:14.615Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="OpenFOAM">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;网格">
+<meta property="article:tag" content="网格">
+<meta property="article:tag" content="blockMesh">
+<meta property="article:tag" content="MPI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "overset 重叠网格在 OpenFOAM 中的计算流程(v2406)",
+  "url": "https://hugh-tong.github.io/2026/09/15/overSetMesh/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T04:00:00.000Z",
+  "dateModified": "2026-09-15T07:13:14.615Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/overSetMesh/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'overset 重叠网格在 OpenFOAM 中的计算流程(v2406)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">overset 重叠网格在 OpenFOAM 中的计算流程(v2406)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">overset 重叠网格在 OpenFOAM 中的计算流程(v2406)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:13:14.615Z" title="Updated 2026-09-15 15:13:14">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E7%BD%91%E6%A0%BC/">网格</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="v2406-overset整体计算流程"><a href="#v2406-overset整体计算流程" class="headerlink" title="v2406-overset整体计算流程"></a>v2406-overset整体计算流程</h1><h2 id="twoSimpleRotor"><a href="#twoSimpleRotor" class="headerlink" title="twoSimpleRotor"></a>twoSimpleRotor</h2><h3 id="Allrun-pre"><a href="#Allrun-pre" class="headerlink" title="Allrun.pre"></a>Allrun.pre</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line">cd &quot;$&#123;0%/*&#125;&quot; || exit                                # Run from this directory</span><br><span class="line">. $&#123;WM_PROJECT_DIR:?&#125;/bin/tools/RunFunctions        # Tutorial run functions</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">------------------------------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">runApplication blockMesh</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Select cellSets</span></span><br><span class="line">runApplication -s 1 topoSet</span><br><span class="line"></span><br><span class="line">runApplication subsetMesh box -patch hole -overwrite</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Select cellSets</span></span><br><span class="line">runApplication -s 2 topoSet</span><br><span class="line"></span><br><span class="line">restore0Dir</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Use cellSets to write zoneID</span></span><br><span class="line">runApplication setFields</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">------------------------------------------------------------------------------</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Allrun"><a href="#Allrun" class="headerlink" title="Allrun"></a>Allrun</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">cd &quot;$&#123;0%/*&#125;&quot; || exit                                # Run from this directory</span><br><span class="line">. $&#123;WM_PROJECT_DIR:?&#125;/bin/tools/RunFunctions        # Tutorial run functions</span><br><span class="line">#------------------------------------------------------------------------------</span><br><span class="line"></span><br><span class="line">canCompile || exit 0    # Dynamic code</span><br><span class="line"></span><br><span class="line">./Allrun.pre</span><br><span class="line"></span><br><span class="line"># Serial</span><br><span class="line">#runApplication $(getApplication)</span><br><span class="line"></span><br><span class="line"># Parallel</span><br><span class="line">runApplication decomposePar -cellDist</span><br><span class="line"></span><br><span class="line">runParallel  $(getApplication)</span><br><span class="line"></span><br><span class="line">#------------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="overset在数值配置文件上需要额外设置的地方"><a href="#overset在数值配置文件上需要额外设置的地方" class="headerlink" title="overset在数值配置文件上需要额外设置的地方"></a>overset在数值配置文件上需要额外设置的地方</h3><p>例如，<code>fvSchemes</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">oversetInterpolation</span><br><span class="line">&#123;</span><br><span class="line">    method         cellVolumeWeight;</span><br><span class="line">&#125;</span><br><span class="line">//...</span><br><span class="line">oversetInterpolationSuppressed</span><br><span class="line">&#123;</span><br><span class="line">    grad(p_rgh);</span><br><span class="line">    surfaceIntegrate(phiHbyA);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>fvSolution</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">cellDisplacement</span><br><span class="line">&#123;</span><br><span class="line">    solver          PCG;</span><br><span class="line">    preconditioner  DIC;</span><br><span class="line">    tolerance       1e-06;</span><br><span class="line">    relTol          0;</span><br><span class="line">    maxIter         100;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="v2406-overset网格处理流程"><a href="#v2406-overset网格处理流程" class="headerlink" title="v2406-overset网格处理流程"></a>v2406-overset网格处理流程</h1><p>该脚本展示了在 OpenFOAM 中构建重叠网格（Overset Mesh）的一种特定策略：<strong>基于单块网格的区域分割法</strong>。它不是生成两个独立网格再合并，而是生成一个网格，修剪它，然后通过 ID 区分不同区域。</p>
+<h2 id="流程步骤（blockMesh-topoSet-subsetMesh，工程上难以适用"><a href="#流程步骤（blockMesh-topoSet-subsetMesh，工程上难以适用" class="headerlink" title="流程步骤（blockMesh+topoSet+subsetMesh，工程上难以适用)"></a>流程步骤（blockMesh+topoSet+subsetMesh，工程上难以适用)</h2><h3 id="1-生成基底-blockMesh"><a href="#1-生成基底-blockMesh" class="headerlink" title="1. 生成基底 (blockMesh)"></a>1. 生成基底 (<code>blockMesh</code>)</h3><ul>
+<li><strong>操作</strong>: <code>runApplication blockMesh</code></li>
+<li><strong>目的</strong>: 创建一个覆盖全域的初始六面体网格块。</li>
+</ul>
+<h3 id="2-定义几何形状-topoSet-s-1"><a href="#2-定义几何形状-topoSet-s-1" class="headerlink" title="2. 定义几何形状 (topoSet -s 1)"></a>2. 定义几何形状 (<code>topoSet -s 1</code>)</h3><ul>
+<li><strong>操作</strong>: 运行 <code>topoSet</code> 选择一组特定的网格单元（CellSet）。</li>
+<li><strong>目的</strong>: 标记出计算域的实际几何范围（例如，标记出一个名为 <code>box</code> 的集合）。</li>
+</ul>
+<p>注：可以用<code>foamToVTK -cellSet setName</code>（-cellSet选项仅在基金会版本中有），然后用paraview来读取VTK来看不同的set。.com版本，可以用命令<code>setsToZone</code>，把sets变为cellZone，在paraview中<code>read zone</code>然后再<code>extract blocks</code>。</p>
+<h3 id="3-网格修剪与边界重命名-subsetMesh"><a href="#3-网格修剪与边界重命名-subsetMesh" class="headerlink" title="3. 网格修剪与边界重命名 (subsetMesh)"></a>3. 网格修剪与边界重命名 (<code>subsetMesh</code>)</h3><ul>
+<li><strong>操作</strong>: <code>runApplication subsetMesh box -patch hole -overwrite</code></li>
+<li><strong>目的</strong>:<ul>
+<li><strong>保留</strong>: 仅保留上一步选中的 <code>box</code> 集合内的网格，删除其余部分。</li>
+<li><strong>补丁</strong>: 将切割产生的裸露面（原内部面）命名为边界补丁 <code>hole</code>。</li>
+<li><strong>意义</strong>: 这一步确定了网格的最终拓扑结构。在重叠网格中，这个 <code>hole</code> 边界通常后续会被指定为 <code>overset</code> 边界类型。</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-标记重叠区域-topoSet-s-2"><a href="#4-标记重叠区域-topoSet-s-2" class="headerlink" title="4. 标记重叠区域 (topoSet -s 2)"></a>4. 标记重叠区域 (<code>topoSet -s 2</code>)</h3><ul>
+<li><strong>操作</strong>: 再次运行 <code>topoSet</code>。</li>
+<li><strong>目的</strong>: 在修剪后的网格中，根据空间位置区分出不同的功能区域。例如，分别选中“背景区域”和“转子区域”，并将它们存为不同的 <code>cellSet</code>。</li>
+</ul>
+<h3 id="5-初始化-ZoneID-setFields"><a href="#5-初始化-ZoneID-setFields" class="headerlink" title="5. 初始化 ZoneID (setFields)"></a>5. 初始化 ZoneID (<code>setFields</code>)</h3><ul>
+<li><strong>操作</strong>: <code>runApplication setFields</code></li>
+<li><strong>目的</strong>: <strong>核心步骤</strong>。<ul>
+<li>利用上一步生成的 <code>cellSet</code>，修改 <code>zoneID</code> 场（一个 <code>volScalarField</code>，实际存储整数）。</li>
+<li><strong>Zone 0</strong>: 通常设为背景网格。</li>
+<li><strong>Zone 1, 2…</strong>: 设为运动部件（转子）。</li>
+<li><code>overInterFoam</code> 求解器依赖此 ID 来识别哪些网格单元作为一个刚体整体进行运动。</li>
+</ul>
+</li>
+</ul>
+<h2 id="topoSet"><a href="#topoSet" class="headerlink" title="topoSet"></a>topoSet</h2><p>在OpenFOAM-v2406中，<code>regionsToCell</code>依赖于controlDict中的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">libs            (overset fvMotionSolvers);</span><br></pre></td></tr></table></figure>
+
+<p>没有上述，将会：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">--&gt; FOAM FATAL IO ERROR: (openfoam-2406)</span><br><span class="line">Unknown topoSetSource type regionsToCell</span><br><span class="line"></span><br><span class="line">Valid topoSetSource types :</span><br><span class="line"></span><br><span class="line">60</span><br><span class="line">(</span><br><span class="line">boundaryToCell</span><br><span class="line">boundaryToFace</span><br><span class="line">boxToCell</span><br><span class="line">boxToFace</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="topoSet-example"><a href="#topoSet-example" class="headerlink" title="topoSet example"></a>topoSet example</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="line">| =========                 |                                                 |</span><br><span class="line">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="line">|  \\    /   O peration     | Version:  v2406                                 |</span><br><span class="line">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="line">|    \\/     M anipulation  |                                                 |</span><br><span class="line">\*---------------------------------------------------------------------------*/</span><br><span class="line">FoamFile</span><br><span class="line">&#123;</span><br><span class="line">    version     2.0;</span><br><span class="line">    format      ascii;</span><br><span class="line">    class       dictionary;</span><br><span class="line">    object      topoSetDict;</span><br><span class="line">&#125;</span><br><span class="line">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><span class="line"></span><br><span class="line">actions</span><br><span class="line">(</span><br><span class="line">    &#123;</span><br><span class="line">        name    c0;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  new;</span><br><span class="line">        source  regionsToCell;</span><br><span class="line">        insidePoints ((0.001 0.001 0.001));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    c1;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  new;</span><br><span class="line">        source  cellToCell;</span><br><span class="line">        set     c0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    c1;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  invert;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    c2;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  new;</span><br><span class="line">        source  regionsToCell;</span><br><span class="line">        insidePoints ((0.0116 0.00151 0.001));</span><br><span class="line">        set     c1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    c1;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  subtract;</span><br><span class="line">        source  cellToCell;</span><br><span class="line">        set     c2;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // Select box to remove from region 1 and 2</span><br><span class="line">    &#123;</span><br><span class="line">        name    box;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  new;</span><br><span class="line">        source  cellToCell;</span><br><span class="line">        set     c1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    box;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  add;</span><br><span class="line">        source  cellToCell;</span><br><span class="line">        set     c2;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    box;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  subset;</span><br><span class="line">        source  boxToCell;</span><br><span class="line">        boxes</span><br><span class="line">        (</span><br><span class="line">            (0.0025 0.0045 -100)(0.0075 0.0055 100)</span><br><span class="line">            (0.0125 0.0025 -100)(0.0135 0.0075 100)</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        name    box;</span><br><span class="line">        type    cellSet;</span><br><span class="line">        action  invert;</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// ************************************************************************* //</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="核心逻辑总结"><a href="#核心逻辑总结" class="headerlink" title="核心逻辑总结"></a>核心逻辑总结</h2><ol>
+<li><strong>画</strong> (BlockMesh) -&gt; <strong>选</strong> (TopoSet) -&gt; <strong>切</strong> (SubsetMesh) -&gt; <strong>分</strong> (TopoSet) -&gt; <strong>赋ID</strong> (SetFields)。</li>
+<li>最终结果是一个包含多个不连续（或逻辑上分离）区域的网格文件，每个区域通过 <code>zoneID</code> 进行区分，准备好进行重叠网格计算。<br>这是一个 OpenFOAM 重叠网格（Overset Mesh）案例的完整工作流程整理。该流程通过分步生成子网格，最后在一个主背景网格中合并并计算。</li>
+</ol>
+<h2 id="总体流程概览（blockMesh-snappyHexMesh-mergeMesh-topoSet）"><a href="#总体流程概览（blockMesh-snappyHexMesh-mergeMesh-topoSet）" class="headerlink" title="总体流程概览（blockMesh,snappyHexMesh,mergeMesh,topoSet）"></a>总体流程概览（blockMesh,snappyHexMesh,mergeMesh,topoSet）</h2><h3 id="网格剖分结果"><a href="#网格剖分结果" class="headerlink" title="网格剖分结果"></a>网格剖分结果</h3><p><img src="/images/overSetMesh/20251201_overset_hull_show_process.png"></p>
+<p>整个模拟分为三个主要部分并行准备，最后统一汇总：</p>
+<ol>
+<li><strong>生成部件 1 网格 (overset-1)</strong>：通常是一个独立的运动物体（如船体 Hull）。</li>
+<li><strong>生成部件 2 网格 (overset-2)</strong>：通常是另一个独立的运动物体（如螺旋桨&#x2F;旋转区域）。</li>
+<li><strong>背景网格与求解 (background)</strong>：生成背景流场，合并上述两个部件，进行重叠区域标记，最后并行计算。</li>
+</ol>
+<hr>
+<h3 id="子网格生成：Overset-1-船体"><a href="#子网格生成：Overset-1-船体" class="headerlink" title="子网格生成：Overset-1 (船体)"></a>子网格生成：Overset-1 (船体)</h3><p>该步骤在 <code>overset-1</code> 文件夹下进行，目的是生成包含第一个物体的独立网格。</p>
+<ol>
+<li><strong>准备几何文件</strong>：<ul>
+<li>创建 <code>constant/triSurface</code> 目录。</li>
+<li>拷贝几何文件 <code>HULL.obj.gz</code> 到该目录。</li>
+</ul>
+</li>
+<li><strong>生成基础网格</strong>：<ul>
+<li>运行 <code>blockMesh</code> 生成背景块。</li>
+</ul>
+</li>
+<li><strong>特征提取</strong>：<ul>
+<li>运行 <code>surfaceFeatureExtract</code> 提取几何的特征边（用于网格加密）。</li>
+</ul>
+</li>
+<li><strong>并行网格划分 (SnappyHexMesh)</strong>：<ul>
+<li><code>decomposePar</code>：将区域进行并行分解。</li>
+<li><code>snappyHexMesh -overwrite</code>：并行运行网格划分工具，生成贴体网格。</li>
+</ul>
+</li>
+<li><strong>网格重组与优化</strong>：<ul>
+<li><code>redistributePar -reconstruct -constant -overwrite</code>：将并行生成的网格合并回 <code>constant</code> 目录。</li>
+<li><code>renumberMesh -constant -overwrite</code>：优化网格编号以提高读取和计算效率。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="子网格生成：Overset-2-推进器-旋转部件"><a href="#子网格生成：Overset-2-推进器-旋转部件" class="headerlink" title="子网格生成：Overset-2 (推进器&#x2F;旋转部件)"></a>子网格生成：Overset-2 (推进器&#x2F;旋转部件)</h3><p>该步骤在 <code>overset-2</code> 文件夹下进行，流程与 Overset-1 几乎完全一致，只是几何不同。</p>
+<ol>
+<li><strong>准备几何文件</strong>：<ul>
+<li>创建 <code>constant/triSurface</code> 目录。</li>
+<li>拷贝几何文件 <code>BLADES.obj.gz</code>, <code>HUB.obj.gz</code>, <code>MRF_REGION.obj.gz</code>。</li>
+</ul>
+</li>
+<li><strong>生成基础网格</strong>：<ul>
+<li>运行 <code>blockMesh</code>。</li>
+</ul>
+</li>
+<li><strong>特征提取</strong>：<ul>
+<li>运行 <code>surfaceFeatureExtract</code>。</li>
+</ul>
+</li>
+<li><strong>并行网格划分</strong>：<ul>
+<li><code>decomposePar</code>：并行分解。</li>
+<li><code>snappyHexMesh -overwrite</code>：生成贴体网格。</li>
+</ul>
+</li>
+<li><strong>网格重组与优化</strong>：<ul>
+<li><code>redistributePar -reconstruct -constant -overwrite</code>：合并网格。</li>
+<li><code>renumberMesh -constant -overwrite</code>：优化网格。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="背景网格准备-Background-Pre-processing"><a href="#背景网格准备-Background-Pre-processing" class="headerlink" title="背景网格准备 (Background Pre-processing)"></a>背景网格准备 (Background Pre-processing)</h3><p>该步骤在 <code>background</code> 文件夹下进行，目的是生成最外层的流场区域。</p>
+<ol>
+<li><strong>生成背景基础网格</strong>：<ul>
+<li>运行 <code>blockMesh</code> 生成大的计算域。</li>
+</ul>
+</li>
+<li><strong>背景网格细化</strong>（可选但常见）：<ul>
+<li>运行 <code>snappyHexMesh -overwrite</code> 对背景关注区域进行加密（通常不包含具体几何，只是加密空间）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="网格合并与模拟运行-Background-Main-Run"><a href="#网格合并与模拟运行-Background-Main-Run" class="headerlink" title="网格合并与模拟运行 (Background Main Run)"></a>网格合并与模拟运行 (Background Main Run)</h3><p>这是最关键的步骤，将所有子网格整合并开始计算。</p>
+<ol>
+<li><strong>初始化</strong>：<ul>
+<li><code>restore0Dir</code>：恢复初始场文件（0文件夹）。</li>
+</ul>
+</li>
+<li><strong>合并网格 (Merge Meshes)</strong>：<ul>
+<li><code>mergeMeshes . ../overset-1 -overwrite</code>：将 <strong>overset-1</strong> 的网格合并到当前背景网格中。</li>
+<li><code>mergeMeshes . ../overset-2 -overwrite</code>：将 <strong>overset-2</strong> 的网格合并到当前背景网格中。</li>
+<li><em>注：此时网格虽然在同一个算例里，但物理上还是重叠且互不连通的。</em></li>
+</ul>
+</li>
+<li><strong>创建重叠边界 (Patch Creation)</strong>：<ul>
+<li><code>createPatch -overwrite</code>：根据字典配置，将特定的面（通常是 merged 进来的子网格的外边界）转换为 <code>overset</code> 类型的边界条件。</li>
+</ul>
+</li>
+<li><strong>区域标记与场设置 (Zone &amp; Fields)</strong>：<ul>
+<li><code>topoSet</code> (第一次)：创建 cellSet，用于标记特定的区域（如初始液面位置或特定的重叠区域）。</li>
+<li><code>setFields</code>：根据 <code>topoSet</code> 的结果或其他几何，初始化流场数据（如 alpha.water 相分数，或初始速度场）。</li>
+<li><code>topoSet</code> (第二次, 可选)：使用 <code>topoSetDict.cHullProp</code>，可能用于标记船体或螺旋桨特定的计算域属性。</li>
+</ul>
+</li>
+<li><strong>并行计算</strong>：<ul>
+<li><code>decomposePar -force</code>：将合并后的巨大网格进行区域分解，准备并行。</li>
+<li><code>runParallel $(getApplication)</code>：运行主求解器（如 <code>overInterDyMFoam</code> 或 <code>overPimpleDyMFoam</code>）。求解器会在第一步自动进行 <strong>Hole Cutting</strong>（挖洞），确定哪些网格参与计算，哪些被屏蔽。</li>
+</ul>
+</li>
+<li><strong>结果重组</strong>：<ul>
+<li><code>redistributePar -reconstruct -overwrite</code>：计算完成后，将分散的并行结果合并回主文件夹以便后处理。</li>
+</ul>
+</li>
+</ol>
+<h3 id="流程总结"><a href="#流程总结" class="headerlink" title="流程总结"></a>流程总结</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    
+
+flowchart TB
+    %% 定义样式
+    classDef subMesh fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef bgMesh fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef merge fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef process fill:#f5f5f5,stroke:#333,stroke-width:1px;
+
+    %% 总流程入口
+    Start((Start)) --&gt; Parallel_Gen
+
+    %% 并行生成子网格部分
+    subgraph Parallel_Gen [并行生成独立网格]
+        direction LR
+        
+        %% Overset-1 分支
+        subgraph Overset1 [Component 1 Hull]
+            direction TB
+            O1_Geo[拷贝几何 HULL.obj] --&gt; O1_BM[blockMesh]
+            O1_BM --&gt; O1_SFE[surfaceFeatureExtract]
+            O1_SFE --&gt; O1_Decomp[decomposePar]
+            O1_Decomp --&gt; O1_SHM[snappyHexMesh]
+            O1_SHM --&gt; O1_Recon[redistributePar -reconstruct]
+            O1_Recon --&gt; O1_Renumber[renumberMesh]
+        end
+        
+        %% Overset-2 分支
+        subgraph Overset2 [Component 2 Propeller]
+            direction TB
+            O2_Geo[拷贝几何 BLADES&#x2F;HUB.obj] --&gt; O2_BM[blockMesh]
+            O2_BM --&gt; O2_SFE[surfaceFeatureExtract]
+            O2_SFE --&gt; O2_Decomp[decomposePar]
+            O2_Decomp --&gt; O2_SHM[snappyHexMesh]
+            O2_SHM --&gt; O2_Recon[redistributePar -reconstruct]
+            O2_Recon --&gt; O2_Renumber[renumberMesh]
+        end
+
+        %% Background 分支 (Pre)
+        subgraph BackgroundPre [Background Mesh]
+            direction TB
+            BG_BM[blockMesh] --&gt; BG_SHM[snappyHexMesh]
+        end
+    end
+
+    %% 连接各部分到合并阶段
+    O1_Renumber --&gt; Merge_Process
+    O2_Renumber --&gt; Merge_Process
+    BG_SHM --&gt; Merge_Process
+
+    %% 合并与求解设置
+    subgraph Merge_Process [合并与装配 Background Dir]
+        direction TB
+        M1[mergeMeshes: 引入 Overset-1]:::merge
+        M2[mergeMeshes: 引入 Overset-2]:::merge
+        CP[createPatch: 定义 overset 边界]:::process
+        TS1[topoSet: 标记流体区域]:::process
+        SF[setFields: 初始化物理场]:::process
+        TS2[topoSet: 标记部件属性]:::process
+        
+        M1 --&gt; M2 --&gt; CP --&gt; TS1 --&gt; SF --&gt; TS2
+    end
+
+    %% 求解与后处理
+    TS2 --&gt; Final_Calc
+    
+    subgraph Final_Calc [求解]
+        direction TB
+        DecompFinal[decomposePar]:::process
+        Solver[运行并行求解器&lt;br&gt;自动进行 Hole Cutting]:::merge
+        ReconFinal[redistributePar -reconstruct]:::process
+        
+        DecompFinal --&gt; Solver --&gt; ReconFinal
+    end
+
+    ReconFinal --&gt; End((End))
+
+    %% 应用样式
+    class Overset1,Overset2 subMesh;
+    class BackgroundPre bgMesh;
+
+
+  </pre></div>
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/overSetMesh/">https://hugh-tong.github.io/2026/09/15/overSetMesh/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/OpenFOAM/">OpenFOAM</a><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E7%BD%91%E6%A0%BC/">CFD/OpenFOAM/网格</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E6%A0%BC/">网格</a><a class="post-meta__tags" href="/tags/blockMesh/">blockMesh</a><a class="post-meta__tags" href="/tags/MPI/">MPI</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/p_vs_prgh/" title="p 与 p_rgh:静水压力处理的两条路线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">p 与 p_rgh:静水压力处理的两条路线</div></div><div class="info-2"><div class="info-item-1">101OpenFOAM: User Guide: Hydrostatic pressure effects For cases that the hydrostatic pressure contribution ρ(g∙h) is important, e.g. for buoyant and multiphase cases, it is numerically convenient to solve for an alternative pressure defined by p′&#x3D;p−ρ(g∙h). In OpenFOAM solver applications the p′ pressure term is named p_rgh. The momentum equation ∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p+ρg is transformed to use p′: p′&#x3D;p−ρ(g∙h). After the following substititions: −p−∇p&#x3D;−p′−ρ(g∙h)&#x3...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-wedge-bc-survey/" title="wedge 边界条件调研"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">wedge 边界条件调研</div></div><div class="info-2"><div class="info-item-1">Begin关键词：Axisymmetric Wedge boundary condition and the math behind it??????? – CFD Online Discussion Forums (cfd-online.com)  I don’t have any documented reference about how wedges work in OpenFOAM, but as far as I know, the concept is that the wedge boundary is a special type of cyclic boundary condition.The difference is that:  Cyclic boundaries assume that the adjacent cell to the boundary will be part of a domain and not part of the other corresponding cyclic boundary (that’s one of the r...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/stitchMesh/" title="stitchMesh 官方案例流程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">stitchMesh 官方案例流程</div></div><div class="info-2"><div class="info-item-1">https://www.openfoam.com/news/main-news/openfoam-v1712/pre-processing  stitchMesh  The stitchMesh utility stitches two volumetric meshes by manipulating the interfacing faces to create topologically conformal interface.stitchMesh 工具通过调整相接面的网格面来拼接两个体网格，以创建在拓扑上相容的接口。 Use of the utility is limited on situation with simple patches, as the only information processed are the faces, no edges or line elements are taken into the account.由于该实用工具仅处理面信息，而忽略了边和线元素，因此它仅适用于简单的补丁情况。 Further user should make ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/blockMesh_codeStream/" title="blockMesh 的"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">blockMesh 的</div></div><div class="info-2"><div class="info-item-1">这是一个非常高级且强大的 OpenFOAM 功能。简单来说，#codeStream 允许你在文本配置文件中直接写 C++ 代码，OpenFOAM 会在运行时自动把这段代码编译并执行，用执行的结果来替换原本的配置内容。 在 blockMeshDict 的 edges 中看到它，通常是为了生成复杂的曲线几何。 以下是详细的原理和用途解析： 1. 它的原理是什么？(动态编译技术)OpenFOAM 的字典读取器（Dictionary Reader）非常智能，当它读到 #codeStream 时，会执行一套“骚操作”：  提取代码：它把你写在 &#123; ... &#125; 里的 C++ 代码提取出来。 封装与编译：它会在你的案例目录下创建一个临时的 dynamicCode 文件夹，把你的代码封装成一个标准的 OpenFOAM C++ 程序，并调用 wmake 把它编译成一个动态链接库（.so文件）。 加载与执行：它加载这个库，运行里面的函数。 回填结果：你的代码通常会通过 os &lt;&lt; ... 打印出一串文本。OpenFOAM 用这串打印出来的文本，替换 掉配置文件里的 #...</div></div></div></a><a class="pagination-related" href="/2026/09/15/splitMesh-splitMeshRegions/" title="splitMesh 与 splitMeshRegions"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">splitMesh 与 splitMeshRegions</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: Manual Pages: splitMesh 02 chtMultiRegionFoam求解器- splitMesh - 哔哩哔哩 OpenFOAM-v2406采用splitMeshRegions的一个例子。 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138139140141142143144145146147148149150151152153154155156157158159160161162163...</div></div></div></a><a class="pagination-related" href="/2026/09/15/code_meshRefinementBaffles/" title="castellatedMeshControls 与 baffle 生成代码解读"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">castellatedMeshControls 与 baffle 生成代码解读</div></div><div class="info-2"><div class="info-item-1">来源：https://www.openfoam.com/news/main-news/openfoam-v2312/pre-processing  snappyHexMesh: writing faces from the automatic leak path closure  https://develop.openfoam.com/Development/openfoam/-/blob/master/src/mesh/snappyHexMesh/meshRefinement/meshRefinementBaffles.C AIRef解读好的，这是按照您要求整理的 src_mesh_snappyHexMesh_meshRefinement_meshRefinementBaffles.C 文件主要函数列表： 核心挡板生成与处理   函数名 作用    createBaffles 通用挡板生成入口。根据传入的面列表，通过拓扑变化将这些内部面切开，转换为成对的边界面（挡板）。   createZoneBaffles 基于 FaceZone 生成挡板。查找位于指定 faceZone ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/redistributePar_VS_reconstructPar/" title="redistributePar vs reconstructPar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">redistributePar vs reconstructPar</div></div><div class="info-2"><div class="info-item-1">redistributePar_VS_reconstructPar在 OpenFOAM 中，redistributePar 和 reconstructPar 都是处理并行计算数据的工具，但它们的方向和功能强度完全不同。 简单来说：  reconstructPar 是做“合体”的（把分散的数据拼回一个整体）。 redistributePar 是做“重组”的（不仅能合体，还能拆分，还能重新分配）。  以下是详细的对比：  1. 功能核心区别   特性 reconstructPar (传统&#x2F;单一) redistributePar (现代&#x2F;全能)    核心动作 合并 (Merge) 再分配 (Decompose &amp; Reconstruct &amp; Balance)   数据流向 processor* $\rightarrow$ 0, constant, system processor* $\leftrightarrow$ processor*  或者 processor* $\leftrightarrow$ 单核   主要用途 算完后把结果合并，方便 ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/improveMeshQuality/" title="improveMeshQuality 工具实测"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">improveMeshQuality 工具实测</div></div><div class="info-2"><div class="info-item-1">https://www.openfoam.com/documentation/guides/v2112/man/improveMeshQuality.html 123(cfmesh)Performs point relocations in the mesh (smoothing) in order to improve qualitymeasures.   improveMeshQuality 是 cfMesh 套件中一个非常有用的后处理工具。 如果把 checkMesh 比作体检医生（只告诉你哪里有病），那么 improveMeshQuality 就是理疗师（不进行大手术，而是通过按摩推拿来缓解病痛）。 参考开源代码逻辑，以下是它具体“干了什么”的深度解析： 1. 核心机制：节点重定位 (Point Relocation &#x2F; Smoothing)这是它最核心的功能。它绝对不会改变网格的拓扑结构（即：它不会增加、删除或合并网格，也不会切割网格）。 它做的仅仅是移动网格顶点的坐标 (Move Vertices)。  原理：它构建了一个以网格质量为目标的优化函数。可以把它...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">60</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">75</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#v2406-overset%E6%95%B4%E4%BD%93%E8%AE%A1%E7%AE%97%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">v2406-overset整体计算流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#twoSimpleRotor"><span class="toc-number">1.1.</span> <span class="toc-text">twoSimpleRotor</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Allrun-pre"><span class="toc-number">1.1.1.</span> <span class="toc-text">Allrun.pre</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Allrun"><span class="toc-number">1.1.2.</span> <span class="toc-text">Allrun</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#overset%E5%9C%A8%E6%95%B0%E5%80%BC%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%B8%8A%E9%9C%80%E8%A6%81%E9%A2%9D%E5%A4%96%E8%AE%BE%E7%BD%AE%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="toc-number">1.1.3.</span> <span class="toc-text">overset在数值配置文件上需要额外设置的地方</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#v2406-overset%E7%BD%91%E6%A0%BC%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">v2406-overset网格处理流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E6%AD%A5%E9%AA%A4%EF%BC%88blockMesh-topoSet-subsetMesh%EF%BC%8C%E5%B7%A5%E7%A8%8B%E4%B8%8A%E9%9A%BE%E4%BB%A5%E9%80%82%E7%94%A8"><span class="toc-number">2.1.</span> <span class="toc-text">流程步骤（blockMesh+topoSet+subsetMesh，工程上难以适用)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E5%9F%BA%E5%BA%95-blockMesh"><span class="toc-number">2.1.1.</span> <span class="toc-text">1. 生成基底 (blockMesh)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%9A%E4%B9%89%E5%87%A0%E4%BD%95%E5%BD%A2%E7%8A%B6-topoSet-s-1"><span class="toc-number">2.1.2.</span> <span class="toc-text">2. 定义几何形状 (topoSet -s 1)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BD%91%E6%A0%BC%E4%BF%AE%E5%89%AA%E4%B8%8E%E8%BE%B9%E7%95%8C%E9%87%8D%E5%91%BD%E5%90%8D-subsetMesh"><span class="toc-number">2.1.3.</span> <span class="toc-text">3. 网格修剪与边界重命名 (subsetMesh)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%A0%87%E8%AE%B0%E9%87%8D%E5%8F%A0%E5%8C%BA%E5%9F%9F-topoSet-s-2"><span class="toc-number">2.1.4.</span> <span class="toc-text">4. 标记重叠区域 (topoSet -s 2)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%88%9D%E5%A7%8B%E5%8C%96-ZoneID-setFields"><span class="toc-number">2.1.5.</span> <span class="toc-text">5. 初始化 ZoneID (setFields)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#topoSet"><span class="toc-number">2.2.</span> <span class="toc-text">topoSet</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#topoSet-example"><span class="toc-number">2.2.1.</span> <span class="toc-text">topoSet example</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91%E6%80%BB%E7%BB%93"><span class="toc-number">2.3.</span> <span class="toc-text">核心逻辑总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88%EF%BC%88blockMesh-snappyHexMesh-mergeMesh-topoSet%EF%BC%89"><span class="toc-number">2.4.</span> <span class="toc-text">总体流程概览（blockMesh,snappyHexMesh,mergeMesh,topoSet）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E6%A0%BC%E5%89%96%E5%88%86%E7%BB%93%E6%9E%9C"><span class="toc-number">2.4.1.</span> <span class="toc-text">网格剖分结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%90%E7%BD%91%E6%A0%BC%E7%94%9F%E6%88%90%EF%BC%9AOverset-1-%E8%88%B9%E4%BD%93"><span class="toc-number">2.4.2.</span> <span class="toc-text">子网格生成：Overset-1 (船体)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%90%E7%BD%91%E6%A0%BC%E7%94%9F%E6%88%90%EF%BC%9AOverset-2-%E6%8E%A8%E8%BF%9B%E5%99%A8-%E6%97%8B%E8%BD%AC%E9%83%A8%E4%BB%B6"><span class="toc-number">2.4.3.</span> <span class="toc-text">子网格生成：Overset-2 (推进器&#x2F;旋转部件)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E7%BD%91%E6%A0%BC%E5%87%86%E5%A4%87-Background-Pre-processing"><span class="toc-number">2.4.4.</span> <span class="toc-text">背景网格准备 (Background Pre-processing)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E6%A0%BC%E5%90%88%E5%B9%B6%E4%B8%8E%E6%A8%A1%E6%8B%9F%E8%BF%90%E8%A1%8C-Background-Main-Run"><span class="toc-number">2.4.5.</span> <span class="toc-text">网格合并与模拟运行 (Background Main Run)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E6%80%BB%E7%BB%93"><span class="toc-number">2.4.6.</span> <span class="toc-text">流程总结</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件">atmBoundaryLayer 大气边界层边界条件</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)">坏网格图鉴(BadMesh Store)</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱">高质量网格的 5 个技巧与陷阱</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解">拓扑连通区域(Topologically Connected Region)理解</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/VTK_VTM_VTU/" title="VTK/VTM/VTU 文件格式速查">VTK/VTM/VTU 文件格式速查</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

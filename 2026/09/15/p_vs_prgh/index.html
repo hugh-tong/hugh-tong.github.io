@@ -1,0 +1,781 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>p 与 p_rgh:静水压力处理的两条路线 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="OpenFOAM 中 p 与 p_rgh 的关系、静水压力扣除的动机与求解器选择。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="p 与 p_rgh:静水压力处理的两条路线">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/p_vs_prgh/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="OpenFOAM 中 p 与 p_rgh 的关系、静水压力扣除的动机与求解器选择。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:01:57.176Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;边界条件">
+<meta property="article:tag" content="RANS">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="多相流">
+<meta property="article:tag" content="simpleFoam">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "p 与 p_rgh:静水压力处理的两条路线",
+  "url": "https://hugh-tong.github.io/2026/09/15/p_vs_prgh/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T04:00:00.000Z",
+  "dateModified": "2026-09-15T07:01:57.176Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/p_vs_prgh/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'p 与 p_rgh:静水压力处理的两条路线',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">p 与 p_rgh:静水压力处理的两条路线</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">p 与 p_rgh:静水压力处理的两条路线</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:01:57.176Z" title="Updated 2026-09-15 15:01:57">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6/">边界条件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="101"><a href="#101" class="headerlink" title="101"></a>101</h1><p><a target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/guides/latest/doc/guide-applications-solvers-variable-transform-p-rgh.html">OpenFOAM: User Guide: Hydrostatic pressure effects</a></p>
+<p>For cases that the hydrostatic pressure contribution</p>
+<p>ρ(g∙h)</p>
+<p>is important, e.g. for buoyant and multiphase cases, it is numerically convenient to solve for an alternative pressure defined by</p>
+<p>p′&#x3D;p−ρ(g∙h).</p>
+<p>In OpenFOAM solver applications the p′ pressure term is named <code>p_rgh</code>. The momentum equation</p>
+<p>∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p+ρg</p>
+<p>is transformed to use p′:</p>
+<p>p′&#x3D;p−ρ(g∙h).</p>
+<p>After the following substititions:</p>
+<p>−p−∇p&#x3D;−p′−ρ(g∙h)&#x3D;−∇(p′)−∇(ρ(g∙h))&#x3D;−∇(p′)−ρg∙∇h−h∙∇(ρg)&#x3D;−∇(p′)−ρg∙I−g∙h∇(ρ)−ρh∙∇(g)0&#x3D;−∇(p′)−ρg−g∙h∇ρ</p>
+<p>where, for CFD meshes the term ∇h is given by the gradient of the cell centres, which equates to the tensor I, the momentum equation becomes:</p>
+<p>∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p′−g∙h∇ρ</p>
+<p>For constant density applications this can be further simplified to</p>
+<p>∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p′</p>
+<p><a target="_blank" rel="noopener" href="https://www.cfd-online.com/Forums/openfoam-solving/142249-question-physical-meaning-p_rgh.html">question on the physical meaning of p_rgh – CFD Online Discussion Forums</a></p>
+<p>p_rgh 没有任何物理意义，它只是一个方便的数值技巧。</p>
+<p>表达式不是关于 h，而是关于 z 的：</p>
+<p>p_rgh &#x3D; p - rho_g_z</p>
+<p>这意味着如果某个单元位于 z &#x3D; 0，那么 p_rgh &#x3D; p。</p>
+<p>此外，正如你指出的，如果在某一时刻单元位于水中，p_rgh &#x3D; p - rhoWater_g_z；而在下一时间步它位于空气中：p_rgh &#x3D; p - rhoAir_g_z，这可能会在 p_rgh 上引入相当大的变化。</p>
+<p>简而言之，p_rgh 不是静水压力，因为它考虑的是某一点发生的情况，而不是上方所有点的影响。希望这能让问题更清楚一些。</p>
+<p><a target="_blank" rel="noopener" href="https://bugs.openfoam.org/view.php?id=1170">0001170: p_rgh formulation - OpenFOAM Issue Tracking</a><br>带浮升力的p_rgh存在的问题。</p>
+<h1 id="在-OpenFOAM-中将-simpleFoam-的压力场用于弱可压求解器（含-p-与-p-rgh）的处理方法"><a href="#在-OpenFOAM-中将-simpleFoam-的压力场用于弱可压求解器（含-p-与-p-rgh）的处理方法" class="headerlink" title="在 OpenFOAM 中将 simpleFoam 的压力场用于弱可压求解器（含 p 与 p_rgh）的处理方法"></a>在 OpenFOAM 中将 simpleFoam 的压力场用于弱可压求解器（含 <code>p</code> 与 <code>p_rgh</code>）的处理方法</h1><p>下述过程：不可压结果到弱可压</p>
+<p>Q：在采用OpenFOAM进行CFD计算中，我用simpleFoam计算得到了一个稳态的结果。得到压力场p在-790到1000之间。我现在要把这些结果，弄到另外一个需要用到p和prgh的弱可压求解器中，对于压力场，需要做什么处理？</p>
+<p>你目前在 <code>simpleFoam</code>（不可压稳态）里得到的压力场范围为 $-790 \sim 1000$（单位通常为 Pa）。现在要把结果转到一个弱可压（weakly-compressible）的求解器，并且该求解器使用 <code>p</code> 和 <code>p_rgh</code>。关键在于明确这两个压力字段在不同物理模型下的定义与转换关系。</p>
+<h2 id="核心概念与差异"><a href="#核心概念与差异" class="headerlink" title="核心概念与差异"></a>核心概念与差异</h2><ul>
+<li><p><strong><code>simpleFoam</code> 的 <code>p</code>（不可压）：</strong></p>
+<ul>
+<li>在不可压求解器中，<code>p</code> 常常是“动力学压力”或“相对压力”意义上的变量（具体取决于版本与设置），它通过泊松方程用于满足连续性，绝对值常常只在一个常数上不唯一（可加常数）。</li>
+<li>很多不可压算例中，<code>p</code> 可以是“以密度归一化的压力”（即 <code>p = p_phys/ρ</code>，单位为 m²&#x2F;s²），也可能是以 Pa 表示的动态压力；需以你的 <code>0/p</code>、<code>thermophysicalProperties</code> 和求解器版本为准。</li>
+<li>范围 $-790 \sim 1000$ Pa 看上去像是相对压力（相对某参考压力）的波动量。</li>
+</ul>
+</li>
+<li><p><strong>弱可压求解器中的 <code>p</code> 与 <code>p_rgh</code>：</strong></p>
+<ul>
+<li>弱可压求解器通常解决能量方程，<code>p</code> 是物理压力（Thermo pressure），即绝对压力或相对参考的“热力学压力”，参与状态方程（例如 barotropic 或弱可压 EoS）。</li>
+<li><code>p_rgh</code> 定义为去除了重力静水柱的压力：<ul>
+<li>$p_{rgh} &#x3D; p - \rho g h$</li>
+<li>其中 $h$ 为重力方向上的几何高度（例如相对某参考面 $z$），$g$ 为重力加速度标量（或向量投影），$\rho$ 为密度。</li>
+</ul>
+</li>
+<li>在可压类求解器里，<code>p</code> 与 <code>p_rgh</code> 的相互转换随密度场变化而变化。</li>
+</ul>
+</li>
+</ul>
+<p>因此，直接把 <code>simpleFoam</code> 的 <code>p</code> 原样当作弱可压求解器的 <code>p</code> 或 <code>p_rgh</code> 往往是不对的，需要做一致化处理。</p>
+<h2 id="应做的处理步骤"><a href="#应做的处理步骤" class="headerlink" title="应做的处理步骤"></a>应做的处理步骤</h2><ol>
+<li><p><strong>确认 <code>simpleFoam</code> 的 <code>p</code> 含义与单位</strong></p>
+<ul>
+<li>查看 <code>0/p</code> 的 <code>dimensions</code>。若为 <code>[0 2 -2 0 0 0 0]</code>（m²&#x2F;s²），说明是压强除以密度的形式（kinematic pressure，<code>p/ρ</code>）；若为 <code>[1 -1 -2 0 0 0 0]</code>（Pa），则是以帕计的压力。</li>
+<li>检查 <code>transportProperties</code> 与求解器设置，确认是否使用密度归一化。多数不可压求解器在方程中用的是 kinematic pressure。</li>
+</ul>
+</li>
+<li><p><strong>把 <code>simpleFoam</code> 的 <code>p</code> 转换为物理压力 <code>p_phys</code>（若需要）</strong></p>
+<ul>
+<li>若 <code>simpleFoam</code> 的 <code>p</code> 是 kinematic（<code>p/ρ</code>），需乘以密度：  <ul>
+<li>$ p_{phys} &#x3D; \rho , p_{kin} $</li>
+<li>对不可压流，$\rho$ 为常数，可直接乘。</li>
+</ul>
+</li>
+<li>若已经是 Pa，则这步可略。</li>
+</ul>
+</li>
+<li><p><strong>施加（或移除）静水压力以得到 <code>p</code> 与 <code>p_rgh</code></strong></p>
+<ul>
+<li>你的弱可压求解器需要两个字段：<ul>
+<li><code>p</code>：物理（热力学）压力</li>
+<li><code>p_rgh = p - \rho g h</code></li>
+</ul>
+</li>
+<li>根据你要在新算例中使用的重力方向和参考高度场 $h$（通常 <code>h = (ĝ·x)</code> 或 <code>z</code>），以及介质密度场 <code>rho</code>：<ul>
+<li>若你的 <code>simpleFoam</code> 结果是相对压力（未包含静水项），则将其作为扰动压力叠加到参考热力学压力上：  <ul>
+<li>选择一个参考绝对压力 $p_{ref}$（如 101325 Pa），定义<br>$p &#x3D; p_{ref} + p’$（其中 $p’$ 为你的已转换后的相对压力）。  </li>
+<li>然后计算<br>$p_{rgh} &#x3D; p - \rho g h$。</li>
+</ul>
+</li>
+<li>若你希望保持当前相对水平（不关心绝对压），也可以选择在新算例中使用同一参考：  <ul>
+<li>给定 <code>p</code> 的平均值加上一个常数使其在入场或边界处达到所需热力学压力水平，再用上式得到 <code>p_rgh</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>一致化边界条件与参考压力</strong></p>
+<ul>
+<li>在弱可压求解器中，通常 <code>p_rgh</code> 采用零梯度或固定值，<code>p</code> 在状态方程与能量方程中使用。确保边界条件与 <code>g</code>、<code>h</code> 的定义一致。</li>
+<li>对开口边界（如 <code>pressureOutlet</code>&#x2F;<code>totalPressure</code> 等），要明确是对 <code>p</code> 还是对 <code>p_rgh</code> 施加条件，避免把静水项重复或遗漏。</li>
+<li>如果你的新求解器使用 <code>p_rgh</code> 作为主求解变量（常见于重力主导流动），则在初始场给 <code>p_rgh</code>，并由求解器恢复 <code>p</code>；这时你需要根据上述关系从旧场构造 <code>p_rgh</code>。</li>
+</ul>
+</li>
+<li><p><strong>密度场的一致性</strong></p>
+<ul>
+<li>弱可压需要 <code>rho</code>（由温度、压力、EoS 给出或由 <code>thermophysicalProperties</code> 指定）。若你从不可压转入，需要提供合适的 <code>rho</code> 初值或模型参数，使 <code>p_rgh</code> 与 <code>p</code> 的关系自洽。</li>
+<li>若采用恒定密度的弱可压近似，转换更简单；若 <code>rho</code> 随空间变化，构造 <code>p_rgh</code> 时应使用同一 <code>rho</code> 场。</li>
+</ul>
+</li>
+</ol>
+<h2 id="实用配方"><a href="#实用配方" class="headerlink" title="实用配方"></a>实用配方</h2><ul>
+<li><p>情形 A：simpleFoam 的 <code>p</code> 为 kinematic（单位 m²&#x2F;s²），不可压密度为常数 <code>rho0</code>，你要在弱可压中用绝对热力学压力并设参考 $p_{ref}&#x3D;101325$ Pa：</p>
+<ol>
+<li><code>p_phys = rho0 * p_simple</code>  </li>
+<li><code>p = p_ref + p_phys</code>  </li>
+<li><code>p_rgh = p - rho(x) * g * h(x)</code>（若初期取 <code>rho=rho0</code>，则用常数）</li>
+</ol>
+</li>
+<li><p>情形 B：simpleFoam 的 <code>p</code> 已为 Pa，表示相对压力（均值约 0），要转为 <code>p_rgh</code> 初场：</p>
+<ol>
+<li>选参考绝对压力 <code>p_ref</code>，令 <code>p = p_ref + p_simple</code>  </li>
+<li><code>p_rgh = p - rho * g * h</code></li>
+</ol>
+</li>
+<li><p>情形 C：你希望新算例直接以 <code>p_rgh</code> 为主变量，并维持与旧流场的动压分布一致：</p>
+<ul>
+<li>直接设定<br><code>p_rgh = (p_ref + p_simple_phys) - rho*g*h</code><br>其中 <code>p_simple_phys</code> 为按需要从 kinematic 转回 Pa 的压力扰动。</li>
+<li><code>p</code> 将由求解器从 <code>p_rgh + rho*g*h</code> 恢复。</li>
+</ul>
+</li>
+</ul>
+<h2 id="常见坑与检查"><a href="#常见坑与检查" class="headerlink" title="常见坑与检查"></a>常见坑与检查</h2><ul>
+<li><strong>常数偏移不影响速度场，但影响热力学压力</strong>：不可压的 <code>p</code> 可加常数；可压求解器中这个常数决定了热力学状态，需选物理合理的 <code>p_ref</code>。</li>
+<li><strong>单位不匹配</strong>：确保是否为 <code>p/ρ</code>。若错把 m²&#x2F;s² 当 Pa，会差一个 $\rho$ 倍。</li>
+<li><strong>重力方向和高度定义</strong>：检查 <code>constant/g</code> 与网格坐标，确认 $h$ 取值方向一致。</li>
+<li><strong>边界条件一致性</strong>：开口边界对 <code>p</code> 与 <code>p_rgh</code> 的 BC 不可混用。</li>
+<li><strong>Z 夸张&#x2F;坐标缩放</strong>：若你的几何或 <code>g</code> 与真实单位不一致，会直接影响 <code>ρ g h</code> 的量级。</li>
+</ul>
+<hr>
+<p>如果你提供：</p>
+<ul>
+<li>你的 <code>0/p</code> 的 <code>dimensions</code>，<code>constant/g</code>，<code>rho</code> 的设定方式（恒定或由 EoS），以及目标弱可压求解器名称，</li>
+<li>以及重力参考面（如何定义 <code>h</code>），</li>
+</ul>
+<p>我可以给出精确的字段转换命令（例如用 <code>foamCalc</code> 或 <code>funkySetFields</code> 的具体操作步骤与脚本）。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/p_vs_prgh/">https://hugh-tong.github.io/2026/09/15/p_vs_prgh/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6/">CFD/OpenFOAM/边界条件</a><a class="post-meta__tags" href="/tags/RANS/">RANS</a><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/%E5%A4%9A%E7%9B%B8%E6%B5%81/">多相流</a><a class="post-meta__tags" href="/tags/simpleFoam/">simpleFoam</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/redistributePar_VS_reconstructPar/" title="redistributePar vs reconstructPar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">redistributePar vs reconstructPar</div></div><div class="info-2"><div class="info-item-1">redistributePar_VS_reconstructPar在 OpenFOAM 中，redistributePar 和 reconstructPar 都是处理并行计算数据的工具，但它们的方向和功能强度完全不同。 简单来说：  reconstructPar 是做“合体”的（把分散的数据拼回一个整体）。 redistributePar 是做“重组”的（不仅能合体，还能拆分，还能重新分配）。  以下是详细的对比：  1. 功能核心区别   特性 reconstructPar (传统&#x2F;单一) redistributePar (现代&#x2F;全能)    核心动作 合并 (Merge) 再分配 (Decompose &amp; Reconstruct &amp; Balance)   数据流向 processor* $\rightarrow$ 0, constant, system processor* $\leftrightarrow$ processor*  或者 processor* $\leftrightarrow$ 单核   主要用途 算完后把结果合并，方便 ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/overSetMesh/" title="overset 重叠网格在 OpenFOAM 中的计算流程(v2406)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">overset 重叠网格在 OpenFOAM 中的计算流程(v2406)</div></div><div class="info-2"><div class="info-item-1">v2406-overset整体计算流程twoSimpleRotorAllrun.pre12345678910111213141516171819202122#!/bin/shcd &quot;$&#123;0%/*&#125;&quot; || exit                                # Run from this directory. $&#123;WM_PROJECT_DIR:?&#125;/bin/tools/RunFunctions        # Tutorial run functions#------------------------------------------------------------------------------runApplication blockMesh# Select cellSetsrunApplication -s 1 topoSetrunApplication subsetMesh box -patch hole -overwrite# Select cellSetsrunApplicat...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/noSlip_vs_slip/" title="slip 与 noSlip 边界条件的区别"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">slip 与 noSlip 边界条件的区别</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中的 slip 与 noSlip 边界条件有什么区别？简明对比：  noSlip：固壁粘性边界，法向和切向速度都为 0（相对壁面）→ 有壁面剪切、边界层。 slip：无摩擦壁&#x2F;自由滑移，法向速度为 0，切向速度法向梯度为 0 → 无壁面剪切、无边界层。  下面从物理、数学、实现和典型用法逐一说明。  1) 物理含义 noSlip（无滑移）  模拟真实粘性固壁：流体与壁面相对速度为零。 存在壁面剪切应力与边界层；动量和湍流的产生&#x2F;耗散与壁面摩擦相关。 若壁面运动（动网格&#x2F;动壁），应使用 movingWallVelocity 来使流体速度等于壁面速度。   slip（滑移&#x2F;无应力）  模拟无摩擦壁或自由表面上方的“无应力顶盖”：没有切向阻力。 只禁止法向穿透，不施加切向速度值；切向剪切应力为零。 常用于大气边界层的顶部边界、理想化高雷诺数“无边界层”近似、或对称性&#x2F;远场的简化。     2) 数学条件以法向单位向量为 ( \mathbf{n} )，切向速度为 ( \mathbf{u}_t )，法向分量为 ( u_n ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-bc-summary/" title="OpenFOAM 边界条件速查总表"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 边界条件速查总表</div></div><div class="info-2"><div class="info-item-1">设置中的PlaceholderflowRateInletVelocity – CFD Online Discussion Forums OpenFOAM中存在一些继承关系带来的placeholder，他写在哪里，实际上没有意义。 123456inlet&#123;  type        flowRateInletVelocity;  flowRate    0.2;        // Volumetric/mass flow rate [m3/s or kg/s]  value       uniform (0 0 0); // placeholder&#125;  The value field is a part of every boundary condition, since they derive from the same basic boundary condition. placeholder means just that. you need it in order for OF to use the boundary condition, but it...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-bc-overview-2026/" title="OpenFOAM 边界条件整理(2026)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 边界条件整理(2026)</div></div><div class="info-2"><div class="info-item-1">在 OpenFOAM 的不可压缩流体模拟中（如 simpleFoam, pisoFoam, interFoam），边界条件的设置直接决定了计算的收敛性和物理准确性。针对管内流动&#x2F;室内通风场景，以下是单相流与两相流（VOF）的压力与速度边界条件总结。  一、 单相不可压缩流动 (Single-Phase)适用求解器： simpleFoam (稳态), pisoFoam &#x2F; pimleFoam (瞬态)核心注意： 压力场 p 的量纲通常是 $m^2&#x2F;s^2$（即 $P&#x2F;\rho$）。    边界位置 速度场 (U) 压力场 (p) 说明    入口 (Inlet) fixedValue zeroGradient 或 fixedFluxPressure 给定已知流速（如 uniform (1 0 0)）。   出口 (Outlet) zeroGradient fixedValue 通常设出口压力为 0（参考压）。   壁面 (Wall) noSlip zeroGradient 或 fixedFluxPressure fixedFluxPressu...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-wedge-bc-survey/" title="wedge 边界条件调研"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">wedge 边界条件调研</div></div><div class="info-2"><div class="info-item-1">Begin关键词：Axisymmetric Wedge boundary condition and the math behind it??????? – CFD Online Discussion Forums (cfd-online.com)  I don’t have any documented reference about how wedges work in OpenFOAM, but as far as I know, the concept is that the wedge boundary is a special type of cyclic boundary condition.The difference is that:  Cyclic boundaries assume that the adjacent cell to the boundary will be part of a domain and not part of the other corresponding cyclic boundary (that’s one of the r...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-weber/" title="韦伯数(Weber Number)——惯性力与表面张力的对决"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">韦伯数(Weber Number)——惯性力与表面张力的对决</div></div><div class="info-2"><div class="info-item-1">韦伯数(Weber number,简称 We)衡量流体惯性力与表面张力的相对大小,是多相流分析中出场率最高的无量纲数之一。一颗液滴撞上壁面是弹开、铺展还是碎裂,一股射流最终雾化到多细,背后都是 We 数在起裁决作用。对做气液两相流 CFD 的人来说,它几乎是设置工况前要看的第一个数。 定义与表达式$$We &#x3D; \frac{\rho U^2 L}{\sigma}$$ 其中:  $\rho$:流体密度(kg&#x2F;m³); $U$:特征速度(m&#x2F;s); $L$:特征长度,如液滴直径(m); $\sigma$:表面张力系数(N&#x2F;m)。  分子 $\rho U^2 L$ 代表惯性力强度,分母 $\sigma$ 代表表面张力的约束作用,二者的比值直接刻画界面被”拉变形”与”拽回来”之间的竞争。 物理意义 We ≫ 1:惯性力远大于表面张力,界面容易剧烈变形。常见于高速射流、液滴撞击等场合,液滴容易碎裂,产生波纹或分裂现象; We ≪ 1:表面张力主导流动,界面趋于稳定,液滴不易分裂,保持接近球形的光滑界面。  直观理解:表面张力总想把界面收缩成能量最低的球...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">atmBoundaryLayer 大气边界层边界条件</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: User Guide: atmBoundaryLayer ABL Boundary condition validation – BARAM Portal Atmospheric Boundary Layer | How to Set up an ABL | SimScale OpenFOAM: API Guide: timeVaryingMappedFixedValueFvPatchField&lt; Type &gt; Class Template Reference atmBoundaryLayer属性（Properties） atmBoundaryLayer 类是一个用于入口边界条件的基类，提供基于对数律（log-law）的地面法向入流边界条件，用于同质、二维、干空气、平衡且中性的大气边界层（ABL）建模中的风速与湍流量。 因此，该类本身不是可直接执行的边界条件，而是其派生条件的通用条目提供者。 atmBoundaryLayer 继承了 inletOutlet 边界条件的特性，从而可以从域的各个侧面提供给定的入口条件。例如，地面法向的圆柱域只有一个 i...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">60</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">75</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#101"><span class="toc-number">1.</span> <span class="toc-text">101</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9C%A8-OpenFOAM-%E4%B8%AD%E5%B0%86-simpleFoam-%E7%9A%84%E5%8E%8B%E5%8A%9B%E5%9C%BA%E7%94%A8%E4%BA%8E%E5%BC%B1%E5%8F%AF%E5%8E%8B%E6%B1%82%E8%A7%A3%E5%99%A8%EF%BC%88%E5%90%AB-p-%E4%B8%8E-p-rgh%EF%BC%89%E7%9A%84%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">在 OpenFOAM 中将 simpleFoam 的压力场用于弱可压求解器（含 p 与 p_rgh）的处理方法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%B7%AE%E5%BC%82"><span class="toc-number">2.1.</span> <span class="toc-text">核心概念与差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%94%E5%81%9A%E7%9A%84%E5%A4%84%E7%90%86%E6%AD%A5%E9%AA%A4"><span class="toc-number">2.2.</span> <span class="toc-text">应做的处理步骤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%94%A8%E9%85%8D%E6%96%B9"><span class="toc-number">2.3.</span> <span class="toc-text">实用配方</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.4.</span> <span class="toc-text">常见坑与检查</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件">atmBoundaryLayer 大气边界层边界条件</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)">坏网格图鉴(BadMesh Store)</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱">高质量网格的 5 个技巧与陷阱</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解">拓扑连通区域(Topologically Connected Region)理解</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/VTK_VTM_VTU/" title="VTK/VTM/VTU 文件格式速查">VTK/VTM/VTU 文件格式速查</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

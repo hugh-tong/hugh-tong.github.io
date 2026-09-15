@@ -1,0 +1,740 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>VTK/VTM/VTU 文件格式速查 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ParaView&#x2F;VTK 系列文件(vtu&#x2F;vtm&#x2F;vtp)的层级关系与 OpenFOAM 后处理中的对应物。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VTK&#x2F;VTM&#x2F;VTU 文件格式速查">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/VTK_VTM_VTU/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="ParaView&#x2F;VTK 系列文件(vtu&#x2F;vtm&#x2F;vtp)的层级关系与 OpenFOAM 后处理中的对应物。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:13:14.615Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="Cpp">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;网格">
+<meta property="article:tag" content="网格">
+<meta property="article:tag" content="PyVista">
+<meta property="article:tag" content="浸没边界法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "VTK/VTM/VTU 文件格式速查",
+  "url": "https://hugh-tong.github.io/2026/09/15/VTK_VTM_VTU/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T04:00:00.000Z",
+  "dateModified": "2026-09-15T07:13:14.615Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/VTK_VTM_VTU/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'VTK/VTM/VTU 文件格式速查',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">VTK/VTM/VTU 文件格式速查</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">VTK/VTM/VTU 文件格式速查</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:13:14.615Z" title="Updated 2026-09-15 15:13:14">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E7%BD%91%E6%A0%BC/">网格</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="101-AI-Gen-Ref"><a href="#101-AI-Gen-Ref" class="headerlink" title="101,AI-Gen-Ref"></a>101,AI-Gen-Ref</h2><p>这三种格式都是属于 <strong>VTK (Visualization Toolkit)</strong> 生态系统的文件格式，在计算流体力学（CFD）、有限元分析（FEA）和计算机图形学（比如你正在做的 Taichi 物理模拟）中极其常见，它们通常用 <strong>ParaView</strong> 这个软件来打开和渲染。</p>
+<p>简单来说，它们代表了 VTK 格式的<strong>不同时代</strong>和<strong>不同数据组织结构</strong>。下面我用最直白的方式为你拆解它们的区别：</p>
+<h3 id="1-vtk-格式-Legacy-VTK-——-“简单粗暴的老前辈”"><a href="#1-vtk-格式-Legacy-VTK-——-“简单粗暴的老前辈”" class="headerlink" title="1. .vtk 格式 (Legacy VTK) —— “简单粗暴的老前辈”"></a>1. <code>.vtk</code> 格式 (Legacy VTK) —— “简单粗暴的老前辈”</h3><p>这是最早期的传统格式（Legacy Format）。</p>
+<ul>
+<li><strong>长什么样</strong>：它可以是纯文本（ASCII）或者二进制（Binary）。它的结构非常简单，就像流水账一样，依次写下：点坐标（Points）、单元连接关系（Cells）、点数据（Point Data，比如速度）、单元数据（Cell Data，比如压力）。</li>
+<li><strong>优点</strong>：<strong>极度容易手写</strong>！如果你用 C++ 或 Python 自己写一个导出器，用最基础的 <code>printf</code> 或 <code>f.write()</code> 就能生成一个文本版的 <code>.vtk</code> 文件，非常适合新手写简单的物理引擎时用来导出数据。</li>
+<li><strong>缺点</strong>：不支持高级的数据压缩；不支持把多个独立部件组合在一起；文件一旦变大，读取和写入速度就成了瓶颈。</li>
+</ul>
+<h3 id="2-vtu-格式-XML-Unstructured-Grid-——-“现代的主力军”"><a href="#2-vtu-格式-XML-Unstructured-Grid-——-“现代的主力军”" class="headerlink" title="2. .vtu 格式 (XML Unstructured Grid) —— “现代的主力军”"></a>2. <code>.vtu</code> 格式 (XML Unstructured Grid) —— “现代的主力军”</h3><p>为了解决老 <code>.vtk</code> 格式的缺点，官方后来推出了一套基于 <strong>XML</strong> 的现代格式标准。<code>.vtu</code> 就是其中专门用来存**非结构化网格（Unstructured Grid）**的格式。</p>
+<ul>
+<li><strong>长什么样</strong>：用文本编辑器打开它，你会看到类似 HTML 一样的标签结构（如 <code>&lt;VTKFile&gt;</code>, <code>&lt;Piece&gt;</code>, <code>&lt;Points&gt;</code>）。虽然外壳是 XML 文本，但它的核心海量数据（坐标、物理量）通常是用 Base64 编码压缩后放在文件末尾（Appended Data）的。</li>
+<li><strong>优点</strong>：<strong>支持强大的压缩算法（如 Zlib）</strong>，能极大减小文件体积；读取速度极快；极其规范。</li>
+<li><strong>缺点</strong>：格式复杂，很难“纯手写”代码来生成，通常需要调用专门的库（比如 Python 的 <code>meshio</code>、<code>pyvista</code> 或 C++ 的 <code>vtkIO</code>）来导出。</li>
+<li><strong>适用场景</strong>：这是你做流体模拟、弹性体形变模拟时<strong>最常用的单体格式</strong>。只要你的网格是由四面体、六面体、或者任意乱七八糟的形状组成的，存 <code>.vtu</code> 就对了。</li>
+</ul>
+<h3 id="3-vtm-格式-XML-Multiblock-Dataset-——-“发号施令的大管家”"><a href="#3-vtm-格式-XML-Multiblock-Dataset-——-“发号施令的大管家”" class="headerlink" title="3. .vtm 格式 (XML Multiblock Dataset) —— “发号施令的大管家”"></a>3. <code>.vtm</code> 格式 (XML Multiblock Dataset) —— “发号施令的大管家”</h3><p>这也是现代 XML 格式族的一员，但它<strong>本身不存任何网格数据</strong>！它是一个“索引文件”或“容器”。</p>
+<ul>
+<li><strong>长什么样</strong>：它本质上是一个目录树。里面写着类似：“树枝 A 引用了 <code>fluid.vtu</code>，树枝 B 引用了 <code>solid.vtp</code>，树枝 C 引用了 <code>boundary.vti</code>”。</li>
+<li><strong>优点</strong>：可以把不同类型、不同分辨率、甚至是不同物理场的数据打包在一起管理。在 ParaView 里打开一个 <code>.vtm</code> 文件，你可以方便地在左侧目录树里单独隐藏&#x2F;显示某个部件（Block）。</li>
+<li><strong>适用场景</strong>：<strong>复杂的多物理场&#x2F;多部件场景</strong>。比如你模拟了一辆汽车在风洞里吹风，汽车表面可以存为一个 <code>.vtp</code>（多边形面），周围的流场网格存为好几个 <code>.vtu</code>。然后你用一个 <code>.vtm</code> 文件把它们整合起来，ParaView 只需要加载这个 <code>.vtm</code> 就能看到整个完整的场景。</li>
+</ul>
+<hr>
+<h3 id="💡-一个通俗的比喻总结"><a href="#💡-一个通俗的比喻总结" class="headerlink" title="💡 一个通俗的比喻总结"></a>💡 一个通俗的比喻总结</h3><p>假设你要写一本书（保存你的模拟结果）：</p>
+<ul>
+<li><strong><code>.vtk</code></strong>：就像是一份用记事本写的 <strong><code>.txt</code> 草稿</strong>。文字都在，结构简单，但没法排版，也没法插入复杂的目录，胜在随便什么软件都能打开它，随便谁都能写。</li>
+<li><strong><code>.vtu</code></strong>：就像是一份排版精美、配有插图、且经过 ZIP 压缩的 <strong><code>.docx</code> Word 文档</strong>。它是现代标准的单文件格式，功能强大，体积小巧，但你需要专门的软件（库）去生成它。</li>
+<li><strong><code>.vtm</code></strong>：就像是一个 <strong><code>.zip</code> 压缩包或者一个项目文件夹</strong>。它里面装了好几份不同的 Word 文档（vtu&#x2F;vtp），并附带了一张目录清单，告诉你先看哪份后看哪份，用来管理极其复杂的工程。</li>
+</ul>
+<p><strong>给你的建议</strong>：<br>既然你在做 Taichi 的图形学&#x2F;物理项目，如果你想导出三维结果丢进 ParaView 里渲染：</p>
+<ol>
+<li><strong>初期写 Demo 时</strong>：用 Python 简单拼接字符串导出传统的 <code>.vtk</code>（ASCII），最省事。</li>
+<li><strong>项目成熟、网格达到几十万规模时</strong>：一定要换用 Python 库（比如 <code>meshio</code> 或 <code>taichi.tools</code> 里的导出功能）将其导出为带有数据压缩的 <strong><code>.vtu</code></strong>。</li>
+</ol>
+<h2 id="VF-UNS"><a href="#VF-UNS" class="headerlink" title="VF-UNS"></a>VF-UNS</h2><p><code>.vtm</code>文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;VTKFile type=&quot;vtkMultiBlockDataSet&quot; version=&quot;1.0&quot; byte_order=&quot;LittleEndian&quot;&gt;</span><br><span class="line">  &lt;vtkMultiBlockDataSet&gt;</span><br><span class="line">    &lt;DataSet index=&quot;0&quot; file=&quot;stadium_piece/all_elems(mesh)/0/part_0.vtu&quot;/&gt;</span><br><span class="line">  &lt;/vtkMultiBlockDataSet&gt;</span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+
+<p>实际的<code>part_0.vtu</code>才有计算得到的数据</p>
+<h2 id="foamToVTK"><a href="#foamToVTK" class="headerlink" title="foamToVTK"></a>foamToVTK</h2><h3 id="AI-生成转化逻辑"><a href="#AI-生成转化逻辑" class="headerlink" title="AI 生成转化逻辑"></a>AI 生成转化逻辑</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart TD
+  Start([开始])
+  ParseCmd[&quot;解析命令行 &amp; 输出选项&quot;]
+  TimeLoop[&quot;遍历时间步（for each timeDir）&quot;]
+  RegionLoop[&quot;遍历 region（for each region）&quot;]
+
+  CheckTopo{&quot;检查 polyMesh 更新\n(TOPO_CHANGE &#x2F; TOPO_PATCH_CHANGE)&quot;}
+  ClearVtu[&quot;清除 vtu 映射（若拓扑变化）&quot;]
+
+  ConvertTopo[&quot;convertTopoSet.H\n(写 topoSets)&quot;]
+  TopoWrote?{&quot;wroteTopoSet?&quot;}
+
+  SetupObjects[&quot;准备 IOobjectList &#x2F; faObjects（字段列表）&quot;]
+  ProcPatch?{&quot;processorFieldsOnly?&quot;}
+  ConvertProc[&quot;convertProcessorPatches.H\n(仅写 processor patch 字段)\n然后 continue&quot;]
+
+  ConvertVolume[&quot;convertVolumeFields.H\n- 建立 internal&#x2F;patch writer\n- writeGeometry\n- 写 CellData（writeAllVolFields &#x2F; writeAllDimFields）\n- 若需要：插值并写 PointData（writeAllPointFields）\n- 关闭 writers，生成 .vtu&#x2F;.vtm&quot;]
+
+  ConvertSurface[&quot;convertSurfaceFields.H\n- 读 surfaceScalar&#x2F;Vector\n- 写 surface-fields (.vtp&#x2F;.vtm)\n- 写 faceZones（若请求）&quot;]
+
+  ConvertArea[&quot;convertAreaFields.H\n- 若存在 finite-area：构建 faMesh 并写入 (.vtp) &quot;]
+
+  ConvertLagr[&quot;convertLagrangian.H\n- 发现 cloud(s) 并写 Lagrangian (.vtp)&quot;]
+
+  EmitMultiVTM{&quot;是否 master 且 multi-region?&quot;}
+  WriteMultiVTM[&quot;写 多 region .vtm 与 series (.json) &quot;]
+
+  End([结束])
+
+  Start --&gt; ParseCmd --&gt; TimeLoop --&gt; RegionLoop
+  RegionLoop --&gt; CheckTopo
+  CheckTopo --&gt; ClearVtu
+  ClearVtu --&gt; ConvertTopo
+  ConvertTopo --&gt; TopoWrote?
+  TopoWrote? -- 是 --&gt; RegionLoop
+  TopoWrote? -- 否 --&gt; SetupObjects
+
+  SetupObjects --&gt; ProcPatch?
+  ProcPatch? -- 是 --&gt; ConvertProc --&gt; RegionLoop
+  ProcPatch? -- 否 --&gt; ConvertVolume --&gt; ConvertSurface --&gt; ConvertArea --&gt; ConvertLagr --&gt; EmitMultiVTM
+
+  EmitMultiVTM -- 是 --&gt; WriteMultiVTM --&gt; RegionLoop
+  EmitMultiVTM -- 否 --&gt; RegionLoop
+
+  %% 备注：最终每个 writer 会追加到 file-series 并由 master 节点写入磁盘
+  classDef note fill:#fff7cc,stroke:#e6c200
+
+  Note[&quot;说明：顺序为 topoSets -&gt; (processor patches 或) volume -&gt; surface -&gt; area -&gt; lagrangian -&gt; multi-region 汇总&quot;]:::note
+  End --&gt; Note
+
+  </pre></div>
+
+
+
+<h3 id="借助paraview的pvpython"><a href="#借助paraview的pvpython" class="headerlink" title="借助paraview的pvpython"></a>借助paraview的pvpython</h3><p>已形成脚本至自己的foam tools</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/VTK_VTM_VTU/">https://hugh-tong.github.io/2026/09/15/VTK_VTM_VTU/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Cpp/">Cpp</a><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E7%BD%91%E6%A0%BC/">CFD/OpenFOAM/网格</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E6%A0%BC/">网格</a><a class="post-meta__tags" href="/tags/PyVista/">PyVista</a><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/blockMesh_codeStream/" title="blockMesh 的"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">blockMesh 的</div></div><div class="info-2"><div class="info-item-1">这是一个非常高级且强大的 OpenFOAM 功能。简单来说，#codeStream 允许你在文本配置文件中直接写 C++ 代码，OpenFOAM 会在运行时自动把这段代码编译并执行，用执行的结果来替换原本的配置内容。 在 blockMeshDict 的 edges 中看到它，通常是为了生成复杂的曲线几何。 以下是详细的原理和用途解析： 1. 它的原理是什么？(动态编译技术)OpenFOAM 的字典读取器（Dictionary Reader）非常智能，当它读到 #codeStream 时，会执行一套“骚操作”：  提取代码：它把你写在 &#123; ... &#125; 里的 C++ 代码提取出来。 封装与编译：它会在你的案例目录下创建一个临时的 dynamicCode 文件夹，把你的代码封装成一个标准的 OpenFOAM C++ 程序，并调用 wmake 把它编译成一个动态链接库（.so文件）。 加载与执行：它加载这个库，运行里面的函数。 回填结果：你的代码通常会通过 os &lt;&lt; ... 打印出一串文本。OpenFOAM 用这串打印出来的文本，替换 掉配置文件里的 #...</div></div></div></a><a class="pagination-related" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">拓扑连通区域(Topologically Connected Region)理解</div></div><div class="info-2"><div class="info-item-1">在 CFD（计算流体力学）和网格处理的语境下，“Topologically connected region”（拓扑连通区域） 意味着： 在这个区域内，你可以从任意一个网格单元（Cell）出发，经过相邻的内部面，走到区域内的任意另一个网格单元，而不需要“跳跃”或穿过物理边界。 简单来说，就是**“铁索连舟”**，所有的网格都是连成一片的，没有断开，也没有被完全隔绝的孤岛。  1. 核心概念：什么是“连通”？ 连通 (Connected)：流体可以流过去。两个网格单元共用一个面，且这个面是 internalFace（内部面），那它们就是连通的。 不连通 (Disconnected)：流体流不过去。两个网格单元之间隔着墙（Wall），或者它们根本就不挨着，这就是不连通。  2. 形象的例子为了方便理解，我们把网格看作房间，把面看作门或墙。 ✅ 例子 A：完全连通区域 (Single Connected Region) 场景：一个普通的空房间。 描述：你可以从房间的任何一个角落走到另一个角落，中间没有障碍物阻挡。 CFD 对应：一根完整的直管道网格。 region0: 包含了管道内所有...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/redistributePar_VS_reconstructPar/" title="redistributePar vs reconstructPar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">redistributePar vs reconstructPar</div></div><div class="info-2"><div class="info-item-1">redistributePar_VS_reconstructPar在 OpenFOAM 中，redistributePar 和 reconstructPar 都是处理并行计算数据的工具，但它们的方向和功能强度完全不同。 简单来说：  reconstructPar 是做“合体”的（把分散的数据拼回一个整体）。 redistributePar 是做“重组”的（不仅能合体，还能拆分，还能重新分配）。  以下是详细的对比：  1. 功能核心区别   特性 reconstructPar (传统&#x2F;单一) redistributePar (现代&#x2F;全能)    核心动作 合并 (Merge) 再分配 (Decompose &amp; Reconstruct &amp; Balance)   数据流向 processor* $\rightarrow$ 0, constant, system processor* $\leftrightarrow$ processor*  或者 processor* $\leftrightarrow$ 单核   主要用途 算完后把结果合并，方便 ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/splitMesh-splitMeshRegions/" title="splitMesh 与 splitMeshRegions"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">splitMesh 与 splitMeshRegions</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: Manual Pages: splitMesh 02 chtMultiRegionFoam求解器- splitMesh - 哔哩哔哩 OpenFOAM-v2406采用splitMeshRegions的一个例子。 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129130131132133134135136137138139140141142143144145146147148149150151152153154155156157158159160161162163...</div></div></div></a><a class="pagination-related" href="/2026/09/15/blockMesh_codeStream/" title="blockMesh 的"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">blockMesh 的</div></div><div class="info-2"><div class="info-item-1">这是一个非常高级且强大的 OpenFOAM 功能。简单来说，#codeStream 允许你在文本配置文件中直接写 C++ 代码，OpenFOAM 会在运行时自动把这段代码编译并执行，用执行的结果来替换原本的配置内容。 在 blockMeshDict 的 edges 中看到它，通常是为了生成复杂的曲线几何。 以下是详细的原理和用途解析： 1. 它的原理是什么？(动态编译技术)OpenFOAM 的字典读取器（Dictionary Reader）非常智能，当它读到 #codeStream 时，会执行一套“骚操作”：  提取代码：它把你写在 &#123; ... &#125; 里的 C++ 代码提取出来。 封装与编译：它会在你的案例目录下创建一个临时的 dynamicCode 文件夹，把你的代码封装成一个标准的 OpenFOAM C++ 程序，并调用 wmake 把它编译成一个动态链接库（.so文件）。 加载与执行：它加载这个库，运行里面的函数。 回填结果：你的代码通常会通过 os &lt;&lt; ... 打印出一串文本。OpenFOAM 用这串打印出来的文本，替换 掉配置文件里的 #...</div></div></div></a><a class="pagination-related" href="/2026/09/15/zoneGenerator/" title="zoneGenerator 与 CFD 直接网格分区"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">zoneGenerator 与 CFD 直接网格分区</div></div><div class="info-2"><div class="info-item-1">OpenFOAM v13更新详情-8：更优雅的网格操控之道 在之前的OpenFOAM版本中，网格区域（pointZone、cellZone、faceZone）的管理往往需要多个工具配合使用，操作流程相对繁琐。v13版本全新开发的动态区域生成系统彻底改变了这一局面。 核心亮点：新的zoneGenerator能一键生成包含pointZone、cellZone、faceZone任意组合的zoneSet，再也不用手动挨个创建区域了。 具体来说，该系统包含了多个zoneGenerator，用于创建和控制动态区域。另外，faceZone的flipMap（方向翻转映射）也迎来了人性化调整：现在它变成可选配置了，如果后续需要调整方向，用flipMap zone generator就能轻松补上。再也不用为了一个可选的方向参数，在配置文件里写一堆冗余代码了。 代码层面的改进主要体现在commit da974812、b4339ca4和a578e1e8等提交中，引入了全新的动态区域生成架构。 CFD direct Introhttps://cfd.direct/openfoam/free-softwar...</div></div></div></a><a class="pagination-related" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">坏网格图鉴(BadMesh Store)</div></div><div class="info-2"><div class="info-item-1">20251203，以下情况是因为网格加密在同一层没有对于设置，导致出现的“一对多”情况。    </div></div></div></a><a class="pagination-related" href="/2026/09/15/overSetMesh/" title="overset 重叠网格在 OpenFOAM 中的计算流程(v2406)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">overset 重叠网格在 OpenFOAM 中的计算流程(v2406)</div></div><div class="info-2"><div class="info-item-1">v2406-overset整体计算流程twoSimpleRotorAllrun.pre12345678910111213141516171819202122#!/bin/shcd &quot;$&#123;0%/*&#125;&quot; || exit                                # Run from this directory. $&#123;WM_PROJECT_DIR:?&#125;/bin/tools/RunFunctions        # Tutorial run functions#------------------------------------------------------------------------------runApplication blockMesh# Select cellSetsrunApplication -s 1 topoSetrunApplication subsetMesh box -patch hole -overwrite# Select cellSetsrunApplicat...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">60</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">75</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#101-AI-Gen-Ref"><span class="toc-number">1.</span> <span class="toc-text">101,AI-Gen-Ref</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-vtk-%E6%A0%BC%E5%BC%8F-Legacy-VTK-%E2%80%94%E2%80%94-%E2%80%9C%E7%AE%80%E5%8D%95%E7%B2%97%E6%9A%B4%E7%9A%84%E8%80%81%E5%89%8D%E8%BE%88%E2%80%9D"><span class="toc-number">1.1.</span> <span class="toc-text">1. .vtk 格式 (Legacy VTK) —— “简单粗暴的老前辈”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-vtu-%E6%A0%BC%E5%BC%8F-XML-Unstructured-Grid-%E2%80%94%E2%80%94-%E2%80%9C%E7%8E%B0%E4%BB%A3%E7%9A%84%E4%B8%BB%E5%8A%9B%E5%86%9B%E2%80%9D"><span class="toc-number">1.2.</span> <span class="toc-text">2. .vtu 格式 (XML Unstructured Grid) —— “现代的主力军”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-vtm-%E6%A0%BC%E5%BC%8F-XML-Multiblock-Dataset-%E2%80%94%E2%80%94-%E2%80%9C%E5%8F%91%E5%8F%B7%E6%96%BD%E4%BB%A4%E7%9A%84%E5%A4%A7%E7%AE%A1%E5%AE%B6%E2%80%9D"><span class="toc-number">1.3.</span> <span class="toc-text">3. .vtm 格式 (XML Multiblock Dataset) —— “发号施令的大管家”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%A1-%E4%B8%80%E4%B8%AA%E9%80%9A%E4%BF%97%E7%9A%84%E6%AF%94%E5%96%BB%E6%80%BB%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">💡 一个通俗的比喻总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#VF-UNS"><span class="toc-number">2.</span> <span class="toc-text">VF-UNS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#foamToVTK"><span class="toc-number">3.</span> <span class="toc-text">foamToVTK</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#AI-%E7%94%9F%E6%88%90%E8%BD%AC%E5%8C%96%E9%80%BB%E8%BE%91"><span class="toc-number">3.1.</span> <span class="toc-text">AI 生成转化逻辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9paraview%E7%9A%84pvpython"><span class="toc-number">3.2.</span> <span class="toc-text">借助paraview的pvpython</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件">atmBoundaryLayer 大气边界层边界条件</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)">坏网格图鉴(BadMesh Store)</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱">高质量网格的 5 个技巧与陷阱</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解">拓扑连通区域(Topologically Connected Region)理解</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/VTK_VTM_VTU/" title="VTK/VTM/VTU 文件格式速查">VTK/VTM/VTU 文件格式速查</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

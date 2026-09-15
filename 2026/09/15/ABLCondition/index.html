@@ -1,0 +1,993 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>atmBoundaryLayer 大气边界层边界条件 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="OpenFOAM 大气边界层(ABL)边界条件族:对数律入流、湍流量指定与派生类结构。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="atmBoundaryLayer 大气边界层边界条件">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/ABLCondition/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="OpenFOAM 大气边界层(ABL)边界条件族:对数律入流、湍流量指定与派生类结构。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:13:14.611Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;边界条件">
+<meta property="article:tag" content="边界条件">
+<meta property="article:tag" content="Cpp">
+<meta property="article:tag" content="OpenFOAM">
+<meta property="article:tag" content="DES">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "atmBoundaryLayer 大气边界层边界条件",
+  "url": "https://hugh-tong.github.io/2026/09/15/ABLCondition/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T04:00:00.000Z",
+  "dateModified": "2026-09-15T07:13:14.611Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/ABLCondition/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'atmBoundaryLayer 大气边界层边界条件',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">atmBoundaryLayer 大气边界层边界条件</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">atmBoundaryLayer 大气边界层边界条件</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:13:14.611Z" title="Updated 2026-09-15 15:13:14">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6/">边界条件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><a target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/guides/latest/doc/guide-bcs-inlet-atm-atmBoundaryLayer.html">OpenFOAM: User Guide: atmBoundaryLayer</a></p>
+<p><a target="_blank" rel="noopener" href="https://baramcfd.org/en/tutorial/baram-flow/atmospheric-boundary-layer/abl-boundary-conditionen/">ABL Boundary condition validation – BARAM Portal</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.simscale.com/knowledge-base/atmospheric-boundary-layer-abl/">Atmospheric Boundary Layer | How to Set up an ABL | SimScale</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/guides/v2206/api/classFoam_1_1timeVaryingMappedFixedValueFvPatchField.html">OpenFOAM: API Guide: timeVaryingMappedFixedValueFvPatchField&lt; Type &gt; Class Template Reference</a></p>
+<h1 id="atmBoundaryLayer"><a href="#atmBoundaryLayer" class="headerlink" title="atmBoundaryLayer"></a>atmBoundaryLayer</h1><h2 id="属性（Properties）"><a href="#属性（Properties）" class="headerlink" title="属性（Properties）"></a>属性（Properties）</h2><ul>
+<li><code>atmBoundaryLayer</code> 类是一个用于入口边界条件的基类，提供基于对数律（log-law）的地面法向入流边界条件，用于同质、二维、干空气、平衡且中性的大气边界层（ABL）建模中的风速与湍流量。</li>
+<li>因此，该类本身不是可直接执行的边界条件，而是其派生条件的通用条目提供者。</li>
+<li><code>atmBoundaryLayer</code> 继承了 <a target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/guides/latest/doc/guide-bcs-outlet-inlet-outlet.html">inletOutlet</a> 边界条件的特性，从而可以从域的各个侧面提供给定的入口条件。例如，地面法向的圆柱域只有一个 inlet&#x2F;outlet 边界，入口与出口的变化取决于风向与补丁法向，由此任何入流方向的改变都可用同一网格处理（即无需重新生成网格）。</li>
+</ul>
+<h2 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h2><p>大气边界条件，对于不同变量有不同的派生类：</p>
+<p><img src="/images/ABLCondition/20250819_ABLCondition_DiffBC.png"></p>
+<p>不同变量实现类，均继承自：1.<code>inletOutletFvPatchVectorField</code>，2.<code>atmBoundaryLayer</code></p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart TB
+  %% Inheritance diagram: atmBoundaryLayerInletVelocityFvPatchVectorField derives from both
+  %% &#39;inletOutletFvPatchVectorField&#39; and &#39;atmBoundaryLayer&#39;
+  Derived[&quot;atmBoundaryLayerInletVelocity&lt;br&#x2F;&gt;FvPatchVectorField&quot;]
+  Base1[&quot;inletOutletFvPatchVectorField&quot;]
+  Base2[&quot;atmBoundaryLayer&quot;]
+
+  Derived --&gt;|inherits from| Base1
+  Derived --&gt;|inherits from| Base2
+  </pre></div>
+
+<h3 id="核心函数"><a href="#核心函数" class="headerlink" title="核心函数"></a>核心函数</h3><h4 id="atmBoundaryLayerInletVelocityFvPatchVectorField-updateCoeffs"><a href="#atmBoundaryLayerInletVelocityFvPatchVectorField-updateCoeffs" class="headerlink" title="atmBoundaryLayerInletVelocityFvPatchVectorField::updateCoeffs"></a>atmBoundaryLayerInletVelocityFvPatchVectorField::updateCoeffs</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">atmBoundaryLayerInletVelocityFvPatchVectorField::updateCoeffs</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">updated</span>())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="built_in">refValue</span>() = <span class="built_in">U</span>(<span class="built_in">patch</span>().<span class="built_in">Cf</span>());</span><br><span class="line"> </span><br><span class="line">    inletOutletFvPatchVectorField::<span class="built_in">updateCoeffs</span>(); <span class="comment">//OpenFOAM中这个函数跳转了多层</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中的<code>inletOutletFvPatchVectorField::updateCoeffs();</code>较复杂，</p>
+<h4 id="atmBoundaryLayer-U，功能：计算大气边界的速度分布"><a href="#atmBoundaryLayer-U，功能：计算大气边界的速度分布" class="headerlink" title="atmBoundaryLayer::U，功能：计算大气边界的速度分布"></a>atmBoundaryLayer::U，功能：计算大气边界的速度分布</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">tmp&lt;vectorField&gt; <span class="title">atmBoundaryLayer::U</span><span class="params">(<span class="type">const</span> vectorField&amp; pCf)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">d</span><span class="params">(d_-&gt;value(t))</span></span>;</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">z0</span><span class="params">(max(z0_-&gt;value(t), ROOTVSMALL))</span></span>;</span><br><span class="line">    <span class="type">const</span> scalar groundMin = <span class="built_in">zDir</span>() &amp; ppMin_;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// (YGCJ:Table 1, RH:Eq. 6, HW:Eq. 5)</span></span><br><span class="line">    <span class="function">scalarField <span class="title">Un</span></span></span><br><span class="line"><span class="function">    <span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        (Ustar(z0)/kappa_)*log(((zDir() &amp; pCf) - groundMin - d + z0)/z0)</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">flowDir</span>()*Un;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码对应的公式：<br>$$<br>u &#x3D; \frac{u_*}{\kappa}\ln\left(\frac{z - d + z_0}{z_0}\right), \quad v &#x3D; w &#x3D; 0<br>$$</p>
+<h4 id="atmBoundaryLayer-k，功能：计算大气边界的湍动能"><a href="#atmBoundaryLayer-k，功能：计算大气边界的湍动能" class="headerlink" title="atmBoundaryLayer::k，功能：计算大气边界的湍动能"></a>atmBoundaryLayer::k，功能：计算大气边界的湍动能</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">tmp&lt;scalarField&gt; <span class="title">atmBoundaryLayer::k</span><span class="params">(<span class="type">const</span> vectorField&amp; pCf)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">d</span><span class="params">(d_-&gt;value(t))</span></span>;</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">z0</span><span class="params">(max(z0_-&gt;value(t), ROOTVSMALL))</span></span>;</span><br><span class="line">    <span class="type">const</span> scalar groundMin = <span class="built_in">zDir</span>() &amp; ppMin_;<span class="comment">// 取地面patch最小的网格坐标</span></span><br><span class="line"> </span><br><span class="line">    <span class="comment">// (YGCJ:Eq. 21; RH:Eq. 7, HW:Eq. 6 when C1=0 and C2=1)</span></span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">        <span class="built_in">sqr</span>(<span class="built_in">Ustar</span>(z0))/<span class="built_in">sqrt</span>(Cmu_)</span><br><span class="line">       *<span class="built_in">sqrt</span>(C1_*<span class="built_in">log</span>(((<span class="built_in">zDir</span>() &amp; pCf) - groundMin - d + z0)/z0) + C2_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码对应的公式：<br>$$<br>    k &#x3D; \left(\frac{u_*^2}{\sqrt{C_\mu}} \cdot C_1 \ln\left(\frac{z - d + z_0}{z_0}\right) + C_2 \right)^{1&#x2F;2}<br>$$</p>
+<h4 id="atmBoundaryLayer-epsilon，功能：计算大气模型的比耗散率分布"><a href="#atmBoundaryLayer-epsilon，功能：计算大气模型的比耗散率分布" class="headerlink" title="atmBoundaryLayer::epsilon，功能：计算大气模型的比耗散率分布"></a>atmBoundaryLayer::epsilon，功能：计算大气模型的比耗散率分布</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">tmp&lt;scalarField&gt; <span class="title">atmBoundaryLayer::epsilon</span><span class="params">(<span class="type">const</span> vectorField&amp; pCf)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">d</span><span class="params">(d_-&gt;value(t))</span></span>;</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">z0</span><span class="params">(max(z0_-&gt;value(t), ROOTVSMALL))</span></span>;</span><br><span class="line">    <span class="type">const</span> scalar groundMin = <span class="built_in">zDir</span>() &amp; ppMin_;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// (YGCJ:Eq. 22; RH:Eq. 8, HW:Eq. 7 when C1=0 and C2=1)</span></span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">        <span class="built_in">pow3</span>(<span class="built_in">Ustar</span>(z0))/(kappa_*((<span class="built_in">zDir</span>() &amp; pCf) - groundMin - d + z0))</span><br><span class="line">       *<span class="built_in">sqrt</span>(C1_*<span class="built_in">log</span>(((<span class="built_in">zDir</span>() &amp; pCf) - groundMin - d + z0)/z0) + C2_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码对应的公式：<br>$$<br>    \epsilon &#x3D; \frac{u_*^3}{\kappa,(z - d + z_0)} \left( C_1 \ln\left(\frac{z - d + z_0}{z_0}\right) + C_2 \right)^{1&#x2F;2}<br>$$</p>
+<h4 id="atmBoundaryLayer-omega，功能：计算大气模型的比耗散率"><a href="#atmBoundaryLayer-omega，功能：计算大气模型的比耗散率" class="headerlink" title="atmBoundaryLayer::omega，功能：计算大气模型的比耗散率"></a>atmBoundaryLayer::omega，功能：计算大气模型的比耗散率</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">tmp&lt;scalarField&gt; <span class="title">atmBoundaryLayer::omega</span><span class="params">(<span class="type">const</span> vectorField&amp; pCf)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">d</span><span class="params">(d_-&gt;value(t))</span></span>;</span><br><span class="line">    <span class="function"><span class="type">const</span> scalarField <span class="title">z0</span><span class="params">(max(z0_-&gt;value(t), ROOTVSMALL))</span></span>;</span><br><span class="line">    <span class="type">const</span> scalar groundMin = <span class="built_in">zDir</span>() &amp; ppMin_;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// (YGJ:Eq. 13)</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Ustar</span>(z0)/(kappa_*<span class="built_in">sqrt</span>(Cmu_)*((<span class="built_in">zDir</span>() &amp; pCf) - groundMin - d + z0));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码对应的公式：<br>$$<br>    \omega &#x3D; \frac{u_*}{\kappa,\sqrt{C_\mu}};\frac{1}{z - d + z_0}<br>$$</p>
+<h3 id="功能函数"><a href="#功能函数" class="headerlink" title="功能函数"></a>功能函数</h3><h4 id="atmBoundaryLayer-flowDir，功能：计算流向"><a href="#atmBoundaryLayer-flowDir，功能：计算流向" class="headerlink" title="atmBoundaryLayer::flowDir，功能：计算流向"></a>atmBoundaryLayer::flowDir，功能：计算流向</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">vector <span class="title">atmBoundaryLayer::flowDir</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="function"><span class="type">const</span> vector <span class="title">dir</span><span class="params">(flowDir_-&gt;value(t))</span></span>; <span class="comment">//flowDir_由边界字典文件读入并设置</span></span><br><span class="line">    <span class="type">const</span> scalar magDir = <span class="built_in">mag</span>(dir);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (magDir &lt; SMALL)</span><br><span class="line">    &#123;</span><br><span class="line">        FatalErrorInFunction</span><br><span class="line">            &lt;&lt; <span class="string">&quot;magnitude of &quot;</span> &lt;&lt; flowDir_-&gt;<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot; = &quot;</span> &lt;&lt; magDir</span><br><span class="line">            &lt;&lt; <span class="string">&quot; vector must be greater than zero&quot;</span></span><br><span class="line">            &lt;&lt; <span class="built_in">abort</span>(FatalError);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> dir/magDir;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="atmBoundaryLayer-zDir，功能：计算垂直于地面的方向"><a href="#atmBoundaryLayer-zDir，功能：计算垂直于地面的方向" class="headerlink" title="atmBoundaryLayer::zDir，功能：计算垂直于地面的方向"></a>atmBoundaryLayer::zDir，功能：计算垂直于地面的方向</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">vector <span class="title">atmBoundaryLayer::zDir</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="function"><span class="type">const</span> vector <span class="title">dir</span><span class="params">(zDir_-&gt;value(t))</span></span>;</span><br><span class="line">    <span class="type">const</span> scalar magDir = <span class="built_in">mag</span>(dir);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (magDir &lt; SMALL)</span><br><span class="line">    &#123;</span><br><span class="line">        FatalErrorInFunction</span><br><span class="line">            &lt;&lt; <span class="string">&quot;magnitude of &quot;</span> &lt;&lt; zDir_-&gt;<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot; = &quot;</span> &lt;&lt; magDir</span><br><span class="line">            &lt;&lt; <span class="string">&quot; vector must be greater than zero&quot;</span></span><br><span class="line">            &lt;&lt; <span class="built_in">abort</span>(FatalError);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> dir/magDir;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="atmBoundaryLayer-Ustar，功能：计算摩擦速度"><a href="#atmBoundaryLayer-Ustar，功能：计算摩擦速度" class="headerlink" title="atmBoundaryLayer::Ustar，功能：计算摩擦速度"></a>atmBoundaryLayer::Ustar，功能：计算摩擦速度</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">tmp&lt;scalarField&gt; <span class="title">atmBoundaryLayer::Ustar</span><span class="params">(<span class="type">const</span> scalarField&amp; z0)</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> scalar t = time_.<span class="built_in">timeOutputValue</span>();</span><br><span class="line">    <span class="type">const</span> scalar Uref = Uref_-&gt;<span class="built_in">value</span>(t);</span><br><span class="line">    <span class="type">const</span> scalar Zref = Zref_-&gt;<span class="built_in">value</span>(t);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (Zref &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        FatalErrorInFunction</span><br><span class="line">            &lt;&lt; <span class="string">&quot;Negative entry in &quot;</span> &lt;&lt; Zref_-&gt;<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot; = &quot;</span> &lt;&lt; Zref</span><br><span class="line">            &lt;&lt; <span class="built_in">abort</span>(FatalError);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// (derived from RH:Eq. 6, HW:Eq. 5)</span></span><br><span class="line">    <span class="keyword">return</span> kappa_*Uref/<span class="built_in">log</span>((Zref + z0)/z0);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码公式：</p>
+<p>$$<br> \mathbf{u}<em>* &#x3D; \frac{\mathbf{u</em>{ref}} \cdot \kappa}{\ln\left(\frac{z_{\mathrm{ref}} + z_0}{z_0}\right)}<br>$$</p>
+<h2 id="模型方程（Model-equations）"><a href="#模型方程（Model-equations）" class="headerlink" title="模型方程（Model equations）"></a>模型方程（Model equations）</h2><p>地面法向剖面表达式见下，其中当 <code>C1=0</code> 且 <code>C2=1</code> 时</p>
+<ul>
+<li><p>地面法向的主流向速度剖面：<br>$$<br>u &#x3D; \frac{u_*}{\kappa}\ln\left(\frac{z - d + z_0}{z_0}\right), \quad v &#x3D; w &#x3D; 0<br>$$</p>
+</li>
+<li><p>地面法向湍动能剖面：</p>
+</li>
+</ul>
+<p>$$<br>    k &#x3D; \left(\frac{u_*^2}{\sqrt{C_\mu}} \cdot C_1 \ln\left(\frac{z - d + z_0}{z_0}\right) + C_2 \right)^{1&#x2F;2}<br>$$</p>
+<ul>
+<li>地面法向湍动能耗散率剖面：</li>
+</ul>
+<p>$$<br>    \epsilon &#x3D; \frac{u_*^3}{\kappa,(z - d + z_0)} \left( C_1 \ln\left(\frac{z - d + z_0}{z_0}\right) + C_2 \right)^{1&#x2F;2}<br>$$</p>
+<ul>
+<li>地面法向比耗散率剖面：</li>
+</ul>
+<p>$$<br>    \omega &#x3D; \frac{u_*}{\kappa,\sqrt{C_\mu}};\frac{1}{z - d + z_0}<br>$$</p>
+<ul>
+<li>地面法向摩擦速度剖面：</li>
+</ul>
+<p>$$<br>u_* &#x3D; \frac{u_{\mathrm{ref}}\cdot\kappa}{\ln\left(\frac{z_{\mathrm{ref}} + z_0}{z_0}\right)}<br>$$</p>
+<p>其中各符号含义如下：</p>
+<ul>
+<li>$u$：地面法向主流向速度剖面 [m&#x2F;s]</li>
+<li>$v$：展向速度 [m&#x2F;s]</li>
+<li>$w$：地面法向速度 [m&#x2F;s]</li>
+<li>$k$：地面法向湍动能（TKE）剖面 [m^2&#x2F;s^2]</li>
+<li>$\epsilon$：地面法向 TKE 耗散率剖面 [m^2&#x2F;s^3]</li>
+<li>$\omega$：地面法向比耗散率剖面 [m^2&#x2F;s^3]</li>
+<li>$u_*$：摩擦速度 [m&#x2F;s]</li>
+<li>$\kappa$：冯·卡门常数 [-]</li>
+<li>$C_\mu$：经验模型常数 [-]</li>
+<li>$z$：地面法向坐标分量 [m]</li>
+<li>$d$：地面法向位移高度 [m]</li>
+<li>$z_0$：空气动力学粗糙度长度 [m]</li>
+<li>$u_{\mathrm{ref}}$：在 $z_{\mathrm{ref}}$ 处的参考平均主流向风速 [m&#x2F;s]</li>
+<li>$z_{\mathrm{ref}}$：用于 $u_*$ 估算的参考高度 [m]</li>
+<li>$C_1$、$C_2$：用于剖面的拟合系数 [-]</li>
+</ul>
+<p>曲线拟合系数 <code>C1</code> 和 <code>C2</code> 可通过对实验数据将下式(非线性拟合到 <code>k</code> 来确定：</p>
+<p>$$<br>k &#x3D; \left( D_1 \ln \left(\frac{z + z_0}{z_0} + D_2 \right) \right)^{1&#x2F;2}<br>$$</p>
+<p>其中</p>
+<ul>
+<li>$D_1 &#x3D; \left(\frac{u_*^2}{\sqrt{C_\mu}}\right) C_1$</li>
+<li>$D_2 &#x3D; \left(\frac{u_*^2}{\sqrt{C_\mu}}\right) C_2$</li>
+</ul>
+<p>默认情况下，<code>atmBoundaryLayer</code> 边界条件计算的是 [63] 的表达式。</p>
+<h2 id="用法（Usage）"><a href="#用法（Usage）" class="headerlink" title="用法（Usage）"></a>用法（Usage）</h2><p>继承边界条件所提供的条目示例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">inlet</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 强制与其他可选条目</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 强制（继承）条目（运行时可修改）</span></span><br><span class="line">    <span class="built_in">flowDir</span>         (<span class="number">1</span> <span class="number">0</span> <span class="number">0</span>);</span><br><span class="line">    <span class="built_in">zDir</span>            (<span class="number">0</span> <span class="number">0</span> <span class="number">1</span>);</span><br><span class="line">    Uref            <span class="number">10.0</span>;</span><br><span class="line">    Zref            <span class="number">0.0</span>;</span><br><span class="line">    z0              uniform <span class="number">0.1</span>;</span><br><span class="line">    d               uniform <span class="number">0.0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 可选（继承）条目（不可修改）</span></span><br><span class="line">    kappa           <span class="number">0.41</span>;</span><br><span class="line">    Cmu             <span class="number">0.09</span>;</span><br><span class="line">    initABL         <span class="literal">true</span>;</span><br><span class="line">    phi             phi;</span><br><span class="line">    C1              <span class="number">0.0</span>;</span><br><span class="line">    C2              <span class="number">1.0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 条件性强制（继承）条目（运行时可修改）</span></span><br><span class="line">    value           uniform <span class="number">0</span>;    <span class="comment">// 当 initABL=false 时</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>各条目含义：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>描述</th>
+<th>类型</th>
+<th>必需</th>
+<th>默认</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>flowDir</td>
+<td>流向</td>
+<td><code>TimeFunction1&lt;vector&gt;</code></td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>zDir</td>
+<td>地面法向方向</td>
+<td><code>TimeFunction1&lt;vector&gt;</code></td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Uref</td>
+<td>用于 $u_*$ 估算的参考平均主流向速度 [m&#x2F;s]</td>
+<td><code>TimeFunction1&lt;vector&gt;</code></td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Zref</td>
+<td>用于 $u_*$ 估算的参考高度 [m]</td>
+<td><code>TimeFunction1&lt;vector&gt;</code></td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>z0</td>
+<td>表面粗糙度长度 [m]</td>
+<td><code>PatchFunction1&lt;vector&gt;</code></td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>d</td>
+<td>位移高度 [m]（见备注）</td>
+<td><code>PatchFunction1&lt;vector&gt;</code></td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>kappa</td>
+<td>冯·卡门常数</td>
+<td><code>scalar</code></td>
+<td>否</td>
+<td>0.41</td>
+</tr>
+<tr>
+<td>Cmu</td>
+<td>经验模型常数</td>
+<td><code>scalar</code></td>
+<td>否</td>
+<td>0.09</td>
+</tr>
+<tr>
+<td>initABL</td>
+<td>是否用理论 ABL 表达式初始化剖面，否则使用 “value” 列表</td>
+<td><code>bool</code></td>
+<td>否</td>
+<td>true</td>
+</tr>
+<tr>
+<td>value</td>
+<td>当 initABL&#x3D;false 时的 ABL 剖面内容</td>
+<td><code>scalarList</code></td>
+<td>条件</td>
+<td>-</td>
+</tr>
+<tr>
+<td>phi</td>
+<td>通量场名称</td>
+<td><code>word</code></td>
+<td>否</td>
+<td>phi</td>
+</tr>
+<tr>
+<td>C1</td>
+<td>拟合系数</td>
+<td><code>scalar</code></td>
+<td>否</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>拟合系数</td>
+<td><code>scalar</code></td>
+<td>否</td>
+<td>1.0</td>
+</tr>
+</tbody></table>
+<p>上面的<code>TimeFunction1&lt;vector&gt;</code>表示：用来定义“随时间变化的标量&#x2F;矢量&#x2F;张量值”。当你看到类型写成 <code>TimeFunction1&lt;vector&gt;</code>，意思是：这个时间函数返回的是一个矢量值（vector），可被边界条件、源项或字典里的参数引用，用以实现随时间变化的输入。就是：<strong>这些参数运行时可修改</strong></p>
+<p>一般OpenFOAM会这样使用：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>该边界代码继承自：<a target="_blank" rel="noopener" href="https://www.openfoam.com/documentation/guides/latest/doc/guide-bcs-outlet-inlet-outlet.html">inletOutlet</a></p>
+<h2 id="条目备注（Notes-on-entries）"><a href="#条目备注（Notes-on-entries）" class="headerlink" title="条目备注（Notes on entries）"></a>条目备注（Notes on entries）</h2><ul>
+<li>推导出的 ABL 表达式自动满足 <code>k</code> 的简化输运方程。但仅当模型常数 <code>sigmaEpsilon=1.11</code> 且 <code>kappa=0.4</code> 时，这些表达式才满足 <code>epsilon</code> 的简化输运方程（[63]，p. 358）。</li>
+<li><code>d</code> 为位移高度，“与森林和城市上空的流动有关”（[17]，p. 28）。“位移高度给出在被树木或建筑等密集障碍物覆盖区域上方，整个流场的垂直位移”（[17]，p. 28）。</li>
+<li><code>z</code> 为相对入口补丁全局最小高度的地面法向高度；因此，不论计算补丁的绝对 z 坐标为何，<code>z</code> 的最小值始终为 0。</li>
+</ul>
+<h2 id="进一步信息（Further-information）"><a href="#进一步信息（Further-information）" class="headerlink" title="进一步信息（Further information）"></a>进一步信息（Further information）</h2><ul>
+<li>教程：<code>$FOAM_TUTORIALS/verificationAndValidation/atmosphericModels/HargreavesWright_2007</code></li>
+<li>源代码：<code>Foam::atmBoundaryLayer</code></li>
+</ul>
+<h2 id="历史（History）"><a href="#历史（History）" class="headerlink" title="历史（History）"></a>历史（History）</h2><ul>
+<li>自版本 1.5 引入</li>
+</ul>
+<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><h2 id="风力等级划分（中国气象网）"><a href="#风力等级划分（中国气象网）" class="headerlink" title="风力等级划分（中国气象网）"></a>风力等级划分（中国气象网）</h2><p><img src="https://www.cma.gov.cn/kppd/kppdsytj/201508/W020140718624079696373.jpg" alt="中国气象网风速等级"></p>
+<h2 id="设置相关"><a href="#设置相关" class="headerlink" title="设置相关"></a>设置相关</h2><p><a target="_blank" rel="noopener" href="https://www.simscale.com/knowledge-base/atmospheric-boundary-layer-abl/">Atmospheric Boundary Layer | How to Set up an ABL | SimScale</a></p>
+<h2 id="python验证inletProfile"><a href="#python验证inletProfile" class="headerlink" title="python验证inletProfile"></a>python验证inletProfile</h2><p><img src="/images/ABLCondition/20250829_ABLInlet_python_test_result.png"></p>
+<h1 id="为什么地形外流场的侧边界常设为-symmetryPlane-或-slip"><a href="#为什么地形外流场的侧边界常设为-symmetryPlane-或-slip" class="headerlink" title="为什么地形外流场的侧边界常设为 symmetryPlane 或 slip"></a>为什么地形外流场的侧边界常设为 <code>symmetryPlane</code> 或 <code>slip</code></h1><p>在地形&#x2F;大气边界层（ABL）外流计算中，侧边界一般代表“跨风向的远场”。为了让计算域在有限宽度下尽量模拟无限宽场，常选择无摩擦、无穿透的侧边界条件：<code>symmetryPlane</code> 或 <code>slip</code>。二者本质上都是“滑移、不剪切、无通量”的侧界面，只是实现细节略有不同。</p>
+<p>下面从物理意义、数值特性、适用场景与差异细节来系统解释为什么这么做，以及如何选择与注意什么。</p>
+<hr>
+<h2 id="1-物理与建模动机"><a href="#1-物理与建模动机" class="headerlink" title="1. 物理与建模动机"></a>1. 物理与建模动机</h2><ul>
+<li><p><strong>目标：模拟“无限侧向延展”的大气外场</strong></p>
+<ul>
+<li>实际风场在跨风向上通常远大于你能建的计算域宽度。为了不让侧壁对流动施加非物理影响，侧边界应当：<ul>
+<li><strong>不产生剪切应力</strong>（无摩擦），否则会像固壁一样改变速度剖面；</li>
+<li><strong>不允许质量穿透</strong>（无法向速度），保证体积守恒；</li>
+<li><strong>不反射扰动</strong>（尽量少的数值反射），避免侧面“镜像墙”效应。</li>
+</ul>
+</li>
+<li><code>symmetryPlane</code> 与 <code>slip</code> 都满足这些要求，因此成为默认选择。</li>
+</ul>
+</li>
+<li><p><strong>避免“墙效应”与附加边界层</strong></p>
+<ul>
+<li>固壁（no-slip wall）会在侧面产生边界层，显著改变主流、涡结构与阻力分布，严重失真。</li>
+<li>粗糙&#x2F;光滑墙同样不合适，因为侧面在物理上不是“真实固体边界”。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="2-条件的数学-数值特性"><a href="#2-条件的数学-数值特性" class="headerlink" title="2. 条件的数学&#x2F;数值特性"></a>2. 条件的数学&#x2F;数值特性</h2><ul>
+<li><p><strong>共同点（理想滑移边界）</strong></p>
+<ul>
+<li>法向速度：( u_n &#x3D; 0 )（无穿透）</li>
+<li>切向应力：( \tau_t &#x3D; 0 )（无剪切）</li>
+<li>梯度条件：对标量（如 (k, \epsilon, T)）常用 <code>zeroGradient</code>（法向导数为零）</li>
+</ul>
+</li>
+<li><p><strong><code>symmetryPlane</code> 的额外“镜像”约束</strong></p>
+<ul>
+<li>对称面除了滑移外，还满足对称性条件：法向梯度为零、法向分量为零、切向分量在面两侧镜像。它假设面两侧流场在统计意义上可对称。</li>
+<li>数学上更强约束，数值上非常稳定，常作为侧边界的首选。</li>
+</ul>
+</li>
+<li><p><strong><code>slip</code> 的实现</strong></p>
+<ul>
+<li>强制法向速度为零，切向方向采用零切应力（零法向梯度）处理。与 <code>symmetryPlane</code> 非常接近，但缺少严格的“镜像对称”语义。</li>
+<li>一些求解器&#x2F;版本上，<code>slip</code> 在处理矢量&#x2F;张量时的默认梯度与投影方式略有差别；总体影响小。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="3-什么时候用它们？"><a href="#3-什么时候用它们？" class="headerlink" title="3. 什么时候用它们？"></a>3. 什么时候用它们？</h2><ul>
+<li><p><strong>跨风向侧边界（默认推荐）</strong></p>
+<ul>
+<li>地形外流模拟中，侧边界距离主地形足够远（建议 ≥ 地形主尺度的 5–10 倍）时，用 <code>symmetryPlane</code> 或 <code>slip</code> 能最大程度减少非物理影响。</li>
+</ul>
+</li>
+<li><p><strong>上边界（顶部）</strong></p>
+<ul>
+<li>顶部也常用 <code>symmetryPlane</code> 或“软出流”（<code>pressureInletOutletVelocity</code> + <code>zeroGradient(p)</code>）。目的同样是减少反射和剪切。</li>
+</ul>
+</li>
+<li><p><strong>不能使用的情况</strong></p>
+<ul>
+<li>如果侧边界存在真实的横向通量（如侧向进&#x2F;出风、旁通流），则不能使用对称&#x2F;滑移，应使用恰当的入口&#x2F;出口条件。</li>
+<li>若想模拟横向重复的周期地形，考虑 <code>cyclic</code>&#x2F;<code>cyclicAMI</code>（周期边界），而非对称&#x2F;滑移。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="4-选择-symmetryPlane-还是-slip？"><a href="#4-选择-symmetryPlane-还是-slip？" class="headerlink" title="4. 选择 symmetryPlane 还是 slip？"></a>4. 选择 <code>symmetryPlane</code> 还是 <code>slip</code>？</h2><ul>
+<li><p><strong>优先选择：<code>symmetryPlane</code></strong></p>
+<ul>
+<li>更严格的对称约束，通常更稳健。</li>
+<li>对大多数 ABL 外流问题，不需要侧向通量，<code>symmetryPlane</code> 表现良好。</li>
+</ul>
+</li>
+<li><p><strong>可选：<code>slip</code></strong></p>
+<ul>
+<li>在个别求解器&#x2F;设置中，<code>slip</code> 与 <code>symmetryPlane</code>几乎等价。</li>
+<li>如果你已建立了一套基于 <code>slip</code> 的项目模板，也可以继续沿用，但要注意与求解器版本一致性。</li>
+</ul>
+</li>
+<li><p><strong>注意 LES 情况</strong></p>
+<ul>
+<li>LES 中，侧面滑移会限制横向能量输运与涡结构的跨界发展。如果侧域较窄，<code>symmetry</code>&#x2F;<code>slip</code> 可能增强人工相干结构。更稳妥的做法是：<ul>
+<li>加宽侧向域，或</li>
+<li>使用周期边界（<code>cyclic</code>）并保证域宽足够代表实际横向相关尺度。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="5-与其它侧边界方案的对比"><a href="#5-与其它侧边界方案的对比" class="headerlink" title="5. 与其它侧边界方案的对比"></a>5. 与其它侧边界方案的对比</h2><ul>
+<li><strong><code>noSlip wall</code></strong>：不合适。会产生附加边界层与剪切，严重干扰外流。</li>
+<li><strong><code>inletOutlet/pressureInletOutletVelocity</code></strong>：适用于真正的流入&#x2F;流出侧，但需要良好的流向确定和防止反向流措施；一般不用于侧向远场。</li>
+<li><strong><code>cyclic</code> &#x2F; <code>cyclicAMI</code></strong>：用于周期性场景（例如理想化重复山脊），可维持统计均匀的横向结构，但需保证周期性几何与流场。</li>
+<li><strong><code>freestream</code>（部分求解器提供）</strong>：用于真正的无限远场近似，但在地形外流中侧边界多不如 <code>symmetry/slip</code> 稳定。</li>
+</ul>
+<hr>
+<h2 id="6-配置要点与常见坑"><a href="#6-配置要点与常见坑" class="headerlink" title="6. 配置要点与常见坑"></a>6. 配置要点与常见坑</h2><ul>
+<li><p><strong>边界离地形足够远</strong></p>
+<ul>
+<li>即便使用 <code>symmetry/slip</code>，如果侧边界离强涡区太近，也会引起反射或人工约束。确保跨风向宽度充足（≥ 地形主尺度 5–10 倍）。</li>
+</ul>
+</li>
+<li><p><strong>湍流量的边界条件一致</strong></p>
+<ul>
+<li>RANS：<code>k, epsilon/omega</code> 通常设 <code>zeroGradient</code>；<code>nut</code> 在非壁面不需要（或 <code>calculated</code>）。</li>
+<li>LES：湍流黏性等墙外量同样 <code>zeroGradient</code>。避免错误地把侧边界当作壁面函数。</li>
+</ul>
+</li>
+<li><p><strong>矢量与标量的处理</strong></p>
+<ul>
+<li><code>symmetryPlane</code> 会自动对法向分量、法向梯度做镜像约束；<code>slip</code> 则确保法向速度为零并对切向梯度零处理。检查你的 OpenFOAM 版本文档以确认实现细节。</li>
+</ul>
+</li>
+<li><p><strong>顶部和出口的协同</strong></p>
+<ul>
+<li>侧边界为 <code>symmetry/slip</code> 时，顶部通常也应柔和（<code>symmetry</code> 或软出流），出口采用 <code>pressureInletOutletVelocity + zeroGradient(p)</code>，避免侧面—顶部—出口的三角区域发生数值反射。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="7-小示例（OpenFOAM-边界片段）"><a href="#7-小示例（OpenFOAM-边界片段）" class="headerlink" title="7. 小示例（OpenFOAM 边界片段）"></a>7. 小示例（OpenFOAM 边界片段）</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">// 侧边界（左右）</span><br><span class="line">boundaryField</span><br><span class="line">&#123;</span><br><span class="line">  sideWest</span><br><span class="line">  &#123;</span><br><span class="line">    type            symmetryPlane;   // 或 slip</span><br><span class="line">  &#125;</span><br><span class="line">  sideEast</span><br><span class="line">  &#123;</span><br><span class="line">    type            symmetryPlane;   // 或 slip</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  top</span><br><span class="line">  &#123;</span><br><span class="line">    type            symmetryPlane;   // 或 pressureInletOutletVelocity + zeroGradient(p)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  outlet</span><br><span class="line">  &#123;</span><br><span class="line">    type            pressureInletOutletVelocity;</span><br><span class="line">    value           uniform (0 0 0);</span><br><span class="line">  &#125;</span><br><span class="line">  p_outlet</span><br><span class="line">  &#123;</span><br><span class="line">    type            zeroGradient;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8. 总结"></a>8. 总结</h2><ul>
+<li><strong>核心原因</strong>：侧边界设置为 <code>symmetryPlane</code> 或 <code>slip</code> 是为了在有限域中模拟无限侧向的外流环境，避免非物理的侧壁剪切、附加边界层与数值反射。</li>
+<li><strong>选择建议</strong>：默认用 <code>symmetryPlane</code>；如有既有模板或特殊需要可用 <code>slip</code>。两者均为无穿透、无剪切的“滑移”边界。</li>
+<li><strong>前提条件</strong>：侧界要离主要地形影响区足够远；湍流&#x2F;标量边界条件要与之匹配；LES 时尽量加宽侧向域或采用周期边界。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/ABLCondition/">https://hugh-tong.github.io/2026/09/15/ABLCondition/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6/">CFD/OpenFOAM/边界条件</a><a class="post-meta__tags" href="/tags/%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6/">边界条件</a><a class="post-meta__tags" href="/tags/Cpp/">Cpp</a><a class="post-meta__tags" href="/tags/OpenFOAM/">OpenFOAM</a><a class="post-meta__tags" href="/tags/DES/">DES</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">坏网格图鉴(BadMesh Store)</div></div><div class="info-2"><div class="info-item-1">20251203，以下情况是因为网格加密在同一层没有对于设置，导致出现的“一对多”情况。    </div></div></div></a><a class="pagination-related" href="/2026/09/15/mac-deploy-test/" title="部署手册实测:MacBook 环境从零到上线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">部署手册实测:MacBook 环境从零到上线</div></div><div class="info-2"><div class="info-item-1">今天在 MacBook(macOS 12.7.4, Intel)上把博客环境从零跑通了一遍,顺手把过程沉淀成仓库里的 DEPLOYMENT.md。这篇是当日实录的快照,备忘 + 验证部署链路。 环境   项 值    系统 macOS 12.7.4 (Monterey), Intel x86_64   Node.js v22.23.2(nvm)   npm 10.9.8   git 2.37.1(Apple Git)   Hexo 6.3.0(仓库锁定)   踩过的坑(按顺序)1. themes/next 是空的裸 gitlink 问题,克隆仓库不带文件。补: 12git clone https://github.com/next-theme/hexo-theme-next.git themes/nextgit -C themes/next checkout v8.20.0  2. macOS 没有 setsid后台常驻预览在 Mac 上用 nohup npx hexo server ... &amp; 即可,不需要(也没有)setsid。 3. SSH key 是 Gitee ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/openfoam-bc-summary/" title="OpenFOAM 边界条件速查总表"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 边界条件速查总表</div></div><div class="info-2"><div class="info-item-1">设置中的PlaceholderflowRateInletVelocity – CFD Online Discussion Forums OpenFOAM中存在一些继承关系带来的placeholder，他写在哪里，实际上没有意义。 123456inlet&#123;  type        flowRateInletVelocity;  flowRate    0.2;        // Volumetric/mass flow rate [m3/s or kg/s]  value       uniform (0 0 0); // placeholder&#125;  The value field is a part of every boundary condition, since they derive from the same basic boundary condition. placeholder means just that. you need it in order for OF to use the boundary condition, but it...</div></div></div></a><a class="pagination-related" href="/2026/09/15/timeVaryingMappedFixedValue/" title="timeVaryingMappedFixedValue 时变映射入口条件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">timeVaryingMappedFixedValue 时变映射入口条件</div></div><div class="info-2"><div class="info-item-1">OpenFOAM: API Guide: timeVaryingMappedFixedValueFvPatchField&lt; Type &gt; Class Template Reference Non-uniform time-varying boundary conditions in OpenFOAM : r&#x2F;CFD 使用How to quickly export points for a timeVaryingFixedValue boundary in OpenFOAM – Alberto Passalacqua timeVaryingMappedFixedValueFvPatchField&lt; Type &gt; Class Template ReferenceThis boundary condition interpolates values from a set of supplied points in space and time.  points data structure: points: pointField of location...</div></div></div></a><a class="pagination-related" href="/2026/09/15/fixedFluxPressure/" title="fixedFluxPressure 边界条件解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">fixedFluxPressure 边界条件解析</div></div><div class="info-2"><div class="info-item-1">fixedFluxPressure边界条件【转载】 - 硫酸亚铜 - 博客园 buoyantPressure设置压力梯度使其适用于浮力流，由于壁面边界通量差值趋于0，因此边界条件近似zeroGradient，buoyantPressure从物理意义上更符合 Archimedes’ principle描述的壁面边界；而fixedFluxPressure则是调整压力梯度使得边界通量与速度边界条件指定的保持一致，收敛性更好。此外，fixedFluxPressure边界条件不限于壁面，也可以用于入口与出口，在interFoam中的渠道流案例中，出口设置为fixedFluxPressure。  这个buoyantPressure boundary在OpenFOAM 2.2.2中就没有了  I need explanations about fixedFluxPressure – CFD Online Discussion Forums OpenFOAM 2.2.2具有两种边界条件。在更新的版本中，buoyantPressure 边界被移除了。为了澄清，请查看代码或Doxygen文档。buo...</div></div></div></a><a class="pagination-related" href="/2026/09/15/noSlip_vs_slip/" title="slip 与 noSlip 边界条件的区别"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">slip 与 noSlip 边界条件的区别</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中的 slip 与 noSlip 边界条件有什么区别？简明对比：  noSlip：固壁粘性边界，法向和切向速度都为 0（相对壁面）→ 有壁面剪切、边界层。 slip：无摩擦壁&#x2F;自由滑移，法向速度为 0，切向速度法向梯度为 0 → 无壁面剪切、无边界层。  下面从物理、数学、实现和典型用法逐一说明。  1) 物理含义 noSlip（无滑移）  模拟真实粘性固壁：流体与壁面相对速度为零。 存在壁面剪切应力与边界层；动量和湍流的产生&#x2F;耗散与壁面摩擦相关。 若壁面运动（动网格&#x2F;动壁），应使用 movingWallVelocity 来使流体速度等于壁面速度。   slip（滑移&#x2F;无应力）  模拟无摩擦壁或自由表面上方的“无应力顶盖”：没有切向阻力。 只禁止法向穿透，不施加切向速度值；切向剪切应力为零。 常用于大气边界层的顶部边界、理想化高雷诺数“无边界层”近似、或对称性&#x2F;远场的简化。     2) 数学条件以法向单位向量为 ( \mathbf{n} )，切向速度为 ( \mathbf{u}_t )，法向分量为 ( u_n ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/empty/" title="OpenFOAM empty 边界条件的含义"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM empty 边界条件的含义</div></div><div class="info-2"><div class="info-item-1">OpenFOAM如果一个内部的边界设置为empty，意味着什么？在 OpenFOAM 中，如果把一个内部边界（Internal Boundary） 设置为 empty 类型，这通常是一个非常特殊甚至危险的操作，除非你非常清楚自己在做一个伪 2D 模拟。 以下是它的具体含义和后果： 1. 核心含义：维度的“降维打击”empty 边界条件的唯一合法用途是指示 OpenFOAM 进行 2D 模拟。它告诉求解器：“沿着这个面的法线方向，没有物理变化，也不需要求解方程。请忽略这个维度的存在。”  标准用法：通常只用于网格的 Front 和 Back 面（前后板），且这两个面必须是平行的。这会让三维网格在计算上变成二维切片。  2. 如果用在“内部”意味着什么？假设你在流场中间有一个 Patch（比如一个挡板面或者内嵌面），你把它设为了 empty，后果如下： A. 物理上：绝对的隔离与滑移 (Perfect Slip &amp; Insulation) 无通量 (Zero Flux)：流体无法穿过这个面。质量通量为 0。 零梯度 (Zero Gradient)：标量（如温度、压力）在这个面...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-bc-matrix-impact/" title="边界条件如何进入 OpenFOAM 矩阵组装"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">边界条件如何进入 OpenFOAM 矩阵组装</div></div><div class="info-2"><div class="info-item-1">前言：本篇探究边界条件在OpenFOAM求解中的影响。 可以发现，边界条件影响求解过程的地方较多。边界条件通过影响矩阵系数值来影响求解的结果。  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">60</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">75</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">20</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#atmBoundaryLayer"><span class="toc-number">1.</span> <span class="toc-text">atmBoundaryLayer</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%9E%E6%80%A7%EF%BC%88Properties%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">属性（Properties）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%9E%B6%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">代码架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">核心函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayerInletVelocityFvPatchVectorField-updateCoeffs"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">atmBoundaryLayerInletVelocityFvPatchVectorField::updateCoeffs</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-U%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%A4%A7%E6%B0%94%E8%BE%B9%E7%95%8C%E7%9A%84%E9%80%9F%E5%BA%A6%E5%88%86%E5%B8%83"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">atmBoundaryLayer::U，功能：计算大气边界的速度分布</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-k%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%A4%A7%E6%B0%94%E8%BE%B9%E7%95%8C%E7%9A%84%E6%B9%8D%E5%8A%A8%E8%83%BD"><span class="toc-number">1.2.1.3.</span> <span class="toc-text">atmBoundaryLayer::k，功能：计算大气边界的湍动能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-epsilon%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%A4%A7%E6%B0%94%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%AF%94%E8%80%97%E6%95%A3%E7%8E%87%E5%88%86%E5%B8%83"><span class="toc-number">1.2.1.4.</span> <span class="toc-text">atmBoundaryLayer::epsilon，功能：计算大气模型的比耗散率分布</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-omega%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%A4%A7%E6%B0%94%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%AF%94%E8%80%97%E6%95%A3%E7%8E%87"><span class="toc-number">1.2.1.5.</span> <span class="toc-text">atmBoundaryLayer::omega，功能：计算大气模型的比耗散率</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.2.</span> <span class="toc-text">功能函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-flowDir%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%B5%81%E5%90%91"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">atmBoundaryLayer::flowDir，功能：计算流向</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-zDir%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E5%9E%82%E7%9B%B4%E4%BA%8E%E5%9C%B0%E9%9D%A2%E7%9A%84%E6%96%B9%E5%90%91"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">atmBoundaryLayer::zDir，功能：计算垂直于地面的方向</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#atmBoundaryLayer-Ustar%EF%BC%8C%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%91%A9%E6%93%A6%E9%80%9F%E5%BA%A6"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">atmBoundaryLayer::Ustar，功能：计算摩擦速度</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E6%96%B9%E7%A8%8B%EF%BC%88Model-equations%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">模型方程（Model equations）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8%E6%B3%95%EF%BC%88Usage%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">用法（Usage）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A1%E7%9B%AE%E5%A4%87%E6%B3%A8%EF%BC%88Notes-on-entries%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">条目备注（Notes on entries）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BF%A1%E6%81%AF%EF%BC%88Further-information%EF%BC%89"><span class="toc-number">1.6.</span> <span class="toc-text">进一步信息（Further information）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%EF%BC%88History%EF%BC%89"><span class="toc-number">1.7.</span> <span class="toc-text">历史（History）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5"><span class="toc-number">2.</span> <span class="toc-text">实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A3%8E%E5%8A%9B%E7%AD%89%E7%BA%A7%E5%88%92%E5%88%86%EF%BC%88%E4%B8%AD%E5%9B%BD%E6%B0%94%E8%B1%A1%E7%BD%91%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">风力等级划分（中国气象网）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%9B%B8%E5%85%B3"><span class="toc-number">2.2.</span> <span class="toc-text">设置相关</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#python%E9%AA%8C%E8%AF%81inletProfile"><span class="toc-number">2.3.</span> <span class="toc-text">python验证inletProfile</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%B0%E5%BD%A2%E5%A4%96%E6%B5%81%E5%9C%BA%E7%9A%84%E4%BE%A7%E8%BE%B9%E7%95%8C%E5%B8%B8%E8%AE%BE%E4%B8%BA-symmetryPlane-%E6%88%96-slip"><span class="toc-number">3.</span> <span class="toc-text">为什么地形外流场的侧边界常设为 symmetryPlane 或 slip</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%89%A9%E7%90%86%E4%B8%8E%E5%BB%BA%E6%A8%A1%E5%8A%A8%E6%9C%BA"><span class="toc-number">3.1.</span> <span class="toc-text">1. 物理与建模动机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%9D%A1%E4%BB%B6%E7%9A%84%E6%95%B0%E5%AD%A6-%E6%95%B0%E5%80%BC%E7%89%B9%E6%80%A7"><span class="toc-number">3.2.</span> <span class="toc-text">2. 条件的数学&#x2F;数值特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8%E5%AE%83%E4%BB%AC%EF%BC%9F"><span class="toc-number">3.3.</span> <span class="toc-text">3. 什么时候用它们？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%80%89%E6%8B%A9-symmetryPlane-%E8%BF%98%E6%98%AF-slip%EF%BC%9F"><span class="toc-number">3.4.</span> <span class="toc-text">4. 选择 symmetryPlane 还是 slip？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%8E%E5%85%B6%E5%AE%83%E4%BE%A7%E8%BE%B9%E7%95%8C%E6%96%B9%E6%A1%88%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">3.5.</span> <span class="toc-text">5. 与其它侧边界方案的对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E9%85%8D%E7%BD%AE%E8%A6%81%E7%82%B9%E4%B8%8E%E5%B8%B8%E8%A7%81%E5%9D%91"><span class="toc-number">3.6.</span> <span class="toc-text">6. 配置要点与常见坑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B0%8F%E7%A4%BA%E4%BE%8B%EF%BC%88OpenFOAM-%E8%BE%B9%E7%95%8C%E7%89%87%E6%AE%B5%EF%BC%89"><span class="toc-number">3.7.</span> <span class="toc-text">7. 小示例（OpenFOAM 边界片段）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%80%BB%E7%BB%93"><span class="toc-number">3.8.</span> <span class="toc-text">8. 总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ABLCondition/" title="atmBoundaryLayer 大气边界层边界条件">atmBoundaryLayer 大气边界层边界条件</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/BadMesh_store/" title="坏网格图鉴(BadMesh Store)">坏网格图鉴(BadMesh Store)</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Mesh_Suggest/" title="高质量网格的 5 个技巧与陷阱">高质量网格的 5 个技巧与陷阱</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/Topologically%20connected%20region/" title="拓扑连通区域(Topologically Connected Region)理解">拓扑连通区域(Topologically Connected Region)理解</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/VTK_VTM_VTU/" title="VTK/VTM/VTU 文件格式速查">VTK/VTM/VTU 文件格式速查</a><time datetime="2026-09-15T04:00:00.000Z" title="Created 2026-09-15 12:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
