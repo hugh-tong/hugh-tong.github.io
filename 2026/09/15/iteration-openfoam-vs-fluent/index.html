@@ -1,0 +1,724 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="OpenFOAM 稳态计算的 Time 本质是迭代计数,与 Fluent 的迭代步概念对应关系详解。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/iteration-openfoam-vs-fluent/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="OpenFOAM 稳态计算的 Time 本质是迭代计数,与 Fluent 的迭代步概念对应关系详解。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T05:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T07:40:22.729Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="CFD&#x2F;OpenFOAM&#x2F;求解器">
+<meta property="article:tag" content="求解器">
+<meta property="article:tag" content="simpleFoam">
+<meta property="article:tag" content="Ansys">
+<meta property="article:tag" content="迭代步">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系",
+  "url": "https://hugh-tong.github.io/2026/09/15/iteration-openfoam-vs-fluent/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T05:00:00.000Z",
+  "dateModified": "2026-09-15T07:40:22.729Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/iteration-openfoam-vs-fluent/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T05:00:00.000Z" title="Created 2026-09-15 13:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T07:40:22.729Z" title="Updated 2026-09-15 15:40:22">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/">OpenFOAM</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/OpenFOAM/%E6%B1%82%E8%A7%A3%E5%99%A8/">求解器</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>Q： OpenFOAM中的稳态为什么写出也有时间的概念。OpenFOAM的稳态计算的时间步，和Fluent的稳态迭代的关系是什么？</p>
+<p>这是一个非常经典的问题，很多从商业软件（如 Ansys Fluent）转到 OpenFOAM 的工程师都会感到困惑。</p>
+<p>简单直接的结论是：<strong>在 OpenFOAM 的稳态计算（SIMPLE 算法）中，“时间步”就是一个“迭代计数器”。它只是披着“时间”外衣的“迭代步”。</strong></p>
+<p>下面我为你详细拆解其中的逻辑以及它与 Fluent 的对应关系。</p>
+<hr>
+<h3 id="1-为什么-OpenFOAM-稳态也有“时间”？"><a href="#1-为什么-OpenFOAM-稳态也有“时间”？" class="headerlink" title="1. 为什么 OpenFOAM 稳态也有“时间”？"></a>1. 为什么 OpenFOAM 稳态也有“时间”？</h3><p>这完全是因为 <strong>OpenFOAM 的软件架构设计</strong> 决定的。</p>
+<ul>
+<li><strong>统一的架构</strong>：OpenFOAM 为了代码复用，所有的求解器（不管是稳态 <code>simpleFoam</code> 还是瞬态 <code>pisoFoam</code>）都共用一套顶层的时间循环控制类（<code>Time</code> 类）。</li>
+<li><strong>强制的时间循环</strong>：OpenFOAM 的核心运行逻辑是 <code>runTime.loop()</code>。为了让这个循环跑起来，必须有一个“时间”在往前走。</li>
+<li><strong>对于稳态求解器</strong>：<ul>
+<li>开发者并没有专门写一套“只计数不计时”的循环逻辑。</li>
+<li>而是直接利用现有的时间循环机制，把 <code>deltaT</code>（时间步长）人为地理解为“步数增量”。</li>
+<li>通常，我们会在 <code>controlDict</code> 里设置 <code>deltaT</code> 为 <code>1</code>。这样，第 1000 步就是 Time &#x3D; 1000。</li>
+</ul>
+</li>
+</ul>
+<p><strong>本质上：</strong><br>在 <code>simpleFoam</code> 中，<code>Time</code> 这个变量<strong>没有任何物理意义</strong>，它仅仅是一个<strong>标签（Label）</strong>，用来标记当前计算到了第几次迭代，以及方便把结果写出到对应的文件夹（例如 <code>100/</code>, <code>200/</code>）里。</p>
+<hr>
+<h3 id="2-OpenFOAM-稳态-vs-Fluent-稳态：对应关系"><a href="#2-OpenFOAM-稳态-vs-Fluent-稳态：对应关系" class="headerlink" title="2. OpenFOAM 稳态 vs Fluent 稳态：对应关系"></a>2. OpenFOAM 稳态 vs Fluent 稳态：对应关系</h3><p>它们在数学本质上是<strong>完全一样</strong>的，都是基于松弛因子的迭代求解，只是“叫法”不同。</p>
+<table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left"><strong>OpenFOAM (simpleFoam)</strong></th>
+<th align="left"><strong>Ansys Fluent (Steady)</strong></th>
+<th align="left"><strong>关系</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>推进变量</strong></td>
+<td align="left"><code>Time</code> (时间)</td>
+<td align="left"><code>Iteration</code> (迭代步)</td>
+<td align="left"><strong>完全等价</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>推进增量</strong></td>
+<td align="left"><code>deltaT</code> (通常设为 1)</td>
+<td align="left">默认就是 1</td>
+<td align="left"><strong>完全等价</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>物理含义</strong></td>
+<td align="left"><strong>无</strong> (伪时间)</td>
+<td align="left"><strong>无</strong></td>
+<td align="left">都是为了迭代收敛</td>
+</tr>
+<tr>
+<td align="left"><strong>库朗数 (Co)</strong></td>
+<td align="left">无意义 (不限制 <code>deltaT</code>)</td>
+<td align="left">无意义</td>
+<td align="left">稳态不看 Co 数</td>
+</tr>
+<tr>
+<td align="left"><strong>局部时间步</strong></td>
+<td align="left">通过 <code>localEuler</code> 等差分格式实现</td>
+<td align="left">默认开启 (伪时间步进)</td>
+<td align="left">都是为了加速收敛</td>
+</tr>
+</tbody></table>
+<h4 id="关键区别点：关于“伪时间步”-Pseudo-Time-Step"><a href="#关键区别点：关于“伪时间步”-Pseudo-Time-Step" class="headerlink" title="关键区别点：关于“伪时间步” (Pseudo Time Step)"></a>关键区别点：关于“伪时间步” (Pseudo Time Step)</h4><p>虽然宏观的“时间步”只是迭代计数，但在<strong>方程求解的微观层面</strong>，两者有一个微妙的区别，这常常导致 OpenFOAM 比 Fluent 更难收敛：</p>
+<ul>
+<li><strong>Fluent</strong>：默认在稳态计算中使用了**隐式的“局部时间步长”（Local Time Stepping）**技术。它会自动给每个网格单元一个虚拟的 $\Delta t$，让计算更稳定、收敛更快。你不需要显式设置它，它融合在亚松驰因子和求解器内部。</li>
+<li><strong>OpenFOAM</strong>：<ul>
+<li>标准的 <code>simpleFoam</code> 使用的是纯粹的**欠松弛因子（Under-Relaxation Factors）**方法（在 <code>fvSolution</code> 里设置 <code>relaxationFactors</code>）。这相当于数学上的定点迭代。</li>
+<li>如果你想在 OpenFOAM 里用类似 Fluent 的那种“伪时间步”来增加稳定性，你需要使用 <code>localEuler</code> 差分格式（在 <code>fvSchemes</code> 的 <code>ddtSchemes</code> 里设置），但这属于进阶操作，默认配置通常不这么做。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="3-给你的-controlDict-设置建议"><a href="#3-给你的-controlDict-设置建议" class="headerlink" title="3. 给你的 controlDict 设置建议"></a>3. 给你的 <code>controlDict</code> 设置建议</h3><p>为了让 OpenFOAM 的行为看起来更像 Fluent，你可以这样设置 <code>controlDict</code>，让“时间”直接变成“迭代步数”：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">application     simpleFoam;</span><br><span class="line"></span><br><span class="line">startFrom       startTime;</span><br><span class="line">startTime       <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">stopAt          endTime;</span><br><span class="line">endTime         <span class="number">5000</span>;    <span class="comment">// 相当于 Fluent 里的 &quot;Number of Iterations&quot; = 5000</span></span><br><span class="line"></span><br><span class="line">deltaT          <span class="number">1</span>;       <span class="comment">// 关键！设为 1，这样 Time = 5000 就是第 5000 步</span></span><br><span class="line"></span><br><span class="line">writeControl    timeStep;</span><br><span class="line">writeInterval   <span class="number">100</span>;     <span class="comment">// 每迭代 100 步保存一次结果 (写出 100, 200... 文件夹)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><strong>OpenFOAM 的 <code>Time = 100</code></strong> $\Leftrightarrow$ <strong>Fluent 的 <code>Iteration = 100</code></strong>。</li>
+<li><strong>OpenFOAM 的 <code>deltaT</code></strong> 在稳态下只是一个“计数单位”，没有物理秒数的含义。</li>
+<li>你在 OpenFOAM 里看到的所谓“稳态时间”，<strong>纯粹是为了把数据写在以数字命名的文件夹里（如 <code>0/</code>, <code>100/</code>）而借用的一个容器。</strong></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/iteration-openfoam-vs-fluent/">https://hugh-tong.github.io/2026/09/15/iteration-openfoam-vs-fluent/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD-OpenFOAM-%E6%B1%82%E8%A7%A3%E5%99%A8/">CFD/OpenFOAM/求解器</a><a class="post-meta__tags" href="/tags/%E6%B1%82%E8%A7%A3%E5%99%A8/">求解器</a><a class="post-meta__tags" href="/tags/simpleFoam/">simpleFoam</a><a class="post-meta__tags" href="/tags/Ansys/">Ansys</a><a class="post-meta__tags" href="/tags/%E8%BF%AD%E4%BB%A3%E6%AD%A5/">迭代步</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/simplefoam-vs-pisofoam-steady-transient/" title="OpenFOAM 中 simpleFoam 与 pisoFoam 在相同网格下的显著差异解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">OpenFOAM 中 simpleFoam 与 pisoFoam 在相同网格下的显著差异解析</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中 simpleFoam 与 pisoFoam 在相同网格下的显著差异解析在 OpenFOAM 中，虽然 simpleFoam（稳态求解器）和 pisoFoam（瞬态求解器）都处理不可压缩流动，但它们在相同网格下产生的结果可能存在显著差异。这些差异源于基础算法逻辑、物理建模方式和数值处理方法的根本区别。 1. 基础算法逻辑差异simpleFoam (稳态 SIMPLE 算法) 时间项处理：完全忽略时间导数项 $\frac{\partial \phi}{\partial t} &#x3D; 0$ 耦合方法：使用单一压力修正步骤 迭代过程：内部迭代次数固定，”伪时间步进”只是迭代计数器 松弛系数：通常依赖较大的松弛因子(例如 0.3-0.7)促进收敛  pisoFoam (瞬态 PISO 算法) 时间项处理：保留并离散化时间导数项 $\frac{\partial \phi}{\partial t}$ 耦合方法：每时间步内进行多次压力修正循环（nCorrectors 参数） 时间步长：受 CFL 条件约束，必须保证数值稳定性 松弛系数：通常较小或不使用松弛  2. 本...</div></div></div></a><a class="pagination-related" href="/2026/09/15/gcl-scl-derivation/" title="GCL/SCL 公式推导:动网格下的几何守恒律"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">GCL/SCL 公式推导:动网格下的几何守恒律</div></div><div class="info-2"><div class="info-item-1">动网格下推导满足Spatial Conservation Law的控制方程首先，考虑一维的连续性方程： $$\frac{\partial \rho}{\partial t} + \frac{\partial \rho v}{\partial x} &#x3D;0 \\int\frac{\partial \rho}{\partial t} dt + \int \frac{\partial \rho v}{\partial x} dx &#x3D;0\tag{1}\label{eq1}$$推导，并使用莱布尼兹法则$$d\rho&#x3D;\frac{\partial \rho}{\partial x} dx + \frac{\partial \rho}{\partial t}dt \\frac{\partial \rho}{\partial t} &#x3D; (d\rho - \frac{\partial \rho}{\partial x}dx)&#x2F;dt&#x3D;\frac{d\rho}{dt}-\frac{\partial \rho}{\partial x}\cdot ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/simplefoam-vs-pisofoam-steady-transient/" title="OpenFOAM 中 simpleFoam 与 pisoFoam 在相同网格下的显著差异解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 中 simpleFoam 与 pisoFoam 在相同网格下的显著差异解析</div></div><div class="info-2"><div class="info-item-1">OpenFOAM 中 simpleFoam 与 pisoFoam 在相同网格下的显著差异解析在 OpenFOAM 中，虽然 simpleFoam（稳态求解器）和 pisoFoam（瞬态求解器）都处理不可压缩流动，但它们在相同网格下产生的结果可能存在显著差异。这些差异源于基础算法逻辑、物理建模方式和数值处理方法的根本区别。 1. 基础算法逻辑差异simpleFoam (稳态 SIMPLE 算法) 时间项处理：完全忽略时间导数项 $\frac{\partial \phi}{\partial t} &#x3D; 0$ 耦合方法：使用单一压力修正步骤 迭代过程：内部迭代次数固定，”伪时间步进”只是迭代计数器 松弛系数：通常依赖较大的松弛因子(例如 0.3-0.7)促进收敛  pisoFoam (瞬态 PISO 算法) 时间项处理：保留并离散化时间导数项 $\frac{\partial \phi}{\partial t}$ 耦合方法：每时间步内进行多次压力修正循环（nCorrectors 参数） 时间步长：受 CFL 条件约束，必须保证数值稳定性 松弛系数：通常较小或不使用松弛  2. 本...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ur-courant-number/" title="Ur Courant Number:相对库朗数的含义与公式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">Ur Courant Number:相对库朗数的含义与公式</div></div><div class="info-2"><div class="info-item-1">Ur Courant Number：含义、公式与意义你提供的代码片段展示了 OpenFOAM 中用于计算 “Ur Courant number” 的方式。下面从概念、公式推导到物理&#x2F;数值意义做系统整理。 Ur 的含义 Ur 在这里可以理解为：由两相（或两速度场）通量差异引入的“相对（relative）”或“更新（update）”驱动的有效 Courant 数。 与常规 Courant 数（由单一对流通量 phi 决定）不同，Ur Courant number 用的是两股通量之差 phi1 - phi2，用来度量在一个时间步内，由两者差异引起的穿越单元尺度的有效“推进幅度”。  直观理解：如果 phi1 与 phi2 代表两相或两组分的界面&#x2F;相对流动，Ur Co 衡量的是它们的相对输运强度对时间步长稳定性的约束。 代码对应的数学表达代码核心： 1234scalar UrCoNum = 0.5*gMax(    fvc::surfaceSum(mag(phi1 - phi2))().primitiveField()/mesh.V().field())*runTim...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ebd-chtmultiregionfoam/" title="chtMultiRegionFoam 共轭传热求解器:结构与实际案例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">chtMultiRegionFoam 共轭传热求解器:结构与实际案例</div></div><div class="info-2"><div class="info-item-1">chtMultiRegionFoam求解器- 文集 哔哩哔哩专栏 实际案例案例典型结构123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172~/O/OpenFOAM-v23/t/heatTransfer/chtMultiRegionFoam/snappyMultiRegionHeater &gt; tree -L 3                                                                                                                                                                                                                      17:35:59.├── 0.o...</div></div></div></a><a class="pagination-related" href="/2026/09/15/gcl-scl-derivation/" title="GCL&#x2F;SCL 公式推导:动网格下的几何守恒律"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">GCL&#x2F;SCL 公式推导:动网格下的几何守恒律</div></div><div class="info-2"><div class="info-item-1">动网格下推导满足Spatial Conservation Law的控制方程首先，考虑一维的连续性方程： $$\frac{\partial \rho}{\partial t} + \frac{\partial \rho v}{\partial x} &#x3D;0 \\int\frac{\partial \rho}{\partial t} dt + \int \frac{\partial \rho v}{\partial x} dx &#x3D;0\tag{1}\label{eq1}$$推导，并使用莱布尼兹法则$$d\rho&#x3D;\frac{\partial \rho}{\partial x} dx + \frac{\partial \rho}{\partial t}dt \\frac{\partial \rho}{\partial t} &#x3D; (d\rho - \frac{\partial \rho}{\partial x}dx)&#x2F;dt&#x3D;\frac{d\rho}{dt}-\frac{\partial \rho}{\partial x}\cdot ...</div></div></div></a><a class="pagination-related" href="/2026/09/15/dynamicmesh-interfoam-summary/" title="动网格 + MULES + 界面捕捉:interFoam 动网格总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">动网格 + MULES + 界面捕捉:interFoam 动网格总结</div></div><div class="info-2"><div class="info-item-1">动网格+MULES+界面捕捉总结 理论公式推导其中ALE形式的VOF方程见式。$$\begin{equation}\begin{aligned}&amp; \frac{\partial \phi}{\partial t}+\nabla \cdot(\boldsymbol{u} \phi)&#x3D;0\end{aligned}\end{equation}$$ $$\begin{equation}\begin{aligned}&amp; \frac{\partial}{\partial t} \int_{\Omega_\chi} \phi d \Omega+\int\left(\boldsymbol{u}-\boldsymbol{u}_g\right) \phi d \boldsymbol{S}&#x3D;0\end{aligned}\end{equation}$$ $$\begin{equation}\begin{aligned}&amp; \frac{\partial V_i}{\partial t}+\sum \boldsymbol{u}_{g, f} \boldsymbol...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ale-conservation-law-derivation/" title="动网格下满足空间守恒律的控制方程推导"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">动网格下满足空间守恒律的控制方程推导</div></div><div class="info-2"><div class="info-item-1">动网格下推导满足Spatial Conservation Law的控制方程首先，考虑一维的连续性方程： $$\frac{\partial \rho}{\partial t} + \frac{\partial \rho v}{\partial x} &#x3D;0 \\int\frac{\partial \rho}{\partial t} dt + \int \frac{\partial \rho v}{\partial x} dx &#x3D;0\tag{1}\label{eq1}$$推导，并使用莱布尼兹法则$$d\rho&#x3D;\frac{\partial \rho}{\partial x} dx + \frac{\partial \rho}{\partial t}dt \\frac{\partial \rho}{\partial t} &#x3D; (d\rho - \frac{\partial \rho}{\partial x}dx)&#x2F;dt&#x3D;\frac{d\rho}{dt}-\frac{\partial \rho}{\partial x}\cdot ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">87</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">21</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88-OpenFOAM-%E7%A8%B3%E6%80%81%E4%B9%9F%E6%9C%89%E2%80%9C%E6%97%B6%E9%97%B4%E2%80%9D%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">1. 为什么 OpenFOAM 稳态也有“时间”？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-OpenFOAM-%E7%A8%B3%E6%80%81-vs-Fluent-%E7%A8%B3%E6%80%81%EF%BC%9A%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="toc-number">2.</span> <span class="toc-text">2. OpenFOAM 稳态 vs Fluent 稳态：对应关系</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB%E7%82%B9%EF%BC%9A%E5%85%B3%E4%BA%8E%E2%80%9C%E4%BC%AA%E6%97%B6%E9%97%B4%E6%AD%A5%E2%80%9D-Pseudo-Time-Step"><span class="toc-number">2.1.</span> <span class="toc-text">关键区别点：关于“伪时间步” (Pseudo Time Step)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BB%99%E4%BD%A0%E7%9A%84-controlDict-%E8%AE%BE%E7%BD%AE%E5%BB%BA%E8%AE%AE"><span class="toc-number">3.</span> <span class="toc-text">3. 给你的 controlDict 设置建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/dimless-reynolds/" title="雷诺数(Reynolds Number)——流动性格的判定者">雷诺数(Reynolds Number)——流动性格的判定者</a><time datetime="2026-09-15T05:30:00.000Z" title="Created 2026-09-15 13:30:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ale-conservation-law-derivation/" title="动网格下满足空间守恒律的控制方程推导">动网格下满足空间守恒律的控制方程推导</a><time datetime="2026-09-15T05:00:00.000Z" title="Created 2026-09-15 13:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/dynamicmesh-interfoam-summary/" title="动网格 + MULES + 界面捕捉:interFoam 动网格总结">动网格 + MULES + 界面捕捉:interFoam 动网格总结</a><time datetime="2026-09-15T05:00:00.000Z" title="Created 2026-09-15 13:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/ebd-chtmultiregionfoam/" title="chtMultiRegionFoam 共轭传热求解器:结构与实际案例">chtMultiRegionFoam 共轭传热求解器:结构与实际案例</a><time datetime="2026-09-15T05:00:00.000Z" title="Created 2026-09-15 13:00:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/gcl-scl-derivation/" title="GCL/SCL 公式推导:动网格下的几何守恒律">GCL/SCL 公式推导:动网格下的几何守恒律</a><time datetime="2026-09-15T05:00:00.000Z" title="Created 2026-09-15 13:00:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
