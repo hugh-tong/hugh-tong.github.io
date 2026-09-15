@@ -42,6 +42,9 @@ CFD/                        ← CFD 技术主体
 | 15 | 2026-09-15 | 博客新机部署实录——从空仓库到上线 | 工具/Hexo | deploy-blog-new-machine | ✅ 新机部署流程实测 |
 | 16 | 2026-09-15 | OpenFOAM 网格专题 17 篇(Mesh 目录) | CFD/OpenFOAM/网格 | BadMesh_store 等 | ✅ P1 搬运,列表见下 |
 | 17 | 2026-09-15 | OpenFOAM 边界条件专题 10 篇(BC 目录) | CFD/OpenFOAM/边界条件 | ABLCondition 等 | ✅ P1 搬运,列表见下 |
+| 18 | 2026-09-15 | OpenFOAM 求解器专题 7 篇(solver 目录) | CFD/OpenFOAM/求解器 | simplefoam-vs-pisofoam 等 | ✅ P2 搬运 |
+| 19 | 2026-09-15 | 雷诺数(Reynolds Number)——系列回填 | CFD/无量纲数 | dimless-reynolds | ✅ P2 新写,系列 16 数补齐 |
+| 20 | 2026-09-15 | 求解器书签占位 8 篇(纯链接笔记) | CFD/OpenFOAM/求解器 | potentialfoam-init 等 | 🚧 占位发布,tag「占位待充实」,计划接 AI 工具充实正文 |
 
 > 状态图例:✅ 已发布 · 🚧 草稿中 · ⏸ 暂缓 · ⚠️ 有遗留问题
 
@@ -53,8 +56,8 @@ CFD/                        ← CFD 技术主体
 |---|---|---|---|---|
 | P1 | CFD/OpenFOAM/Mesh/(17 篇) | CFD/OpenFOAM/网格 | BadMesh 配图经验,实用价值最高 | ✅ 2026-09-15 全部搬运(17/17) |
 | P1 | CFD/OpenFOAM/BoundaryCondition/(12 篇) | CFD/边界条件 | 含 wedge_bc PDF 素材 | ✅ 2026-09-15 搬运 10/12(unifoamFixedValue 空文、From_1DTo3D 纯链接,弃) |
-| P2 | CFD/OpenFOAM/solver/(17 篇) | CFD/OpenFOAM/求解器 | | ⏸ |
-| P2 | CFD/DimlessNumberFluids 缺口:雷诺数 Re | CFD/无量纲数 | 笔记库无独立 Re 笔记,可新写回填系列 | ⏸ |
+| P2 | CFD/OpenFOAM/solver/(17 篇) | CFD/OpenFOAM/求解器 | | ✅ 2026-09-15 搬运 7 篇实质文 + 8 篇书签占位发布(纯链接壳文保留占位,后续接 AI 充实);空文与自研求解器源码目录不搬 |
+| P2 | CFD/DimlessNumberFluids 缺口:雷诺数 Re | CFD/无量纲数 | 笔记库无独立 Re 笔记,可新写回填系列 | ✅ 2026-09-15 新写上线,系列补齐 |
 | P3 | CFD/OpenFOAM/Tools/(8 篇) | CFD/OpenFOAM/工具链 | | ⏸ |
 | P3 | CFD/Theory/(12 篇)、CFD/Numerical/(12 篇) | CFD/理论、CFD/数值方法 | Schemes.md 已搬,余下待筛 | ⏸ |
 | P4 | CS/、CSAPP/ | 工具/计算机系统 | 需要你指认哪些值得搬 | ⏸ |
@@ -72,6 +75,8 @@ CFD/                        ← CFD 技术主体
 
 ## 五、最近动态(倒序,新在上)
 
+- **2026-09-15(下午二)**:按作者决策,8 篇纯链接书签笔记以**占位文**形式发布(tag「占位待充实」),保留全部原始链接与 TODO 清单,计划后续接入 AI 工具充实正文;自研求解器源码目录确认不搬
+- **2026-09-15(下午)**:P2 队列完成——solver 专题搬运 7 篇(8 篇纯链接书签壳文弃:potentialFoam/renumberMesh/LTS/ebd 简条等,待作者日后写成正文再搬)+ 雷诺数 Re 新写回填,无量纲数系列 16 数齐全
 - **2026-09-15**:P1 队列搬运完成——SSH 直连 Mac 笔记库,Mesh 17 篇 + 边界条件 10 篇(共 27 篇)转 Hexo 上线;10 张配图迁至 source/images/;2 篇空壳文弃搬。多机协作新增规则:**每次 hexo d 前先 git pull --rebase origin dev_tttt**(Mac 端发文曾被本机 deploy 覆盖)
 - **2026-09-15(早)**:新机(Ubuntu 工作站)环境部署实录上线;DEPLOYMENT.md 部署手册建立
 
