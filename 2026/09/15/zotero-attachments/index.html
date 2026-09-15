@@ -1,0 +1,654 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Zotero 附件管理:存储 vs 链接 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Zotero 存储附件与链接附件两种方式的管理策略。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zotero 附件管理:存储 vs 链接">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/zotero-attachments/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="Zotero 存储附件与链接附件两种方式的管理策略。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:23:00.892Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="阅读&#x2F;论文">
+<meta property="article:tag" content="论文笔记">
+<meta property="article:tag" content="Zotero">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Zotero 附件管理:存储 vs 链接",
+  "url": "https://hugh-tong.github.io/2026/09/15/zotero-attachments/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T08:00:00.000Z",
+  "dateModified": "2026-09-15T08:23:00.892Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/zotero-attachments/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Zotero 附件管理:存储 vs 链接',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">Zotero 附件管理:存储 vs 链接</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">Zotero 附件管理:存储 vs 链接</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T08:00:00.000Z" title="Created 2026-09-15 16:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:23:00.892Z" title="Updated 2026-09-15 16:23:00">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%98%85%E8%AF%BB/">阅读</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%98%85%E8%AF%BB/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><a target="_blank" rel="noopener" href="https://zotero-chinese.com/user-guide/add-attachments">添加附件 | Zotero 中文社区</a></p>
+<h2 id="存储的附件和链接的附件"><a href="#存储的附件和链接的附件" class="headerlink" title="存储的附件和链接的附件"></a>存储的附件和链接的附件</h2><h3 id="存储的附件"><a href="#存储的附件" class="headerlink" title="存储的附件"></a>存储的附件</h3><p><img src="data:image/svg+xml,%3csvg%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_144_2136)'%3e%3cpath%20opacity='0.5'%20d='M20.717%200H5V28H28V7.283L20.717%200Z'%20fill='white'/%3e%3cpath%20d='M6%201V27H27V7.698L20.302%201H6Z'%20fill='white'/%3e%3cpath%20opacity='0.08'%20d='M21%201.698V7H26.302L21%201.698Z'%20fill='black'/%3e%3cpath%20opacity='0.2'%20d='M20.717%200H5V28H28V7.283L20.717%200ZM21%201.7L26.3%207H21V1.7ZM27%2027H6V1H20V8H27V27Z'%20fill='black'/%3e%3cpath%20d='M15%206H1V11H15V6Z'%20fill='%23F1ABB0'/%3e%3cpath%20d='M15%206V11H1V6H15ZM16%205H0V12H16V5Z'%20fill='%23DB2C3A'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_144_2136'%3e%3crect%20width='28'%20height='28'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e" alt="icon-pdf"> <img src="data:image/svg+xml,%3csvg%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_216_4489)'%3e%3cpath%20opacity='0.5'%20d='M26.25%203C26.0513%203.002%2025.8544%203.03819%2025.668%203.107L25%202.43915V1.75C24.9997%201.28595%2024.8153%200.840987%2024.4871%200.512856C24.159%200.184725%2023.7141%200.000264943%2023.25%200H5.75C5.28596%200.000264943%204.84099%200.184725%204.51286%200.512856C4.18473%200.840987%204.00027%201.28595%204%201.75V23.25C3.99968%2023.4798%204.04484%2023.7075%204.13289%2023.9198C4.22093%2024.1321%204.35012%2024.3248%204.513%2024.487L7.513%2027.487C7.67512%2027.6499%207.8679%2027.7791%208.08021%2027.8672C8.29252%2027.9552%208.52016%2028.0004%208.75%2028H26.25C26.7141%2027.9997%2027.159%2027.8153%2027.4871%2027.4871C27.8153%2027.159%2027.9997%2026.714%2028%2026.25V4.75C27.9997%204.28595%2027.8153%203.84099%2027.4871%203.51286C27.159%203.18472%2026.7141%203.00026%2026.25%203Z'%20fill='white'/%3e%3cpath%20d='M24%201H8V24H24V1Z'%20fill='white'/%3e%3cpath%20d='M7%201H5V24H7V1Z'%20fill='white'/%3e%3cpath%20d='M16%2026H11V27H16V26Z'%20fill='%2339BF68'/%3e%3cpath%20opacity='0.2'%20d='M26.25%203C26.0513%203.002%2025.8544%203.03819%2025.668%203.107L26.78%204.22C26.8499%204.28941%2026.9053%204.37199%2026.9431%204.46297C26.9808%204.55394%2027.0002%204.6515%2027%204.75V26.25C27%2026.4489%2026.921%2026.6397%2026.7803%2026.7803C26.6397%2026.921%2026.4489%2027%2026.25%2027H8.439L6.439%2025H23.25C23.7141%2024.9997%2024.159%2024.8153%2024.4871%2024.4871C24.8153%2024.159%2024.9997%2023.714%2025%2023.25V1.75C24.9997%201.28595%2024.8153%200.840987%2024.4871%200.512856C24.159%200.184725%2023.7141%200.000264943%2023.25%200L5.75%200C5.28595%200.000264943%204.84099%200.184725%204.51286%200.512856C4.18473%200.840987%204.00027%201.28595%204%201.75V23.25C3.99968%2023.4798%204.04484%2023.7075%204.13289%2023.9198C4.22093%2024.1321%204.35012%2024.3248%204.513%2024.487L7.513%2027.487C7.67512%2027.6499%207.86789%2027.7791%208.0802%2027.8672C8.29252%2027.9552%208.52016%2028.0004%208.75%2028H26.25C26.7141%2027.9997%2027.159%2027.8153%2027.4871%2027.4871C27.8153%2027.159%2027.9997%2026.714%2028%2026.25V4.75C27.9997%204.28595%2027.8153%203.84099%2027.4871%203.51286C27.159%203.18472%2026.7141%203.00026%2026.25%203ZM8%201H23.25C23.4489%201%2023.6397%201.07902%2023.7803%201.21967C23.921%201.36032%2024%201.55109%2024%201.75V23.25C24%2023.4489%2023.921%2023.6397%2023.7803%2023.7803C23.6397%2023.921%2023.4489%2024%2023.25%2024H8V1ZM5%2023.25V1.75C5%201.55109%205.07902%201.36032%205.21967%201.21967C5.36032%201.07902%205.55109%201%205.75%201H7V24H5.75C5.55109%2024%205.36032%2023.921%205.21967%2023.7803C5.07902%2023.6397%205%2023.4489%205%2023.25Z'%20fill='black'/%3e%3cpath%20d='M23.2499%2025C23.714%2024.9998%2024.159%2024.8153%2024.4871%2024.4872C24.8152%2024.159%2024.9997%2023.7141%2024.9999%2023.25V2.43909L26.7799%204.22002C26.8498%204.28944%2026.9053%204.37202%2026.943%204.46299C26.9796%204.55117%2026.9989%204.64553%2026.9999%204.74094V26.2576C26.9979%2026.4538%2026.9191%2026.6415%2026.7803%2026.7804C26.6396%2026.921%2026.4489%2027%2026.2499%2027H8.43894L6.43896%2025L23.2499%2025Z'%20fill='%23EBEBEB'/%3e%3cpath%20d='M15%206H1V11H15V6Z'%20fill='%23B0E5C3'/%3e%3cpath%20d='M15%206V11H1V6H15ZM16%205H0V12H16V5Z'%20fill='%2339BF68'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_216_4489'%3e%3crect%20width='28'%20height='28'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e" alt="icon-epub"></p>
+<p>默认情况下，存储文件存储在 <a target="_blank" rel="noopener" href="https://zotero-chinese.com/user-guide/backup#%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6">Zotero 数据目录</a> 中，Zotero 会自动管理它们，包括在 Zotero 中删除附件项时删除它们。如果使用 <a target="_blank" rel="noopener" href="https://zotero-chinese.com/user-guide/sync">文件同步</a> 功能，Zotero 会自动在设备之间同步存储的附件，并将它们储存在官方网盘（或 WebDAV 网盘）中。</p>
+<p>将一个文件添加为存储的附件，该文件将被复制到 Zotero 数据目录，因此建议你删除原始文件以避免混淆。</p>
+<h3 id="链接的附件"><a href="#链接的附件" class="headerlink" title="链接的附件"></a>链接的附件</h3><p><img src="data:image/svg+xml,%3csvg%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_144_2127)'%3e%3cpath%20opacity='0.5'%20d='M18.717%200H4V26H12V25H14.551C14.5198%2024.8351%2014.5027%2024.6678%2014.5%2024.5C14.4984%2023.7426%2014.7841%2023.0127%2015.2994%2022.4577C15.8148%2021.9027%2016.5215%2021.5638%2017.277%2021.5093C18.0324%2021.4549%2018.7804%2021.689%2019.37%2022.1644C19.9597%2022.6398%2020.347%2023.3212%2020.454%2024.071L20.516%2024.5H21.484L21.546%2024.071C21.6497%2023.3601%2022.0048%2022.7099%2022.5467%2022.2382C23.0886%2021.7666%2023.7816%2021.5047%2024.5%2021.5C24.6678%2021.5027%2024.8351%2021.5198%2025%2021.551V19H26V7.283L18.717%200Z'%20fill='white'/%3e%3cpath%20d='M18.3%201H5V25H14.551C14.5198%2024.8351%2014.5027%2024.6678%2014.5%2024.5C14.4984%2023.7426%2014.7841%2023.0127%2015.2994%2022.4577C15.8148%2021.9027%2016.5215%2021.5638%2017.277%2021.5093C18.0324%2021.4549%2018.7804%2021.689%2019.37%2022.1644C19.9597%2022.6398%2020.347%2023.3212%2020.454%2024.071L20.516%2024.5H21.484L21.546%2024.071C21.6497%2023.3601%2022.0048%2022.7099%2022.5467%2022.2382C23.0886%2021.7666%2023.7816%2021.5047%2024.5%2021.5C24.6678%2021.5027%2024.8351%2021.5198%2025%2021.551V7.7L18.3%201Z'%20fill='white'/%3e%3cpath%20opacity='0.08'%20d='M19%201.698V7H24.302L19%201.698Z'%20fill='black'/%3e%3cpath%20opacity='0.2'%20d='M12%2025H5V1H18V8H25V19H26V7.283L18.717%200H4V26H12V25ZM19%201.7L24.3%207H19V1.7Z'%20fill='black'/%3e%3cpath%20d='M24.4999%2021C23.6602%2021.0015%2022.8492%2021.3057%2022.2155%2021.8567C21.5819%2022.4077%2021.168%2023.1686%2021.0499%2024H20.9499C20.8235%2023.1242%2020.3701%2022.3288%2019.6809%2021.7739C18.9916%2021.2189%2018.1178%2020.9456%2017.2352%2021.009C16.3526%2021.0724%2015.5268%2021.4677%2014.9239%2022.1154C14.321%2022.7631%2013.9858%2023.6151%2013.9858%2024.5C13.9858%2025.3849%2014.321%2026.2369%2014.9239%2026.8846C15.5268%2027.5323%2016.3526%2027.9277%2017.2352%2027.991C18.1178%2028.0544%2018.9916%2027.7811%2019.6809%2027.2262C20.3701%2026.6712%2020.8235%2025.8758%2020.9499%2025H21.0499C21.1471%2025.6624%2021.4326%2026.2829%2021.8723%2026.7876C22.3121%2027.2923%2022.8877%2027.6601%2023.5305%2027.847C24.1733%2028.034%2024.8563%2028.0323%2025.4982%2027.8421C26.1401%2027.6519%2026.7138%2027.2813%2027.151%2026.7744C27.5883%2026.2674%2027.8706%2025.6455%2027.9645%2024.9827C28.0583%2024.3198%2027.9597%2023.644%2027.6804%2023.0356C27.4011%2022.4272%2026.9528%2021.9119%2026.3889%2021.551C25.8251%2021.1901%2025.1694%2020.9989%2024.4999%2021ZM17.4999%2027C17.0269%2027.0001%2016.5635%2026.866%2016.1636%2026.6132C15.7638%2026.3604%2015.4438%2025.9994%2015.241%2025.5721C15.0381%2025.1447%2014.9607%2024.6686%2015.0176%2024.1989C15.0746%2023.7293%2015.2637%2023.2855%2015.5628%2022.9191C15.862%2022.5526%2016.2589%2022.2785%2016.7076%2022.1287C17.1564%2021.9789%2017.6384%2021.9594%2018.0977%2022.0726C18.557%2022.1858%2018.9748%2022.427%2019.3025%2022.7682C19.6302%2023.1094%2019.8543%2023.5365%2019.9489%2024H17.4999C17.3673%2024%2017.2402%2024.0527%2017.1464%2024.1465C17.0526%2024.2402%2016.9999%2024.3674%2016.9999%2024.5C16.9999%2024.6326%2017.0526%2024.7598%2017.1464%2024.8536C17.2402%2024.9473%2017.3673%2025%2017.4999%2025H19.9489C19.8337%2025.5645%2019.527%2026.0719%2019.0808%2026.4363C18.6345%2026.8008%2018.0761%2026.9999%2017.4999%2027ZM24.4999%2027C23.9238%2026.9999%2023.3654%2026.8008%2022.9191%2026.4363C22.4729%2026.0719%2022.1662%2025.5645%2022.0509%2025H24.4999C24.6326%2025%2024.7597%2024.9473%2024.8535%2024.8536C24.9473%2024.7598%2024.9999%2024.6326%2024.9999%2024.5C24.9999%2024.3674%2024.9473%2024.2402%2024.8535%2024.1465C24.7597%2024.0527%2024.6326%2024%2024.4999%2024H22.0509C22.1456%2023.5365%2022.3697%2023.1094%2022.6974%2022.7682C23.0251%2022.427%2023.4429%2022.1858%2023.9022%2022.0726C24.3615%2021.9594%2024.8435%2021.9789%2025.2922%2022.1287C25.7409%2022.2785%2026.1379%2022.5526%2026.4371%2022.9191C26.7362%2023.2855%2026.9253%2023.7293%2026.9822%2024.1989C27.0392%2024.6686%2026.9618%2025.1447%2026.7589%2025.5721C26.5561%2025.9994%2026.2361%2026.3604%2025.8362%2026.6132C25.4364%2026.866%2024.973%2027.0001%2024.4999%2027Z'%20fill='%23888888'/%3e%3cpath%20d='M13%206H1V11H13V6Z'%20fill='%23F1ABB0'/%3e%3cpath%20d='M13%206V11H1V6H13ZM14%205H0V12H14V5Z'%20fill='%23DB2C3A'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_144_2127'%3e%3crect%20width='28'%20height='28'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e" alt="icon-pdf-link"> <img src="data:image/svg+xml,%3csvg%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20clip-path='url(%23clip0_1960_191)'%3e%3cpath%20opacity='0.5'%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M23.668%203.107C23.8544%203.03819%2024.0513%203.002%2024.25%203C24.7141%203.00026%2025.159%203.18472%2025.4872%203.51286C25.8153%203.84099%2025.9997%204.28595%2026%204.75V19.207C25.5232%2019.0722%2025.02%2019%2024.5%2019C23.1704%2019%2021.9509%2019.4718%2021%2020.2572C20.0491%2019.4718%2018.8296%2019%2017.5%2019C14.4624%2019%2012%2021.4624%2012%2024.5C12%2025.02%2012.0722%2025.5232%2012.207%2026H8.75001C8.52016%2026.0004%208.29252%2025.9552%208.08021%2025.8672C7.8679%2025.7791%207.67512%2025.6499%207.513%2025.487L4.513%2022.487C4.35012%2022.3248%204.22093%2022.1321%204.13289%2021.9198C4.04484%2021.7075%203.99968%2021.4798%204%2021.25V1.75C4.00027%201.28595%204.18473%200.840987%204.51286%200.512856C4.84099%200.184725%205.28596%200.000264943%205.75%200H21.25C21.7141%200.000264943%2022.159%200.184725%2022.4872%200.512856C22.8153%200.840987%2022.9997%201.28595%2023%201.75V2.43915L23.668%203.107Z'%20fill='white'/%3e%3cpath%20d='M22%201H8V22H22V1Z'%20fill='white'/%3e%3cpath%20d='M7%201H5V22H7V1Z'%20fill='white'/%3e%3cpath%20opacity='0.2'%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M23.668%203.107C23.8544%203.03819%2024.0513%203.002%2024.25%203C24.714%203.00026%2025.159%203.18472%2025.4871%203.51286C25.8153%203.84099%2025.9997%204.28595%2026%204.75V19.207C25.6777%2019.1159%2025.3434%2019.0534%2025%2019.0224V4.75C25.0002%204.6515%2024.9808%204.55394%2024.9431%204.46297C24.9053%204.37199%2024.8499%204.28941%2024.78%204.22L23.668%203.107ZM12.207%2023H6.439L8.439%2025H12.0224C12.0534%2025.3434%2012.1159%2025.6777%2012.207%2026H8.75C8.52016%2026.0004%208.29252%2025.9552%208.0802%2025.8672C7.86789%2025.7791%207.67512%2025.6499%207.513%2025.487L4.513%2022.487C4.35012%2022.3248%204.22093%2022.1321%204.13289%2021.9198C4.04484%2021.7075%203.99968%2021.4798%204%2021.25V1.75C4.00027%201.28595%204.18473%200.840987%204.51286%200.512856C4.84099%200.184725%205.28595%200.000264943%205.75%200H21.25C21.714%200.000264943%2022.159%200.184725%2022.4871%200.512856C22.8153%200.840987%2022.9997%201.28595%2023%201.75V19.207C22.6514%2019.3056%2022.3168%2019.4378%2022%2019.5997V1.75C22%201.55109%2021.921%201.36032%2021.7803%201.21967C21.6397%201.07902%2021.4489%201%2021.25%201H8V22H12.5997C12.4378%2022.3168%2012.3056%2022.6514%2012.207%2023ZM5%201.75V21.25C5%2021.4489%205.07902%2021.6397%205.21967%2021.7803C5.36032%2021.921%205.55109%2022%205.75%2022H7V1H5.75C5.55109%201%205.36032%201.07902%205.21967%201.21967C5.07902%201.36032%205%201.55109%205%201.75Z'%20fill='black'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M22.9999%2019.2071C23.4768%2019.0722%2023.98%2019%2024.5%2019C24.6685%2019%2024.8353%2019.0076%2024.9999%2019.0224V4.74094C24.9989%204.64553%2024.9796%204.55117%2024.943%204.46299C24.9053%204.37202%2024.8498%204.28944%2024.7799%204.22002L22.9999%202.43909V19.2071ZM12.0224%2025C12.0076%2024.8353%2012%2024.6686%2012%2024.5C12%2023.98%2012.0722%2023.4769%2012.207%2023L6.43896%2023L8.43894%2025H12.0224Z'%20fill='%23EBEBEB'/%3e%3cpath%20d='M14%206H1V11H14V6Z'%20fill='%23B0E5C3'/%3e%3cpath%20d='M14%206V11H1V6H14ZM15%205H0V12H15V5Z'%20fill='%2339BF68'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M20.9646%2024C20.722%2022.3037%2019.2632%2021%2017.5%2021C15.567%2021%2014%2022.5669%2014%2024.5C14%2026.4331%2015.567%2028%2017.5%2028C19.2632%2028%2020.722%2026.6963%2020.9646%2025H21.0354C21.278%2026.6963%2022.7368%2028%2024.5%2028C26.433%2028%2028%2026.4331%2028%2024.5C28%2022.5669%2026.433%2021%2024.5%2021C22.7368%2021%2021.278%2022.3037%2021.0354%2024H20.9646ZM19.95%2024H17.5C17.2238%2024%2017%2024.2239%2017%2024.5C17%2024.7761%2017.2238%2025%2017.5%2025H19.95C19.7183%2026.1411%2018.7095%2027%2017.5%2027C16.1193%2027%2015%2025.8806%2015%2024.5C15%2023.1194%2016.1193%2022%2017.5%2022C18.7095%2022%2019.7183%2022.8589%2019.95%2024ZM22.05%2025H24.5C24.7762%2025%2025%2024.7761%2025%2024.5C25%2024.2239%2024.7762%2024%2024.5%2024H22.05C22.2817%2022.8589%2023.2905%2022%2024.5%2022C25.8807%2022%2027%2023.1194%2027%2024.5C27%2025.8806%2025.8807%2027%2024.5%2027C23.2905%2027%2022.2817%2026.1411%2022.05%2025Z'%20fill='%23888888'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_1960_191'%3e%3crect%20width='28'%20height='28'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e" alt="icon-epub"></p>
+<p>对于链接文件，Zotero 只存储指向计算机上原始文件位置的链接。链接文件不会同步，如果附件项在 Zotero 中被删除，链接文件也不会被删除，Zotero 程序也不支持链接文件的同步。（可以简单理解为链接的文件在 Zotero 中作用类似于 Windows 的快捷方式）</p>
+<p>如果您使用外部工具（Dropbox 等）同步链接文件以在多台计算机上使用，最好设置链接附件根目录，以便 Zotero 在每台计算机上都可以找到这些文件，即使包含文件夹位于文件系统中的不同位置。</p>
+<h3 id="链接的附件-→-存储的附件"><a href="#链接的附件-→-存储的附件" class="headerlink" title="链接的附件 → 存储的附件"></a>链接的附件 → 存储的附件</h3><p>如果希望将「链接的附件」转换为「存储的附件」以便 Zotero 管理它们，您可以从「工具」→「管理附件」→「转换已链接的附件为已存储的附件」菜单执行此操作。</p>
+<p> [@shamsQuasidirectNumericalSimulation2013a]</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/zotero-attachments/">https://hugh-tong.github.io/2026/09/15/zotero-attachments/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E9%98%85%E8%AF%BB-%E8%AE%BA%E6%96%87/">阅读/论文</a><a class="post-meta__tags" href="/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a><a class="post-meta__tags" href="/tags/Zotero/">Zotero</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/cpp-design-patterns-intro/" title="C++ 设计模式初步(占位)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">C++ 设计模式初步(占位)</div></div><div class="info-2"><div class="info-item-1"> 学习一下这个帖子内的东西22种设计模式的C++实现 - 知乎 (zhihu.com)1. 工厂方法模式（Factory Method） (yuque.com)  </div></div></div></a><a class="pagination-related" href="/2026/09/15/wsl-experience/" title="WSL 使用经验(含离线安装)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">WSL 使用经验(含离线安装)</div></div><div class="info-2"><div class="info-item-1">离线安装Win10 WSL2 手动安装在非C盘 的方法 - ZXYFrank - 博客园  再把 CanonicalGroupLimited.UbuntuonWindows_2004.2021.825.0\Ubuntu_2004.2021.825.0_x64.appx 解压缩 双击 .exe安装 即可 除了.exe 以及 ext4.vhdx，其他都可以删除  离线安装WSL的安装包 【调试笔记-20240522-Windows-WSL 修改已安装发行版名称】_wsl 改名-CSDN博客 旧版 WSL 的手动安装步骤 | Microsoft Learn 下载发行版在某些情况下，你可能无法（或不想）使用 Microsoft 商店安装 WSL 的 Linux 发行版。 你可能正在运行不支持 Microsoft 应用商店的 Windows Server 或 Long-Term 服务 （LTSC） 桌面 OS SKU，或者公司网络策略和&#x2F;或管理员不允许在环境中使用 Microsoft 应用商店。 在这些情况下，虽然 WSL 本身可用，但可能需要直接下载 Linux 分发版。 如果...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/readlog-2017-fu-boiling/" title="论文阅读:Fu 2017 OpenFOAM 沸腾模拟"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">论文阅读:Fu 2017 OpenFOAM 沸腾模拟</div></div><div class="info-2"><div class="info-item-1">2017-Fu [!PDF|yellow] 2017-Fu-boilInOpenFOAM, p.2  Implementation and validation of two-phase boiling flow models in OpenFOAM   付博在2017年发的文章，涉及到OpenFOAM中开发两相流沸腾模型   [!PDF|note] 2017-Fu-boilInOpenFOAM, p.2  The model consists of six conservation equations for the liquid and the vapor phase, allowing for the thermodynamic non-equilibrium and compressibility of both phases. In addition, the model includes two transport equations for the turbulence kinetic energy and energy dissipation and one tr...</div></div></div></a><a class="pagination-related" href="/2026/09/15/readlog-chtmultiregionfoam-tutorial/" title="教程阅读:chtMultiRegionFoam 4 区域实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">教程阅读:chtMultiRegionFoam 4 区域实战</div></div><div class="info-2"><div class="info-item-1">crash_course整个chtMultiRegionFoam的流程[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf] 案例的几何结构，（采用blockMesh生成）[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf]  [!PDF|yellow] TUT_chtmultiregionfoam4regiontutorial, p.7  To do so a subset of cells within the domain is selected to form a so-called cellSet.  这里可以看到，cellSet=Random selection of cells from domain，zone=coherent subset of cells which finally can be used to define a region  图中的四个区域，用topoSet中的setSet来实现（具体名字可能有变，因为这个教程基于较老的OpenFOAM-2.0.0...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">122</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">141</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">36</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%98%E5%82%A8%E7%9A%84%E9%99%84%E4%BB%B6%E5%92%8C%E9%93%BE%E6%8E%A5%E7%9A%84%E9%99%84%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">存储的附件和链接的附件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E5%82%A8%E7%9A%84%E9%99%84%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">存储的附件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%93%BE%E6%8E%A5%E7%9A%84%E9%99%84%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">链接的附件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%93%BE%E6%8E%A5%E7%9A%84%E9%99%84%E4%BB%B6-%E2%86%92-%E5%AD%98%E5%82%A8%E7%9A%84%E9%99%84%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">链接的附件 → 存储的附件</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/cpp-design-patterns-intro/" title="C++ 设计模式初步(占位)">C++ 设计模式初步(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/csapp-gpu-notes/" title="CSAPP GPU 笔记(占位)">CSAPP GPU 笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/network-linux-notes/" title="Linux 网络笔记(占位)">Linux 网络笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/npm-notes/" title="npm 笔记(占位)">npm 笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/readlog-oscfd-les/" title="教程阅读:OSCFD LES tutorial(占位)">教程阅读:OSCFD LES tutorial(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

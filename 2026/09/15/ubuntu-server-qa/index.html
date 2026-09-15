@@ -1,0 +1,732 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Ubuntu 服务器问答:启动时间与光标闪烁 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="服务器启动时间常见范围与启动时光标持续闪烁能否强制的分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu 服务器问答:启动时间与光标闪烁">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/ubuntu-server-qa/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="服务器启动时间常见范围与启动时光标持续闪烁能否强制的分析。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:23:00.888Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="CS">
+<meta property="article:tag" content="UsingUbuntu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Ubuntu 服务器问答:启动时间与光标闪烁",
+  "url": "https://hugh-tong.github.io/2026/09/15/ubuntu-server-qa/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T08:00:00.000Z",
+  "dateModified": "2026-09-15T08:23:00.888Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/ubuntu-server-qa/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Ubuntu 服务器问答:启动时间与光标闪烁',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">Ubuntu 服务器问答:启动时间与光标闪烁</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">Ubuntu 服务器问答:启动时间与光标闪烁</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T08:00:00.000Z" title="Created 2026-09-15 16:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:23:00.888Z" title="Updated 2026-09-15 16:23:00">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CS/">CS</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1657533">Ubuntu-20.04上安装KVM</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/opus/525500896624907829">Ubuntu-20.04采用GNOME美化桌面</a></p>
+<h2 id="你的问题分成两部分：服务器启动时间常见范围，以及在启动时光标持续闪烁是否可以强制重启"><a href="#你的问题分成两部分：服务器启动时间常见范围，以及在启动时光标持续闪烁是否可以强制重启" class="headerlink" title="你的问题分成两部分：服务器启动时间常见范围，以及在启动时光标持续闪烁是否可以强制重启"></a>你的问题分成两部分：服务器启动时间常见范围，以及在启动时光标持续闪烁是否可以强制重启</h2><h3 id="1-服务器启动时间一般多久"><a href="#1-服务器启动时间一般多久" class="headerlink" title="1) 服务器启动时间一般多久"></a>1) 服务器启动时间一般多久</h3><ul>
+<li><strong>新系统首次启动（整机上电后）</strong>：从引导加载到可用，通常在几十秒到几分钟之间，取决于硬件性能和启动服务的数量。SSD 快、干净的系统通常在 20–60 秒左右进入可用状态；较老的机械盘或有大量自启动服务的系统可能需要 1–2 分钟甚至更久。</li>
+<li><strong>服务&#x2F;应用启动时间</strong>：某些服务（如数据库、容器编排、大型应用）在系统进入就绪后还需要额外的启动时间。完整的系统服务就绪到可用，可能再增加数十秒到几分钟。</li>
+<li><strong>影响因素</strong>：<ul>
+<li>启动项数量和服务依赖关系</li>
+<li>磁盘性能（SSD vs 机械盘）、RAID 配置</li>
+<li>文件系统检查（如有需要进行的 fsck、日志回放等）</li>
+<li>硬件事件（内存、CPU、温度、电源问题）</li>
+<li>启动脚本中的阻塞操作（等待网络、外部设备等）</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>给出一个大致的判断：如果从开机到系统显示登陆界面已经超过 2–3 分钟，且没有明显错误信息，通常需要考虑进一步排错。</p>
+</blockquote>
+<h3 id="2-启动过程仅在左上角光标闪烁，是否可以强制重启"><a href="#2-启动过程仅在左上角光标闪烁，是否可以强制重启" class="headerlink" title="2) 启动过程仅在左上角光标闪烁，是否可以强制重启"></a>2) 启动过程仅在左上角光标闪烁，是否可以强制重启</h3><ul>
+<li><p><strong>现象解释</strong>：屏幕只有一个光标在闪烁，通常意味着系统正在执行引导阶段的某些操作、或启动过程卡住、或进入了等待状态（如网络、磁盘等待、系统初始化服务阻塞）。也有可能是图形界面启动进程未能正确完成，回到文本模式的登陆仍在进行中。</p>
+</li>
+<li><p><strong>不建议盲目强制重启的情况</strong>：</p>
+<ul>
+<li>如果你怀疑系统仍在进行必要的自检或启动阶段，强制重启可能导致文件系统未正确同步、数据损坏，或引导问题更严重（需要维护模式&#x2F;修复引导）。</li>
+<li>可以先尝试查看可访问的输出信息（如果有文本控制台输出、systemd 日志、Plymouth 日志等）。在不少系统上，按 Ctrl+Alt+F1–F6 可以切换到不同的控制台，查看启动日志。</li>
+</ul>
+</li>
+<li><p><strong>推荐的排错步骤（先尝试，不立即重启）</strong>：</p>
+<ol>
+<li><p>尝试切换到另一控制台查看日志</p>
+<ul>
+<li><p><code>Ctrl + Alt + F2</code>（或 F3&#x2F;F4），登录后查看：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">journalctl -b -1 | tail -n 200</span><br></pre></td></tr></table></figure>
+<p>  注：<code>-b -1</code> 查看上一次启动的日志，若当前启动仍在进行，可能需要查看当前启动日志：<code>journalctl -b | tail -n 200</code></p>
+</li>
+</ul>
+</li>
+<li><p>检查系统资源与进程阻塞情况</p>
+<ul>
+<li><p>查看 CPU、内存、磁盘 I&#x2F;O 使用情况：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">topiostat -xz 1</span><br></pre></td></tr></table></figure>
+<p>  需要安装 <code>sysstat</code> 包：<code>sudo apt-get install sysstat</code></p>
+</li>
+</ul>
+</li>
+<li><p>查看磁盘&#x2F;文件系统状态</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | tail -n 200lsblk -f</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>检查网络与依赖服务</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl list-units --type=service --state=failedsystemctl status &lt;service-name&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果你确认没有重要未完成的写操作，可以考虑安全重启，但优先选择正常关机路径</p>
+<ul>
+<li><p>通过远程或本机进入登录界面后执行：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo shutdown -r now</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果完全无法进入系统，才考虑强制硬重启（按下电源键长按 5–10 秒），但要明白这有丢失数据和文件系统损伤的风险。</p>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p><strong>在极端情况（如无响应且无法通过控制台获取信息）</strong>：</p>
+<ul>
+<li>作为最后手段，可以短暂执行强制重启，但要准备可能的文件系统修复：<ul>
+<li><p>重新启动后进入救援模式&#x2F;单用户模式，执行文件系统检查：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo fsck -f /dev/sdX</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>或使用系统提供的修复工具进行引导修复。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="实用小结"><a href="#实用小结" class="headerlink" title="实用小结"></a>实用小结</h3><ul>
+<li>首先尽量获取启动阶段的信息，而不是直接重启。</li>
+<li>使用 Ctrl+Alt+F[1..6] 切换到不同控制台，查看启动日志和系统状态。</li>
+<li>通过 <code>journalctl</code>, <code>dmesg</code>, <code>systemctl status</code> 等命令定位具体卡在哪个阶段。</li>
+<li>若确认无害的等待时长，耐心等待；若系统确实卡死并且无信息输出，再考虑安全重启，并在重启后进行日志与文件系统的自检。</li>
+</ul>
+<p>如果你愿意，给我以下信息，我可以给出更有针对性的排错步骤：</p>
+<ul>
+<li>服务器的发行版和版本（如 Ubuntu 22.04、Debian 11 等）</li>
+<li>你看到的屏幕输出（控制台的最近几行日志）</li>
+<li>是否能访问远程控制台（SSH、IPMI&#x2F;ILO&#x2F;iDRAC 等）？</li>
+<li>是否最近进行了系统更新、硬件改动或磁盘&#x2F;RAID 配置变化？</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/ubuntu-server-qa/">https://hugh-tong.github.io/2026/09/15/ubuntu-server-qa/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/CS/">CS</a><a class="post-meta__tags" href="/tags/UsingUbuntu/">UsingUbuntu</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/unified-vs-shared-memory/" title="Unified Memory 与 Shared Memory"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">Unified Memory 与 Shared Memory</div></div><div class="info-2"><div class="info-item-1">这是 CUDA&#x2F;GPU 计算领域的一个高频易混概念问题。我们来详细区分：  1. Shared memory（共享内存） 定义：在CUDA等GPU编程中，Shared memory专指每个线程块（Block）内部所有线程独享的高速片上内存。 范围&#x2F;特性： 作用范围（Scope）：仅同一个Block内的线程可见与读写，不同Block间不共享。 访问速度：极快，接近寄存器速度，远快于全局内存（global memory）。 容量有限：每个SM（流处理器组）通常只有48kB或更大一点（具体随硬件）。 典型用途：线程协作、数据缓存、矩阵块操作、并行归约等 Block 内部的高效并行数据交换。   声明：1__shared__ float buf[256]; 同步：需手动使用__syncthreads()同步线程对shared memory的访问。   2. Unified memory（统一内存） 定义：Unified memory 是NVIDIA CUDA从Kepler架构开始引入的一种机制，它让CPU和GPU共享一块统一逻辑地址空间（Unified Virtual...</div></div></div></a><a class="pagination-related" href="/2026/09/15/readlog-chtmultiregionfoam-tutorial/" title="教程阅读:chtMultiRegionFoam 4 区域实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">教程阅读:chtMultiRegionFoam 4 区域实战</div></div><div class="info-2"><div class="info-item-1">crash_course整个chtMultiRegionFoam的流程[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf] 案例的几何结构，（采用blockMesh生成）[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf]  [!PDF|yellow] TUT_chtmultiregionfoam4regiontutorial, p.7  To do so a subset of cells within the domain is selected to form a so-called cellSet.  这里可以看到，cellSet=Random selection of cells from domain，zone=coherent subset of cells which finally can be used to define a region  图中的四个区域，用topoSet中的setSet来实现（具体名字可能有变，因为这个教程基于较老的OpenFOAM-2.0.0...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/abi-overview/" title="ABI(Application Binary Interface)概述"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">ABI(Application Binary Interface)概述</div></div><div class="info-2"><div class="info-item-1">ABI概述一、什么是 ABI Info，以及它的作用  ABI（Application Binary Interface，应用二进制接口）定义了在二进制层面上，程序与运行时环境之间如何进行交互的规范。它包含但不限于： 调用约定（calling convention）：参数传递方式（寄存器还是栈）、返回值位置、调用方与被调用方的协作方式。 数据类型的大小与对齐方式（int、指针、结构体等的字节大小、对齐边界）。 符号命名与链接符号的命名约定（name mangling 的规则，C、C++ 等语言的差异）。 栈帧布局、异常处理、栈展开、线程本地存储（TLS）的约定。 动态链接时的符号解析、模块边界（如共享库的接口导出&#x2F;导入、ABI 版本）。   作用： 让不同语言、不同编译器、不同版本的库&#x2F;模块能够在同一二进制层面正确交互。 保障二进制兼容性：你编译的程序能在目标系统上正确运行、调用系统库和其他库时不会崩溃或行为异常。 方便移植与复用：同一份二进制接口可以在不同平台&#x2F;硬件上实现，只要实现相同的 ABI。    二、ABI 兼容性是什么  兼容性本质上是“...</div></div></div></a><a class="pagination-related" href="/2026/09/15/pandoc-md-to-docx/" title="Pandoc:Markdown 转 Docx 实用配置"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">Pandoc:Markdown 转 Docx 实用配置</div></div><div class="info-2"><div class="info-item-1">Pandoc_MdToDocx“工业级别的参数”指高级、专业级的参数选项，用于实现高质量、格式化的Word文档导出（适合学术论文、报告或企业文档等“工业级”场景）。Pandoc是一个强大的开源文档转换工具（官网：https://pandoc.org/），它可以将Markdown（.md）文件转换为DOCX（Microsoft Word格式），并保留标题、列表、表格、图片、代码块、数学公式等格式。 在Windows下，Pandoc的使用与其他平台类似（命令行驱动）。我会先介绍安装和基本使用，然后列出关键参数（聚焦于提升导出质量到“工业级别”的选项），最后给出示例和提示。这些参数基于Pandoc的最新稳定版（截至2023年为v3.x），可以帮助您从Markdown快速生成专业化的Word文档。 1. Windows下Pandoc的安装和准备 下载安装：从官网下载Windows安装包（.msi格式），安装后Pandoc会添加到系统PATH中。打开命令提示符（CMD）或PowerShell，运行pandoc --version验证安装。 依赖： 对于基本DOCX导出，无需额外依赖。 如果...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-bc-summary/" title="OpenFOAM 边界条件速查总表"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">OpenFOAM 边界条件速查总表</div></div><div class="info-2"><div class="info-item-1">设置中的PlaceholderflowRateInletVelocity – CFD Online Discussion Forums OpenFOAM中存在一些继承关系带来的placeholder，他写在哪里，实际上没有意义。 123456inlet&#123;  type        flowRateInletVelocity;  flowRate    0.2;        // Volumetric/mass flow rate [m3/s or kg/s]  value       uniform (0 0 0); // placeholder&#125;  The value field is a part of every boundary condition, since they derive from the same basic boundary condition. placeholder means just that. you need it in order for OF to use the boundary condition, but it...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ebd-chtmultiregionfoam/" title="chtMultiRegionFoam 共轭传热求解器:结构与实际案例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">chtMultiRegionFoam 共轭传热求解器:结构与实际案例</div></div><div class="info-2"><div class="info-item-1">chtMultiRegionFoam求解器- 文集 哔哩哔哩专栏 实际案例案例典型结构123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172~/O/OpenFOAM-v23/t/heatTransfer/chtMultiRegionFoam/snappyMultiRegionHeater &gt; tree -L 3                                                                                                                                                                                                                      17:35:59.├── 0.o...</div></div></div></a><a class="pagination-related" href="/2026/09/15/hpc-calc-notes/" title="HPC 计算杂记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">HPC 计算杂记</div></div><div class="info-2"><div class="info-item-1">逻辑处理器、线程（Thread）和核心（Core）是计算机处理器架构中的三个相关但不同的概念。以下是它们之间的区别和联系：  核心（Core）：  核心是CPU内部的一个物理单元，能够独立执行计算任务。 每个核心都有自己的一套执行单元和缓存。 在多核心处理器中，每个核心可以并行处理不同的任务。   线程（Thread）：  线程是操作系统能够进行运算调度的最小单位，是被系统独立调度和分派的基本单位。 一个进程（Process）可以包含多个线程，每个线程可以并行执行不同的任务。 线程共享进程的内存空间和资源，但拥有自己的程序计数器、寄存器集合和堆栈。   逻辑处理器（Logical Processor）：  逻辑处理器是指从操作系统的角度看，能够独立执行线程的处理器。 逻辑处理器可以是物理核心，也可以是超线程技术（Hyper-Threading Technology，HT）创建的虚拟核心。 超线程技术允许单个物理核心模拟多个逻辑核心，每个逻辑核心可以执行不同的线程。    区别：  物理核心是实际存在的硬件单元，而线程是操作系统层面的概念，用于任务的并行执行。 逻辑处理器可以是物理...</div></div></div></a><a class="pagination-related" href="/2026/09/15/openfoam-wedge-bc-survey/" title="wedge 边界条件调研"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">wedge 边界条件调研</div></div><div class="info-2"><div class="info-item-1">Begin关键词：Axisymmetric Wedge boundary condition and the math behind it??????? – CFD Online Discussion Forums (cfd-online.com)  I don’t have any documented reference about how wedges work in OpenFOAM, but as far as I know, the concept is that the wedge boundary is a special type of cyclic boundary condition.The difference is that:  Cyclic boundaries assume that the adjacent cell to the boundary will be part of a domain and not part of the other corresponding cyclic boundary (that’s one of the r...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">122</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">141</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">36</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%A0%E7%9A%84%E9%97%AE%E9%A2%98%E5%88%86%E6%88%90%E4%B8%A4%E9%83%A8%E5%88%86%EF%BC%9A%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%90%AF%E5%8A%A8%E6%97%B6%E9%97%B4%E5%B8%B8%E8%A7%81%E8%8C%83%E5%9B%B4%EF%BC%8C%E4%BB%A5%E5%8F%8A%E5%9C%A8%E5%90%AF%E5%8A%A8%E6%97%B6%E5%85%89%E6%A0%87%E6%8C%81%E7%BB%AD%E9%97%AA%E7%83%81%E6%98%AF%E5%90%A6%E5%8F%AF%E4%BB%A5%E5%BC%BA%E5%88%B6%E9%87%8D%E5%90%AF"><span class="toc-number">1.</span> <span class="toc-text">你的问题分成两部分：服务器启动时间常见范围，以及在启动时光标持续闪烁是否可以强制重启</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%90%AF%E5%8A%A8%E6%97%B6%E9%97%B4%E4%B8%80%E8%88%AC%E5%A4%9A%E4%B9%85"><span class="toc-number">1.1.</span> <span class="toc-text">1) 服务器启动时间一般多久</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E4%BB%85%E5%9C%A8%E5%B7%A6%E4%B8%8A%E8%A7%92%E5%85%89%E6%A0%87%E9%97%AA%E7%83%81%EF%BC%8C%E6%98%AF%E5%90%A6%E5%8F%AF%E4%BB%A5%E5%BC%BA%E5%88%B6%E9%87%8D%E5%90%AF"><span class="toc-number">1.2.</span> <span class="toc-text">2) 启动过程仅在左上角光标闪烁，是否可以强制重启</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%94%A8%E5%B0%8F%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">实用小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/cpp-design-patterns-intro/" title="C++ 设计模式初步(占位)">C++ 设计模式初步(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/csapp-gpu-notes/" title="CSAPP GPU 笔记(占位)">CSAPP GPU 笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/network-linux-notes/" title="Linux 网络笔记(占位)">Linux 网络笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/npm-notes/" title="npm 笔记(占位)">npm 笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/readlog-oscfd-les/" title="教程阅读:OSCFD LES tutorial(占位)">教程阅读:OSCFD LES tutorial(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

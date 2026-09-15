@@ -1,0 +1,705 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>论文阅读:Fu 2017 OpenFOAM 沸腾模拟 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2017 Fu 沸腾相变模型论文的阅读笔记(OpenFOAM 实现)。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文阅读:Fu 2017 OpenFOAM 沸腾模拟">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/15/readlog-2017-fu-boiling/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="2017 Fu 沸腾相变模型论文的阅读笔记(OpenFOAM 实现)。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-15T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T08:23:00.888Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="RANS">
+<meta property="article:tag" content="浸没边界法">
+<meta property="article:tag" content="湍流">
+<meta property="article:tag" content="阅读&#x2F;论文">
+<meta property="article:tag" content="论文笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "论文阅读:Fu 2017 OpenFOAM 沸腾模拟",
+  "url": "https://hugh-tong.github.io/2026/09/15/readlog-2017-fu-boiling/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-15T08:00:00.000Z",
+  "dateModified": "2026-09-15T08:23:00.888Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/15/readlog-2017-fu-boiling/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '论文阅读:Fu 2017 OpenFOAM 沸腾模拟',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">论文阅读:Fu 2017 OpenFOAM 沸腾模拟</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">论文阅读:Fu 2017 OpenFOAM 沸腾模拟</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-15T08:00:00.000Z" title="Created 2026-09-15 16:00:00">2026-09-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T08:23:00.888Z" title="Updated 2026-09-15 16:23:00">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%98%85%E8%AF%BB/">阅读</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%98%85%E8%AF%BB/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h3 id="2017-Fu"><a href="#2017-Fu" class="headerlink" title="2017-Fu"></a>2017-Fu</h3><blockquote>
+<p>[!PDF|yellow] 2017-Fu-boilInOpenFOAM, p.2</p>
+<blockquote>
+<p>Implementation and validation of two-phase boiling flow models in OpenFOAM</p>
+</blockquote>
+<p> 付博在2017年发的文章，涉及到OpenFOAM中开发两相流沸腾模型</p>
+</blockquote>
+<blockquote>
+<p>[!PDF|note] 2017-Fu-boilInOpenFOAM, p.2</p>
+<blockquote>
+<p>The model consists of six conservation equations for the liquid and the vapor phase, allowing for the thermodynamic non-equilibrium and compressibility of both phases. In addition, the model includes two transport equations for the turbulence kinetic energy and energy dissipation and one transport equation for the interfacial area concentration. New models for wall heat partitioning as well as for the phase change terms in nucleate boiling have been implemented. Sensitivity studies as well as validation of the model against measured data available in the open literature have been performed and it has been shown that a reasonable agreement between predictions and experiments has been achieved.</p>
+</blockquote>
+<p>文章主要植入：<code>Wall heat partitioning</code>与<code>phase change terms in nucleate boiling</code></p>
+</blockquote>
+<blockquote>
+<p>DNB：departure from nucleate boilng。是指加热表面上由汽泡产生的核态沸腾状态突然转变为膜态沸腾的现象。</p>
+</blockquote>
+<p><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong></p>
+<p>$\Gamma_k$代表相$k$得到的质量，$k&#x3D;l,v$。</p>
+<p>蒸汽得到的质量为正，就是evaporation蒸发。蒸汽的质量为负，就是condensation冷凝。<br><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong><br>Rusche 2002:<br><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong></p>
+<p>能量方程采用焓方程：</p>
+<p><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong></p>
+<p>壁面处的热流，加到方程源项？壁面处的处理是？</p>
+<p>从vapor到liquid的mass flux $\Gamma_l$，这里直接用前人的结果。主要是Kurul和Podowski，这两个人做的工作挺出名。后面看看。<br><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong></p>
+<p><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong><br>首先，靠近壁面处的第一层网格就不能condensation，只能evaporation。这种操作是符合boiling flows的操作的。<br>壁面处存在：interaction among the liquid, vapor and walls.</p>
+<p>忽略在气泡在壁面的直接加热，也即$a_w q^{‘’}_{vw}&#x3D;0$</p>
+<p>Recall eqn 6。<br><strong>[PDF 素材:2017-Fu-boilInOpenFOAM.pdf]</strong></p>
+<p>对液相，考虑傅里叶导热定律，molecular heat flux有：<br>$$<br>q_k^{‘’} &#x3D; - \frac{\lambda_l}{c_{pl}}\nabla h_l<br>$$<br>$\lambda$ 为导热系数，$c_p$为比热容。</p>
+<h3 id="2022-Godino"><a href="#2022-Godino" class="headerlink" title="2022-Godino"></a>2022-Godino</h3><h4 id="Ranz-Marshall-model"><a href="#Ranz-Marshall-model" class="headerlink" title="Ranz-Marshall model:"></a>Ranz-Marshall model:</h4><p>$$<br>Nu &#x3D; 2 + 0.6 Re_d^{0.5}Pr_d^{1&#x2F;3}<br>$$</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Foam::tmp&lt;Foam::volScalarField&gt;  </span><br><span class="line">Foam::heatTransferModels::RanzMarshall::<span class="built_in">K</span>(<span class="type">const</span> scalar residualAlpha) <span class="type">const</span>  </span><br><span class="line">&#123;  </span><br><span class="line">    <span class="function">volScalarField <span class="title">Nu</span><span class="params">(scalar(<span class="number">2</span>) + <span class="number">0.6</span>*sqrt(pair_.Re())*cbrt(pair_.Pr()))</span></span>;  </span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>  </span><br><span class="line">        <span class="number">6.0</span>  </span><br><span class="line">       *<span class="built_in">max</span>(pair_.<span class="built_in">dispersed</span>(), residualAlpha)  </span><br><span class="line">       *pair_.<span class="built_in">continuous</span>().<span class="built_in">kappa</span>()  </span><br><span class="line">       *Nu  </span><br><span class="line">       /<span class="built_in">sqr</span>(pair_.<span class="built_in">dispersed</span>().<span class="built_in">d</span>());  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>return的是在算下面这个？<br><a name="formula1"></a><br>$$<br>A_f &#x3D; 6 \alpha_d&#x2F;d_d<br>$$</p>
+<h4 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h4><p><strong>[PDF 素材:2022-Godino-chtBoilingTwoPhaseEulerFoam.pdf]</strong></p>
+<h4 id="bubble-influence-factor"><a href="#bubble-influence-factor" class="headerlink" title="bubble influence factor"></a>bubble influence factor</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">const</span> scalarField <span class="title">Al</span></span></span><br><span class="line"><span class="function"><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    fLiquid*<span class="number">4.8</span>*exp(min(-Ja/<span class="number">80</span>, log(vGreat)))</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上述代码在求解$\xi$，bubble influence factor:</p>
+<p>$$<br>\xi &#x3D; 4.8e^{Ja_{sub}&#x2F;80}<br>$$</p>
+<h4 id="Wall-heat-transfer"><a href="#Wall-heat-transfer" class="headerlink" title="Wall heat transfer"></a>Wall heat transfer</h4><p>$$<br>q_w &#x3D; (q_c + q_q + q_e)f(\alpha_l)+q_{cv}(1-f(\alpha_l))<br>$$</p>
+<p>function $f(\alpha_l)$ , expression by Lavieville</p>
+<blockquote>
+<p>Lavieville:<br><img src="/images/readlog-2017-fu-boiling/20250623_realcase_boilingLog.png"></p>
+</blockquote>
+<p><a href="#formula1">跳转到公式1</a></p>
+<p>$$<br>f(\alpha_l) &#x3D;<br>\begin{cases}<br>1 - 0.5, e^{-20(\alpha_l - \alpha_{cr})}, &amp; \alpha_l - \alpha_{cr} &gt; 0 \<br>0.5 \left(\frac{\alpha_l}{\alpha_{cr}}\right)^{20 \alpha_{cr}}, &amp; \alpha_l - \alpha_{cr} \leq 0<br>\end{cases}<br>$$  </p>
+<p>这里的$\alpha_{cr}&#x3D;0.2$。这个表达式的选择依赖于用户设置。</p>
+<blockquote>
+<p>文章中说到：“hence, the weakness of it is on the arbitrariness of the applied distribution function independent on the microscopic phenomena.”<br>因此，它的弱点在于所采用的分布函数具有任意性，而这种分布函数与微观现象无关。</p>
+</blockquote>
+<p>没有气泡的面积为$A_f$，所贡献的单相对流热量<br>$$<br>q_c &#x3D; A_f h_c(T_w-T_l)<br>$$<br>所谓<code>quenching area</code>计算公式为：<br>$$<br>A_f &#x3D; 1 - A_q<br>$$<br>上述公式的$h_c$，由Kader1981中得到的无量纲温度分布，和壁面处的对流换热连理得到。</p>
+<p>$$<br>\begin{aligned}<br>T^+ &amp;&#x3D; Pr y^+ \<br>T+ &amp;&#x3D; \frac{T_w - T}{T_{\tau}}, \quad T_{\tau}&#x3D; \frac{q_w}{\rho c_p u_{\tau}} \<br>y^+ &amp;&#x3D; \frac{y u_{\tau}}{\nu} \<br>Pr &amp;&#x3D; \frac{\nu}{\alpha}<br>\end{aligned}<br>$$</p>
+<p>由上：</p>
+<p>$$<br>\begin{aligned}<br>T^+ &amp;&#x3D; Pr y^+\<br>&amp;&#x3D; \frac{\nu}{\alpha} \cdot \frac{y u_{\tau}}{\nu} \<br>&amp;&#x3D; \frac{y u_{\tau}}{\alpha} &#x3D; \frac{y u_{\tau} \rho c_p}{\lambda}<br>\end{aligned}<br>$$</p>
+<p>对流换热：</p>
+<p>$$<br>\begin{aligned}<br>Q_c &amp;&#x3D; h_cA(T_w - T) &#x3D; \lambda \frac{T_w - T}{y} \<br>h_c &amp;&#x3D; \frac{\lambda}{y}<br>\end{aligned}<br>$$</p>
+<p>得到：</p>
+<p>$$<br>\begin{aligned}<br>T^+ &#x3D; \frac{u_{\tau} \rho c_p}{h_c} \<br>h_c &#x3D; \frac{u_{\tau} \rho c_p}{T^+}<br>\end{aligned}<br>$$</p>
+<h3 id="2023-王洪斌"><a href="#2023-王洪斌" class="headerlink" title="2023-王洪斌"></a>2023-王洪斌</h3><p>这里，文章给出了一组得到的最优模型配置<br><strong>[PDF 素材:2023-王洪彬-压水堆芯过冷沸腾.pdf]</strong></p>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p><a target="_blank" rel="noopener" href="https://doc.openfoam.com/2306/tools/processing/boundary-conditions/rtm/derived/multiphase/alphatWallBoilingWallFunction/">OpenFOAM Documentation - alphatWallBoilingWallFunction</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/15/readlog-2017-fu-boiling/">https://hugh-tong.github.io/2026/09/15/readlog-2017-fu-boiling/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/RANS/">RANS</a><a class="post-meta__tags" href="/tags/%E6%B5%B8%E6%B2%A1%E8%BE%B9%E7%95%8C%E6%B3%95/">浸没边界法</a><a class="post-meta__tags" href="/tags/%E6%B9%8D%E6%B5%81/">湍流</a><a class="post-meta__tags" href="/tags/%E9%98%85%E8%AF%BB-%E8%AE%BA%E6%96%87/">阅读/论文</a><a class="post-meta__tags" href="/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/15/readlog-chtmultiregionfoam-tutorial/" title="教程阅读:chtMultiRegionFoam 4 区域实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">教程阅读:chtMultiRegionFoam 4 区域实战</div></div><div class="info-2"><div class="info-item-1">crash_course整个chtMultiRegionFoam的流程[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf] 案例的几何结构，（采用blockMesh生成）[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf]  [!PDF|yellow] TUT_chtmultiregionfoam4regiontutorial, p.7  To do so a subset of cells within the domain is selected to form a so-called cellSet.  这里可以看到，cellSet=Random selection of cells from domain，zone=coherent subset of cells which finally can be used to define a region  图中的四个区域，用topoSet中的setSet来实现（具体名字可能有变，因为这个教程基于较老的OpenFOAM-2.0.0...</div></div></div></a><a class="pagination-related" href="/2026/09/15/python-project-from-scratch/" title="工业级 Python 项目从零构建与规范清单"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">工业级 Python 项目从零构建与规范清单</div></div><div class="info-2"><div class="info-item-1">工业级 Python 项目从零构建与规范清单下面给出一套在团队&#x2F;企业中可落地的“从零到上线”的项目骨架、工具链与最佳实践。适用于库、CLI 工具与服务端项目（Web&#x2F;微服务）。示例采用现代 pyproject.toml 工作流与 src/ 布局，工具以稳定与团队协作友好为优先。  1. 选型与总原则 Python 版本策略：统一最低版本（如 3.10+），设定 EOL 升级节奏；CI 覆盖需要支持的多个版本。 布局：推荐 src/ 布局，避免测试时意外导入本地目录。 依赖管理：使用基于 pyproject.toml 的单一真源。 现代方案：uv（快、全能）、Poetry（成熟）、PDM（纯 PEP 实现）、pip-tools（简洁可控）。   代码质量四件套：格式化（black&#x2F;ruff format）、静态检查（ruff）、类型检查（mypy&#x2F;pyright）、测试（pytest）。 自动化：pre-commit 钩子 + CI（GitHub Actions&#x2F;GitLab CI）。 配置与秘密：12-Factor，环境变量优先；...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/15/readlog-chtmultiregionfoam-tutorial/" title="教程阅读:chtMultiRegionFoam 4 区域实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">教程阅读:chtMultiRegionFoam 4 区域实战</div></div><div class="info-2"><div class="info-item-1">crash_course整个chtMultiRegionFoam的流程[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf] 案例的几何结构，（采用blockMesh生成）[PDF 素材:TUT_chtmultiregionfoam4regiontutorial.pdf]  [!PDF|yellow] TUT_chtmultiregionfoam4regiontutorial, p.7  To do so a subset of cells within the domain is selected to form a so-called cellSet.  这里可以看到，cellSet=Random selection of cells from domain，zone=coherent subset of cells which finally can be used to define a region  图中的四个区域，用topoSet中的setSet来实现（具体名字可能有变，因为这个教程基于较老的OpenFOAM-2.0.0...</div></div></div></a><a class="pagination-related" href="/2026/09/15/turb-model-damping-functions/" title="低雷诺数湍流模型的阻尼函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">低雷诺数湍流模型的阻尼函数</div></div><div class="info-2"><div class="info-item-1">在湍流模拟（尤其是 RANS 模型）中，Viscous Damping Function（粘性阻尼函数），通常简称为“阻尼函数”或“衰减函数”，是一个至关重要的修正系数。 它的核心作用是：在靠近壁面的区域，强制“关闭”或“削弱”湍流模型的作用，让流动行为回归到分子粘性主导的状态。 以下是通俗易懂的详细解释，涵盖了“为什么需要它”、“它怎么工作”以及“它的局限性”。 1. 为什么需要它？（物理背景）大多数经典的湍流模型（比如标准 $k-\epsilon$ 模型）最初是为了模拟高雷诺数的主流区而开发的。在这些区域，湍流涡的混合作用非常强烈，远远超过流体本身的粘性。 但是，在紧贴着固体壁面的地方（即粘性底层 Viscous Sublayer），情况完全不同：  壁面限制： 壁面的存在抑制了法向的速度脉动（流体不能穿过墙壁），导致湍流这种“乱动”的行为被迫平息。 粘性主导： 在离墙很近的地方，流体的分子粘性（Viscosity）起主导作用，剪切应力主要由分子摩擦产生，而不是湍流混合。  如果你直接把高雷诺数模型（High-Re Model）用到墙壁附近，模型会错误地预测出很强的湍流粘度（...</div></div></div></a><a class="pagination-related" href="/2026/09/15/divergence-free/" title="divergence-free 散度为零"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">divergence-free 散度为零</div></div><div class="info-2"><div class="info-item-1">CFD 中的 “divergence-free” 的意义在计算流体力学（CFD）中，“divergence-free”（也写作 “divergence free”、“无散度”、“散度为零”）通常指速度场满足 $\nabla \cdot \mathbf{u} &#x3D; 0$。它在物理与数值上都至关重要，尤其针对不可压缩流动。  1. 物理意义：质量守恒的强形式 不可压缩流动条件：对恒定密度流体（或密度变化可忽略），连续方程化为 $\nabla \cdot \mathbf{u} &#x3D; 0$，表示局部体积不膨胀或收缩，流体“既不在本地产生也不在本地消失”。 可压缩流动对比：可压缩情况下，连续方程为 $\partial_t \rho + \nabla \cdot (\rho \mathbf{u}) &#x3D; 0$。即使 $\nabla \cdot \mathbf{u} \neq 0$，质量仍可守恒，因为密度随时空变化。不可压缩的“无散度”是更强的约束。   2. 数值意义：压力–速度耦合与稳定性 压力作为约束的拉格朗日乘子  在不可压缩 NS 方程中，压力不是通过状态方程...</div></div></div></a><a class="pagination-related" href="/2026/09/15/ebd-chtmultiregionfoam/" title="chtMultiRegionFoam 共轭传热求解器:结构与实际案例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">chtMultiRegionFoam 共轭传热求解器:结构与实际案例</div></div><div class="info-2"><div class="info-item-1">chtMultiRegionFoam求解器- 文集 哔哩哔哩专栏 实际案例案例典型结构123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172~/O/OpenFOAM-v23/t/heatTransfer/chtMultiRegionFoam/snappyMultiRegionHeater &gt; tree -L 3                                                                                                                                                                                                                      17:35:59.├── 0.o...</div></div></div></a><a class="pagination-related" href="/2026/09/15/p_vs_prgh/" title="p 与 p_rgh:静水压力处理的两条路线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">p 与 p_rgh:静水压力处理的两条路线</div></div><div class="info-2"><div class="info-item-1">101OpenFOAM: User Guide: Hydrostatic pressure effects For cases that the hydrostatic pressure contribution ρ(g∙h) is important, e.g. for buoyant and multiphase cases, it is numerically convenient to solve for an alternative pressure defined by p′&#x3D;p−ρ(g∙h). In OpenFOAM solver applications the p′ pressure term is named p_rgh. The momentum equation ∂∂t(ρu)+∇∙(ρu⊗u)−∇∙(μeff∇u)&#x3D;−∇p+ρg is transformed to use p′: p′&#x3D;p−ρ(g∙h). After the following substititions: −p−∇p&#x3D;−p′−ρ(g∙h)&#x3...</div></div></div></a><a class="pagination-related" href="/2026/09/15/sst-turb-model/" title="SST 湍流模型解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-15</div><div class="info-item-2">SST 湍流模型解析</div></div><div class="info-2"><div class="info-item-1">这是一个非常经典的问题。在 CFD 工业界，kOmegaSST (Menter’s SST) 几乎是默认的“万金油”模型，而标准的 kOmega (Wilcox’s Standard $k-\omega$) 则用得相对较少。 简单来说：SST 是标准 k-Omega 的“智能升级版”。 它修复了标准 k-Omega 的一个致命缺陷，并增加了一个关键功能。 我们可以通过两个核心区别来理解： 区别一：它解决了“对入口条件过敏”的问题（混合机制）这是 SST 诞生的最大原因。  标准 kOmega (Wilcox) 的毛病：它在壁面附近（边界层内）表现极其出色，非常精准。但是，它有一个著名的致命弱点：它对远场（Free Stream）的 $\omega$ 值非常敏感。  现象：如果你把入口处的湍流参数稍微改一点点（比如 $\omega$ 从 1 改成 1.1），它算出来的物体表面的结果（如阻力系数）可能会发生巨大的变化。这种“蝴蝶效应”在工程上是不可接受的。   kEpsilon 的特点：它在远场（远离壁面）非常稳健，对入口条件不敏感，但在壁面附近表现很差。  SST (Shear S...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">122</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">141</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">36</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#2017-Fu"><span class="toc-number">1.</span> <span class="toc-text">2017-Fu</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2022-Godino"><span class="toc-number">2.</span> <span class="toc-text">2022-Godino</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Ranz-Marshall-model"><span class="toc-number">2.1.</span> <span class="toc-text">Ranz-Marshall model:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="toc-number">2.2.</span> <span class="toc-text">算法流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#bubble-influence-factor"><span class="toc-number">2.3.</span> <span class="toc-text">bubble influence factor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Wall-heat-transfer"><span class="toc-number">2.4.</span> <span class="toc-text">Wall heat transfer</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2023-%E7%8E%8B%E6%B4%AA%E6%96%8C"><span class="toc-number">3.</span> <span class="toc-text">2023-王洪斌</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B6%E4%BB%96"><span class="toc-number">3.1.</span> <span class="toc-text">其他</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/cpp-design-patterns-intro/" title="C++ 设计模式初步(占位)">C++ 设计模式初步(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/csapp-gpu-notes/" title="CSAPP GPU 笔记(占位)">CSAPP GPU 笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/network-linux-notes/" title="Linux 网络笔记(占位)">Linux 网络笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/npm-notes/" title="npm 笔记(占位)">npm 笔记(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/readlog-oscfd-les/" title="教程阅读:OSCFD LES tutorial(占位)">教程阅读:OSCFD LES tutorial(占位)</a><time datetime="2026-09-15T08:10:00.000Z" title="Created 2026-09-15 16:10:00">2026-09-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
