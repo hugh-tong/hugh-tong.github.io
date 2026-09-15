@@ -40,6 +40,8 @@ CFD/                        ← CFD 技术主体
 | 13 | 2026-09-13 | CFD 无量纲数手册——系列导航 | CFD/无量纲数 | dimless-index | ✅ |
 | 14 | 2026-09-13 | 无量纲数 15 篇(Gr/Ra/Pr/Nu/St/Ri/Pe/Sc/We/Bn/Ar/Fr/Sr/Cp/Cd) | CFD/无量纲数 | dimless-* | ✅ 已全部上线 |
 | 15 | 2026-09-15 | 博客新机部署实录——从空仓库到上线 | 工具/Hexo | deploy-blog-new-machine | ✅ 新机部署流程实测 |
+| 16 | 2026-09-15 | OpenFOAM 网格专题 17 篇(Mesh 目录) | CFD/OpenFOAM/网格 | BadMesh_store 等 | ✅ P1 搬运,列表见下 |
+| 17 | 2026-09-15 | OpenFOAM 边界条件专题 10 篇(BC 目录) | CFD/OpenFOAM/边界条件 | ABLCondition 等 | ✅ P1 搬运,列表见下 |
 
 > 状态图例:✅ 已发布 · 🚧 草稿中 · ⏸ 暂缓 · ⚠️ 有遗留问题
 
@@ -49,8 +51,8 @@ CFD/                        ← CFD 技术主体
 
 | 优先 | 源路径(相对 ttttProject/) | 预估分类 | 备注 | 状态 |
 |---|---|---|---|---|
-| P1 | CFD/OpenFOAM/Mesh/(17 篇) | CFD/OpenFOAM/网格 | BadMesh 配图经验,实用价值最高 | ⏸ 待确认 |
-| P1 | CFD/OpenFOAM/BoundaryCondition/(12 篇) | CFD/边界条件 | 含 wedge_bc PDF 素材 | ⏸ 待确认 |
+| P1 | CFD/OpenFOAM/Mesh/(17 篇) | CFD/OpenFOAM/网格 | BadMesh 配图经验,实用价值最高 | ✅ 2026-09-15 全部搬运(17/17) |
+| P1 | CFD/OpenFOAM/BoundaryCondition/(12 篇) | CFD/边界条件 | 含 wedge_bc PDF 素材 | ✅ 2026-09-15 搬运 10/12(unifoamFixedValue 空文、From_1DTo3D 纯链接,弃) |
 | P2 | CFD/OpenFOAM/solver/(17 篇) | CFD/OpenFOAM/求解器 | | ⏸ |
 | P2 | CFD/DimlessNumberFluids 缺口:雷诺数 Re | CFD/无量纲数 | 笔记库无独立 Re 笔记,可新写回填系列 | ⏸ |
 | P3 | CFD/OpenFOAM/Tools/(8 篇) | CFD/OpenFOAM/工具链 | | ⏸ |
@@ -69,6 +71,9 @@ CFD/                        ← CFD 技术主体
 5. **冲突时**:本文档 > 我的记忆。文档没写的,我会先问
 
 ## 五、最近动态(倒序,新在上)
+
+- **2026-09-15**:P1 队列搬运完成——SSH 直连 Mac 笔记库,Mesh 17 篇 + 边界条件 10 篇(共 27 篇)转 Hexo 上线;10 张配图迁至 source/images/;2 篇空壳文弃搬。多机协作新增规则:**每次 hexo d 前先 git pull --rebase origin dev_tttt**(Mac 端发文曾被本机 deploy 覆盖)
+- **2026-09-15(早)**:新机(Ubuntu 工作站)环境部署实录上线;DEPLOYMENT.md 部署手册建立
 
 - **2026-09-13**:全站 31 篇文章分类补齐(12 篇老文补 categories);无量纲数系列 16 篇上线;离散格式指南上线;CONTENTS.md 建立分类体系与搬运队列
 - **2026-09-13(早)**:博客维护恢复(主题 Butterfly、双主题切换、部署链路)

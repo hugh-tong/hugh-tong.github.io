@@ -74,3 +74,13 @@ math:
 search:
   use: local_search
   placeholder: 搜索文章…
+
+# Mermaid 图表(2026-09-15 随网格/边界条件专题搬运开启,3 篇文章用到)
+mermaid:
+  enable: true
+  code_write: false
+  theme:
+    light: default
+    dark: dark
+  open_in_new_tab: true
+  zoom_pan: true
