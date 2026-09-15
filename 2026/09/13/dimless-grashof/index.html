@@ -1,0 +1,368 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>格拉晓夫数(Grashof Number)——自然对流的驱动力标尺 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="格拉晓夫数 Gr 量化浮升力与粘性力的相对强弱,是判断自然对流流态、决定 CFD 浮升力修正与网格策略的核心标尺。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="格拉晓夫数(Grashof Number)——自然对流的驱动力标尺">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/13/dimless-grashof/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="格拉晓夫数 Gr 量化浮升力与粘性力的相对强弱,是判断自然对流流态、决定 CFD 浮升力修正与网格策略的核心标尺。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-13T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T01:33:38.639Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="无量纲数">
+<meta property="article:tag" content="自然对流">
+<meta property="article:tag" content="Grashof number">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "格拉晓夫数(Grashof Number)——自然对流的驱动力标尺",
+  "url": "https://hugh-tong.github.io/2026/09/13/dimless-grashof/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-13T07:00:00.000Z",
+  "dateModified": "2026-09-15T01:33:38.639Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/13/dimless-grashof/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '格拉晓夫数(Grashof Number)——自然对流的驱动力标尺',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">格拉晓夫数(Grashof Number)——自然对流的驱动力标尺</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">格拉晓夫数(Grashof Number)——自然对流的驱动力标尺</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-13T07:00:00.000Z" title="Created 2026-09-13 15:00:00">2026-09-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T01:33:38.639Z" title="Updated 2026-09-15 09:33:38">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>格拉晓夫数(Grashof number,简称 <strong>Gr</strong>)表征浮升力与粘性力的相对强弱,是自然对流分析中最重要的无量纲参数。没有外加驱动的流动问题,比如暖气片周围的空气爬升、芯片在无风扇条件下的散热,流动由密度差驱动,此时判断”流动会不会发生、处于什么流态”,首先就要看 Gr 数。它之于自然对流,大致相当于雷诺数之于强制对流。</p>
+<h2 id="定义与表达式"><a href="#定义与表达式" class="headerlink" title="定义与表达式"></a>定义与表达式</h2><p>$$<br>Gr &#x3D; \frac{\text{浮升力}}{\text{粘性力}} &#x3D; \frac{g \beta \Delta T L^3}{\nu^2}<br>$$</p>
+<p>其中:</p>
+<ul>
+<li>$g$:重力加速度(m&#x2F;s²);</li>
+<li>$\beta$:流体热膨胀系数(K⁻¹),反映温度变化引起的密度变化;</li>
+<li>$\Delta T$:特征温差(K),如壁面与主流温差;</li>
+<li>$L$:特征长度(m),如平板高度或管道直径;</li>
+<li>$\nu$:运动粘度(m²&#x2F;s)。</li>
+</ul>
+<blockquote>
+<p><strong>注</strong>:</p>
+<ul>
+<li>对于理想气体,$\beta &#x3D; 1&#x2F;T$($T$ 为绝对温度);</li>
+<li>若流动由浓度差驱动(如溶质扩散),$\Delta T$ 需替换为浓度差 $\Delta C$,此时称<strong>溶质 Grashof 数</strong>($Gr_c &#x3D; \frac{g \beta_c \Delta C L^3}{\nu^2}$)。</li>
+</ul>
+</blockquote>
+<h2 id="物理意义-自然对流的控制参数"><a href="#物理意义-自然对流的控制参数" class="headerlink" title="物理意义:自然对流的控制参数"></a>物理意义:自然对流的控制参数</h2><p>Gr 数决定自然对流是否发生及其流态:</p>
+<ol>
+<li><strong>Gr &lt; 10⁸</strong>:粘性力主导,流动为<strong>层流</strong>,热传递以导热为主;例如微电子散热中的低速气流。</li>
+<li><strong>10⁸ ≤ Gr ≤ 10¹⁰</strong>:浮升力与粘性力相当,可能发生<strong>层流向湍流过渡</strong>;典型场景如暖气片附近的空气流动。</li>
+<li><strong>Gr &gt; 10¹⁰</strong>:浮升力主导,流动发展为<strong>湍流</strong>,热传递效率显著提升;常见于大型换热设备或大气环流。</li>
+</ol>
+<p><strong>与雷诺数(Re)的关系</strong>:在混合对流中,Gr&#x2F;Re² 表征自然对流与强制对流的相对重要性:</p>
+<ul>
+<li><strong>Gr&#x2F;Re² ≫ 1</strong> → 自然对流主导(如无风时的热源散热);</li>
+<li><strong>Gr&#x2F;Re² ≪ 1</strong> → 强制对流主导(如风扇冷却);</li>
+<li><strong>Gr&#x2F;Re² ≈ 1</strong> → 两者均需考虑。</li>
+</ul>
+<h2 id="在-CFD-中的应用"><a href="#在-CFD-中的应用" class="headerlink" title="在 CFD 中的应用"></a>在 CFD 中的应用</h2><p>在计算流体动力学(CFD)中,Gr 数直接影响数值模型的选择与边界条件设置:</p>
+<ol>
+<li><strong>湍流模型修正</strong>:高 Gr 数需启用<strong>浮升力修正</strong>(如 OpenFOAM 中的 <code>buoyantKEpsilon</code> 模型);忽略修正可能导致热边界层预测偏差。</li>
+<li><strong>网格设计要求</strong>:近壁区域需加密网格以解析薄热边界层(尤其高 Pr 流体);网格尺寸应满足 $y^+ \approx 1$(粘性子层分辨率)。</li>
+<li><strong>边界条件设置</strong>:壁面采用 <code>buoyantPressure</code> 或 <code>fixedFluxPressure</code> 处理浮升力引起的压力梯度;温度边界需匹配密度变化(如 <code>temperatureDependent</code> 粘度)。</li>
+</ol>
+<h2 id="工程应用场景"><a href="#工程应用场景" class="headerlink" title="工程应用场景"></a>工程应用场景</h2><table>
+<thead>
+<tr>
+<th>领域</th>
+<th>典型问题</th>
+<th>Gr 数的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>建筑环境</strong></td>
+<td>室内通风设计</td>
+<td>优化窗户位置促进自然对流(Gr &gt; 10⁹ 时效率最佳)</td>
+</tr>
+<tr>
+<td><strong>电子散热</strong></td>
+<td>芯片无风扇冷却</td>
+<td>评估散热片间距(Gr 决定最优肋片高度)</td>
+</tr>
+<tr>
+<td><strong>能源工程</strong></td>
+<td>太阳能集热器效率</td>
+<td>控制流道尺寸避免层流抑制传热(Gr&#x2F;Re² &gt; 0.1)</td>
+</tr>
+<tr>
+<td><strong>化工设备</strong></td>
+<td>反应釜温度均匀性</td>
+<td>预测自然对流混合强度(Gr ∝ 流动动能)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>典型案例</strong>:</p>
+<ul>
+<li><strong>竖直平板散热</strong>:Nu(努塞尔数)经验公式为 $Nu &#x3D; C (Gr \cdot Pr)^n$($C, n$ 为常数),直接关联换热效率;</li>
+<li><strong>核反应堆安全</strong>:事故工况下冷却剂自然循环能力由 Gr 数评估。</li>
+</ul>
+</blockquote>
+<h2 id="与其他无量纲数的关联"><a href="#与其他无量纲数的关联" class="headerlink" title="与其他无量纲数的关联"></a>与其他无量纲数的关联</h2><p>Gr 数常与以下参数联用:</p>
+<ul>
+<li><strong>Rayleigh 数(Ra)</strong>:$Ra &#x3D; Gr \cdot Pr$,综合表征浮升力与热扩散的竞争,更直接决定自然对流稳定性;</li>
+<li><strong>普朗特数(Pr)</strong>:影响速度与热边界层相对厚度(高 Pr 流体热边界层更薄);</li>
+<li><strong>Archimedes 数(Ar)</strong>:$Ar &#x3D; Gr &#x2F; Re^2$,专用于混合对流分析。</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Grashof 数是解析自然对流问题的核心标尺:</p>
+<ol>
+<li><strong>机理层面</strong>:量化浮升力&#x2F;粘性力平衡,预测流态与换热模式;</li>
+<li><strong>设计层面</strong>:指导换热设备几何优化(如散热片间距、反应器高径比);</li>
+<li><strong>数值层面</strong>:约束 CFD 模型选择与网格划分策略。</li>
+</ol>
+<p>掌握 Gr 数,就掌握了电子散热、建筑通风、能源设备等自然对流工程问题的分析入口。</p>
+<p><em>本文整理自个人 CFD 学习笔记系列</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/13/dimless-grashof/">https://hugh-tong.github.io/2026/09/13/dimless-grashof/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a><a class="post-meta__tags" href="/tags/%E8%87%AA%E7%84%B6%E5%AF%B9%E6%B5%81/">自然对流</a><a class="post-meta__tags" href="/tags/Grashof-number/">Grashof number</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/13/dimless-rayleigh/" title="瑞利数(Rayleigh Number)——自然对流失稳的判据"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">瑞利数(Rayleigh Number)——自然对流失稳的判据</div></div><div class="info-2"><div class="info-item-1">瑞利数(Rayleigh number,简称 Ra)描述浮力驱动的自然对流强度,定义为浮力效应与粘性耗散、热扩散效应的比值。它是判断自然对流”起不起来”的第一判据:底部加热的流体层,究竟靠导热安静地传热,还是失稳翻腾形成对流,经典答案就落在 Ra 的临界值上。与 Gr 数相比,Ra 把流体的热扩散特性也纳入了竞争,因此对热对流稳定性更具直接性。 定义与物理意义$$Ra &#x3D; \frac{\text{浮力效应}}{\text{粘性耗散} \times \text{热扩散}} &#x3D; \frac{g \beta \Delta T L^3}{\nu \alpha}$$ 参数含义:  $g$:重力加速度(m&#x2F;s²) $\beta$:流体热膨胀系数(K⁻¹) $\Delta T$:特征温差(如流体层上下表面温差,单位 K) $L$:特征长度(如流体层高度,单位 m) $\nu$:运动粘度(m²&#x2F;s) $\alpha$:热扩散率(m²&#x2F;s)  物理意义:Ra 值越大,浮力效应越显著,流体易发生对流(例如热水上升、冷空气下沉)。临界值方面:  $Ra...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-prandtl/" title="普朗特数(Prandtl Number)——动量与热扩散的竞速"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">普朗特数(Prandtl Number)——动量与热扩散的竞速</div></div><div class="info-2"><div class="info-item-1">普朗特数(Prandtl number,简称 Pr)表征动量扩散与热扩散的相对速率,直接影响流动与传热的耦合行为。它有一个独特之处:Pr 纯由流体物性组成,与流动尺度、速度无关,同一状态下空气永远约 0.7、机油上千、液态金属约 0.01。这个”物性指纹”决定了速度边界层与热边界层谁厚谁薄,进而在边界层相似性、换热经验关联式和 CFD 数值格式选择中反复出现。 定义与表达式$$Pr &#x3D; \frac{\text{动量扩散率}}{\text{热扩散率}} &#x3D; \frac{\nu}{\kappa} &#x3D; \frac{\mu c_p}{k}$$ 其中:  $\nu$:运动粘度(m²&#x2F;s),反映动量传递能力; $\kappa$:热扩散率(m²&#x2F;s),$\kappa &#x3D; \frac{k}{\rho c_p}$,反映热量传递能力; $\mu$:动态粘度(Pa·s); $c_p$:定压比热容(J&#x2F;(kg·K)); $k$:热导率(W&#x2F;(m·K))。  物理上,Pr 描述流体中速度边界层与热边界层的相对厚度。例如:  P...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/13/dimless-rayleigh/" title="瑞利数(Rayleigh Number)——自然对流失稳的判据"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">瑞利数(Rayleigh Number)——自然对流失稳的判据</div></div><div class="info-2"><div class="info-item-1">瑞利数(Rayleigh number,简称 Ra)描述浮力驱动的自然对流强度,定义为浮力效应与粘性耗散、热扩散效应的比值。它是判断自然对流”起不起来”的第一判据:底部加热的流体层,究竟靠导热安静地传热,还是失稳翻腾形成对流,经典答案就落在 Ra 的临界值上。与 Gr 数相比,Ra 把流体的热扩散特性也纳入了竞争,因此对热对流稳定性更具直接性。 定义与物理意义$$Ra &#x3D; \frac{\text{浮力效应}}{\text{粘性耗散} \times \text{热扩散}} &#x3D; \frac{g \beta \Delta T L^3}{\nu \alpha}$$ 参数含义:  $g$:重力加速度(m&#x2F;s²) $\beta$:流体热膨胀系数(K⁻¹) $\Delta T$:特征温差(如流体层上下表面温差,单位 K) $L$:特征长度(如流体层高度,单位 m) $\nu$:运动粘度(m²&#x2F;s) $\alpha$:热扩散率(m²&#x2F;s)  物理意义:Ra 值越大,浮力效应越显著,流体易发生对流(例如热水上升、冷空气下沉)。临界值方面:  $Ra...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-archimedes/" title="阿基米德数(Archimedes Number)——浮力与粘性力的较量"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">阿基米德数(Archimedes Number)——浮力与粘性力的较量</div></div><div class="info-2"><div class="info-item-1">阿基米德数(Archimedes number,简称 Ar)描述浮力与粘性力的相对强度,以古希腊科学家阿基米德的名字命名。它主要用来分析因密度差异驱动的流体运动:颗粒在流体中沉还是浮、热流体因温差如何对流,都能用它给出定量的判断。在颗粒动力学、流化床设计和自然对流分析中,Ar 是绕不开的基础参数。 定义与表达式$$\text{Ar} &#x3D; \frac{\text{浮力}}{\text{粘性力}} &#x3D; \frac{g \cdot L^3 \cdot \Delta\rho}{\rho \cdot \nu^2}$$ 其中:  $g$:重力加速度(m&#x2F;s²); $L$:特征长度,如颗粒直径、管道直径(m); $\Delta\rho$:密度差,可取 $\Delta\rho &#x3D; \rho_{\text{颗粒}} - \rho_{\text{流体}}$ 或 $\Delta\rho &#x3D; \rho_{\text{冷}} - \rho_{\text{热}}$(kg&#x2F;m³); $\rho$:参考密度,通常为流体密度(kg&#x2F;m³); $...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-richardson/" title="理查德森数(Richardson Number)——浮力与剪切的稳定性之争"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">理查德森数(Richardson Number)——浮力与剪切的稳定性之争</div></div><div class="info-2"><div class="info-item-1">理查德森数(Richardson number,简称 Ri)是流体力学中描述流动稳定性的关键无量纲参数,用于衡量浮力效应与剪切效应(惯性力)的相对重要性。大气边界层会不会翻腾混合、海洋分层流的湍流会不会被抑制、自然对流散热设计会不会失稳,这些问题第一眼该看的往往就是 Ri。它与瑞利数 Ra 名字相近,但物理含义不同,后者专注浮力驱动对流的强度,前者关心浮力与剪切的竞争。 基本定义与物理意义Ri 的数学表达式为: $$Ri &#x3D; \frac{\text{浮力效应}}{\text{剪切效应}} &#x3D; \frac{g \beta \Delta T H}{U^2}$$ 其中:  $g$:重力加速度; $\beta$:流体的体积膨胀系数; $\Delta T$:特征温差(如流体层上下壁面温差); $H$:特征长度(如流体层高度); $U$:特征流速(如剪切流速)。  物理意义:  Ri &gt; 0:浮力主导,抑制湍流,流动趋于稳定(如分层大气中热空气上升受阻); Ri &lt; 0:剪切力主导,促进湍流,流动失稳(如强风破坏温度分层); Ri &#x3D; 0:浮力效应消...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-schmidt/" title="施密特数(Schmidt Number)——动量扩散与质量扩散的竞速"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">施密特数(Schmidt Number)——动量扩散与质量扩散的竞速</div></div><div class="info-2"><div class="info-item-1">施密特数(Schmidt number,简称 Sc)量化动量扩散与质量扩散的相对速率,是流体力学和传质过程中的关键无量纲参数。如果说普朗特数 Pr 管的是动量与热量的扩散竞速,那么 Sc 管的就是动量与组分的扩散竞速:它决定了浓度边界层比速度边界层厚还是薄,进而影响从化学反应器到污染物扩散等一系列传质问题的分析。 定义与表达式$$Sc &#x3D; \frac{\text{动量扩散率}}{\text{质量扩散率}} &#x3D; \frac{\nu}{D} &#x3D; \frac{\mu}{\rho D}$$ 其中:  $\nu$:运动粘度(m²&#x2F;s),反映流体动量传递能力; $D$:质量扩散系数(m²&#x2F;s),反映组分在流体中的扩散能力; $\mu$:动态粘度(Pa·s); $\rho$:密度(kg&#x2F;m³)。  物理上,Sc 描述流体中速度边界层与浓度边界层的相对厚度:  Sc ≫ 1(如甘油 Sc≈1000):动量扩散远快于质量扩散,浓度边界层薄于速度边界层,典型如高黏液体中溶质扩散缓慢; Sc ≪ 1(如气体 Sc≈0.1~1):质量扩散占主导...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-weber/" title="韦伯数(Weber Number)——惯性力与表面张力的对决"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">韦伯数(Weber Number)——惯性力与表面张力的对决</div></div><div class="info-2"><div class="info-item-1">韦伯数(Weber number,简称 We)衡量流体惯性力与表面张力的相对大小,是多相流分析中出场率最高的无量纲数之一。一颗液滴撞上壁面是弹开、铺展还是碎裂,一股射流最终雾化到多细,背后都是 We 数在起裁决作用。对做气液两相流 CFD 的人来说,它几乎是设置工况前要看的第一个数。 定义与表达式$$We &#x3D; \frac{\rho U^2 L}{\sigma}$$ 其中:  $\rho$:流体密度(kg&#x2F;m³); $U$:特征速度(m&#x2F;s); $L$:特征长度,如液滴直径(m); $\sigma$:表面张力系数(N&#x2F;m)。  分子 $\rho U^2 L$ 代表惯性力强度,分母 $\sigma$ 代表表面张力的约束作用,二者的比值直接刻画界面被”拉变形”与”拽回来”之间的竞争。 物理意义 We ≫ 1:惯性力远大于表面张力,界面容易剧烈变形。常见于高速射流、液滴撞击等场合,液滴容易碎裂,产生波纹或分裂现象; We ≪ 1:表面张力主导流动,界面趋于稳定,液滴不易分裂,保持接近球形的光滑界面。  直观理解:表面张力总想把界面收缩成能量最低的球...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-strouhal/" title="斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺</div></div><div class="info-2"><div class="info-item-1">斯特劳哈尔数(Strouhal number,简称 St)是流体力学中描述非定常流动周期性特征的关键无量纲参数,在涡脱落(如圆柱绕流)和振荡流分析中至关重要。桥梁为什么会风致共振、换热器管束为什么会流致振动疲劳、CFD 算涡街时时间步长该取多小,这些问题的答案都绕不开 St。它与斯坦顿数(Stanton number)缩写相同但物理含义完全不同,后者另文单独介绍。 定义与表达式斯特劳哈尔数的定义为: $$St &#x3D; \frac{f \cdot L}{U}$$ 其中:  $f$:流动中主导振荡的频率(Hz),如涡脱落频率; $L$:特征长度(m),如圆柱直径或障碍物尺度; $U$:来流速度(m&#x2F;s)。   物理意义:St 表征振荡惯性力与对流惯性力的比值,反映流动周期性与其时间尺度的关联性:  St ≈ 0.2:经典圆柱绕流中涡脱落的典型值(如 Re≈200 时 St≈0.1977); St ≪ 1:振荡缓慢,准稳态流动; St ≫ 1:高频振荡,如超声速流动中的激波抖动。   关键特性:涡脱落模式与非线性动力学1. 雷诺数对 St 的影响实验与数值模拟表明,圆柱...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">定义与表达式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E6%84%8F%E4%B9%89-%E8%87%AA%E7%84%B6%E5%AF%B9%E6%B5%81%E7%9A%84%E6%8E%A7%E5%88%B6%E5%8F%82%E6%95%B0"><span class="toc-number">2.</span> <span class="toc-text">物理意义:自然对流的控制参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8-CFD-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">在 CFD 中的应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">4.</span> <span class="toc-text">工程应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0%E7%9A%84%E5%85%B3%E8%81%94"><span class="toc-number">5.</span> <span class="toc-text">与其他无量纲数的关联</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/deploy-blog-new-machine/" title="博客新机部署实录——从空仓库到上线">博客新机部署实录——从空仓库到上线</a><time datetime="2026-09-15T03:15:18.000Z" title="Created 2026-09-15 11:15:18">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/hello-world/" title="Hello World">Hello World</a><time datetime="2026-09-15T01:33:38.643Z" title="Created 2026-09-15 09:33:38">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航">CFD 无量纲数手册——系列导航</a><time datetime="2026-09-13T07:30:00.000Z" title="Created 2026-09-13 15:30:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标">阻力系数(Drag Coefficient)——气动性能的终极积分指标</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币">压力系数(Pressure Coefficient)——CFD 验证的通用货币</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>施密特数(Schmidt Number)——动量扩散与质量扩散的竞速 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="施密特数 Sc 是动量扩散率与质量扩散率之比,决定速度边界层与浓度边界层的相对厚度,是流动-传质耦合分析和 CFD 湍流传质建模的关键参数。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="施密特数(Schmidt Number)——动量扩散与质量扩散的竞速">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/13/dimless-schmidt/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="施密特数 Sc 是动量扩散率与质量扩散率之比,决定速度边界层与浓度边界层的相对厚度,是流动-传质耦合分析和 CFD 湍流传质建模的关键参数。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-13T07:10:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T01:33:38.643Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="无量纲数">
+<meta property="article:tag" content="边界层">
+<meta property="article:tag" content="Schmidt number">
+<meta property="article:tag" content="传质">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "施密特数(Schmidt Number)——动量扩散与质量扩散的竞速",
+  "url": "https://hugh-tong.github.io/2026/09/13/dimless-schmidt/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-13T07:10:00.000Z",
+  "dateModified": "2026-09-15T01:33:38.643Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/13/dimless-schmidt/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '施密特数(Schmidt Number)——动量扩散与质量扩散的竞速',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">施密特数(Schmidt Number)——动量扩散与质量扩散的竞速</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">施密特数(Schmidt Number)——动量扩散与质量扩散的竞速</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-13T07:10:00.000Z" title="Created 2026-09-13 15:10:00">2026-09-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T01:33:38.643Z" title="Updated 2026-09-15 09:33:38">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>施密特数(Schmidt number,简称 <strong>Sc</strong>)量化动量扩散与质量扩散的相对速率,是流体力学和传质过程中的关键无量纲参数。如果说普朗特数 Pr 管的是动量与热量的扩散竞速,那么 Sc 管的就是动量与组分的扩散竞速:它决定了浓度边界层比速度边界层厚还是薄,进而影响从化学反应器到污染物扩散等一系列传质问题的分析。</p>
+<h2 id="定义与表达式"><a href="#定义与表达式" class="headerlink" title="定义与表达式"></a>定义与表达式</h2><p>$$<br>Sc &#x3D; \frac{\text{动量扩散率}}{\text{质量扩散率}} &#x3D; \frac{\nu}{D} &#x3D; \frac{\mu}{\rho D}<br>$$</p>
+<p>其中:</p>
+<ul>
+<li>$\nu$:运动粘度(m²&#x2F;s),反映流体动量传递能力;</li>
+<li>$D$:质量扩散系数(m²&#x2F;s),反映组分在流体中的扩散能力;</li>
+<li>$\mu$:动态粘度(Pa·s);</li>
+<li>$\rho$:密度(kg&#x2F;m³)。</li>
+</ul>
+<p>物理上,<strong>Sc 描述流体中速度边界层与浓度边界层的相对厚度</strong>:</p>
+<ul>
+<li><strong>Sc ≫ 1</strong>(如甘油 Sc≈1000):动量扩散远快于质量扩散,浓度边界层薄于速度边界层,典型如高黏液体中溶质扩散缓慢;</li>
+<li><strong>Sc ≪ 1</strong>(如气体 Sc≈0.1~1):质量扩散占主导,浓度分布更均匀,典型如气体混合迅速;</li>
+<li><strong>Sc ≈ 1</strong>(如水 Sc≈600 量级):两者扩散速率相近。</li>
+</ul>
+<blockquote>
+<p><strong>量纲一致性</strong>:Sc 是无量纲数,公式中各物理量单位相互约去,具有普适性。</p>
+</blockquote>
+<h2 id="物理意义-流动与传质的协同演化"><a href="#物理意义-流动与传质的协同演化" class="headerlink" title="物理意义:流动与传质的协同演化"></a>物理意义:流动与传质的协同演化</h2><h3 id="边界层特征对比"><a href="#边界层特征对比" class="headerlink" title="边界层特征对比"></a>边界层特征对比</h3><p>Sc 与普朗特数 Pr 构成类比:Pr &#x3D; $\nu &#x2F; \kappa$($\kappa$ 为热扩散率)控制温度边界层,Sc &#x3D; $\nu &#x2F; D$ 控制浓度边界层。典型流体的 Sc 范围:</p>
+<table>
+<thead>
+<tr>
+<th><strong>流体类型</strong></th>
+<th><strong>Sc 范围</strong></th>
+<th><strong>浓度边界层特征</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>液态金属(汞)</td>
+<td>0.001~0.01</td>
+<td>极厚,浓度梯度平缓</td>
+</tr>
+<tr>
+<td>气体(空气)</td>
+<td>0.1~1</td>
+<td>与速度边界层厚度相近</td>
+</tr>
+<tr>
+<td>水溶液</td>
+<td>100~1000</td>
+<td>极薄,浓度梯度陡峭</td>
+</tr>
+<tr>
+<td>高黏液体(机油)</td>
+<td>&gt;10⁴</td>
+<td>扩散极慢,需强烈混合促进传质</td>
+</tr>
+</tbody></table>
+<h3 id="对传质效率的影响"><a href="#对传质效率的影响" class="headerlink" title="对传质效率的影响"></a>对传质效率的影响</h3><ul>
+<li>高 Sc 流体中质量传递阻力大,需通过增大流速或机械搅拌强化混合;</li>
+<li>低 Sc 流体中扩散主导,自然对流即可实现高效传质,如氢气在空气中的扩散。</li>
+</ul>
+<h2 id="在-CFD-中的应用"><a href="#在-CFD-中的应用" class="headerlink" title="在 CFD 中的应用"></a>在 CFD 中的应用</h2><ol>
+<li><p><strong>数值格式稳定性</strong><br>网格 Peclet 数需满足 <strong>Peᵢ &#x3D; Reᵢ · Sc ≤ 2</strong>,否则中心差分格式失稳,需改用迎风格式。OpenFOAM 中 <code>limitedLinear</code> 等格式会根据局部 Sc 自动切换限制器。</p>
+</li>
+<li><p><strong>湍流模型修正</strong><br>湍流施密特数 Scₜ 描述湍流扩散:$D_t &#x3D; \nu_t &#x2F; \text{Sc}_t$,其中 $\nu_t$ 为湍流粘度。默认 Scₜ ≈ 0.7(气体)~0.9(液体),需根据实测浓度场校准;高 Sc 流体(如聚合物溶液)需调低 Scₜ 以匹配实验数据。</p>
+</li>
+<li><p><strong>多相流与反应工程</strong><br>空化模拟(<code>interPhaseChangeFoam</code>)中 Sc 影响气-液界面的组分输运速率;化学反应器中 Sc 决定反应物混合效率,低 Sc 时反应速率受扩散限制小。</p>
+</li>
+</ol>
+<h2 id="工程应用场景"><a href="#工程应用场景" class="headerlink" title="工程应用场景"></a>工程应用场景</h2><table>
+<thead>
+<tr>
+<th><strong>领域</strong></th>
+<th><strong>典型问题</strong></th>
+<th><strong>Sc 的作用</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>化工反应器</strong></td>
+<td>催化剂表面反应物传递</td>
+<td>优化搅拌速率,确保 Sc 匹配扩散需求</td>
+</tr>
+<tr>
+<td><strong>环境工程</strong></td>
+<td>污染物在水体&#x2F;大气中的扩散</td>
+<td>预测扩散范围(高 Sc 时污染物迁移距离短)</td>
+</tr>
+<tr>
+<td><strong>生物医学</strong></td>
+<td>微流控芯片内药物输送</td>
+<td>设计微通道尺寸,实现 Sc&lt;1 的快速混合</td>
+</tr>
+<tr>
+<td><strong>材料加工</strong></td>
+<td>涂层干燥或电镀液组分均匀性</td>
+<td>调节溶液粘度以控制 Sc,避免浓度极化</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>典型案例</strong>:</p>
+<ul>
+<li><strong>污水处理曝气池</strong>:氧气在污水(Sc≈500)中扩散慢,需通过曝气装置产生微小气泡增大气液接触面积;</li>
+<li><strong>燃料电池电极</strong>:氢气(Sc≈0.2)在多孔电极内的扩散速率直接影响发电效率。</li>
+</ul>
+</blockquote>
+<h2 id="与其他无量纲数的关联"><a href="#与其他无量纲数的关联" class="headerlink" title="与其他无量纲数的关联"></a>与其他无量纲数的关联</h2><ul>
+<li><strong>Sc 与 Pr</strong>:二者分别关联质量扩散与热扩散,满足 <strong>Le &#x3D; Sc &#x2F; Pr</strong>(路易斯数 Le),描述热-质扩散相对速率;</li>
+<li><strong>Sc 与 Re</strong>:雷诺数 Re 表征惯性力&#x2F;粘性力比,Sc 将其扩展至包含质量扩散效应;</li>
+<li><strong>Sc 与 Peₘ</strong>:质量 Peclet 数 Peₘ &#x3D; Re · Sc,表征对流与扩散的相对强度。</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>施密特数 Sc 是解析流动-传质耦合问题的核心参数:机理层面揭示速度场与浓度场的协同演化规律,数值层面约束离散格式选择与湍流模型精度,工程层面指导反应器设计、环境扩散预测及微流控系统优化。深入掌握 Sc 数,可显著提升对化工、环境、生物等领域复杂传质问题的模拟与设计能力。</p>
+<p><em>本文整理自个人 CFD 学习笔记系列</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/13/dimless-schmidt/">https://hugh-tong.github.io/2026/09/13/dimless-schmidt/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a><a class="post-meta__tags" href="/tags/%E8%BE%B9%E7%95%8C%E5%B1%82/">边界层</a><a class="post-meta__tags" href="/tags/Schmidt-number/">Schmidt number</a><a class="post-meta__tags" href="/tags/%E4%BC%A0%E8%B4%A8/">传质</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/13/dimless-weber/" title="韦伯数(Weber Number)——惯性力与表面张力的对决"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">韦伯数(Weber Number)——惯性力与表面张力的对决</div></div><div class="info-2"><div class="info-item-1">韦伯数(Weber number,简称 We)衡量流体惯性力与表面张力的相对大小,是多相流分析中出场率最高的无量纲数之一。一颗液滴撞上壁面是弹开、铺展还是碎裂,一股射流最终雾化到多细,背后都是 We 数在起裁决作用。对做气液两相流 CFD 的人来说,它几乎是设置工况前要看的第一个数。 定义与表达式$$We &#x3D; \frac{\rho U^2 L}{\sigma}$$ 其中:  $\rho$:流体密度(kg&#x2F;m³); $U$:特征速度(m&#x2F;s); $L$:特征长度,如液滴直径(m); $\sigma$:表面张力系数(N&#x2F;m)。  分子 $\rho U^2 L$ 代表惯性力强度,分母 $\sigma$ 代表表面张力的约束作用,二者的比值直接刻画界面被”拉变形”与”拽回来”之间的竞争。 物理意义 We ≫ 1:惯性力远大于表面张力,界面容易剧烈变形。常见于高速射流、液滴撞击等场合,液滴容易碎裂,产生波纹或分裂现象; We ≪ 1:表面张力主导流动,界面趋于稳定,液滴不易分裂,保持接近球形的光滑界面。  直观理解:表面张力总想把界面收缩成能量最低的球...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-peclet/" title="佩克莱数(Peclet Number)——对流与扩散的攻守易形"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">佩克莱数(Peclet Number)——对流与扩散的攻守易形</div></div><div class="info-2"><div class="info-item-1">佩克莱数(Peclet number,简称 Pe)衡量对流与扩散输运效应的相对强弱,是流体力学和传热传质学中的关键无量纲参数。一个物理量是被流动”带着跑”还是被扩散”抹平”,取决于 Pe 的大小;而在 CFD 里它还有另一重身份:网格 Peclet 数直接决定离散格式的稳定性,是数值设置绕不开的检查项。 定义与公式$$Pe &#x3D; \frac{\text{对流速率}}{\text{扩散速率}} &#x3D; \frac{V L}{\kappa}$$ 其中:  $V$:特征流速(m&#x2F;s); $L$:特征长度,如管道直径或物体尺度(m); $\kappa$:扩散系数,可取热扩散率 $\alpha$ 或质量扩散率 $D$(m²&#x2F;s)。  按应用场景,Peclet 数可细分为:  热 Peclet 数(Peₜ):$\kappa$ 取热扩散率 $\alpha$,适用于传热问题; 质量 Peclet 数(Peₘ):$\kappa$ 取质量扩散率 $D$,适用于传质问题。  当扩散系数取运动粘度 $\nu$ 时,Pe 与雷诺数的关系为 Pe &#x3D; Re · P...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/13/dimless-prandtl/" title="普朗特数(Prandtl Number)——动量与热扩散的竞速"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">普朗特数(Prandtl Number)——动量与热扩散的竞速</div></div><div class="info-2"><div class="info-item-1">普朗特数(Prandtl number,简称 Pr)表征动量扩散与热扩散的相对速率,直接影响流动与传热的耦合行为。它有一个独特之处:Pr 纯由流体物性组成,与流动尺度、速度无关,同一状态下空气永远约 0.7、机油上千、液态金属约 0.01。这个”物性指纹”决定了速度边界层与热边界层谁厚谁薄,进而在边界层相似性、换热经验关联式和 CFD 数值格式选择中反复出现。 定义与表达式$$Pr &#x3D; \frac{\text{动量扩散率}}{\text{热扩散率}} &#x3D; \frac{\nu}{\kappa} &#x3D; \frac{\mu c_p}{k}$$ 其中:  $\nu$:运动粘度(m²&#x2F;s),反映动量传递能力; $\kappa$:热扩散率(m²&#x2F;s),$\kappa &#x3D; \frac{k}{\rho c_p}$,反映热量传递能力; $\mu$:动态粘度(Pa·s); $c_p$:定压比热容(J&#x2F;(kg·K)); $k$:热导率(W&#x2F;(m·K))。  物理上,Pr 描述流体中速度边界层与热边界层的相对厚度。例如:  P...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">阻力系数(Drag Coefficient)——气动性能的终极积分指标</div></div><div class="info-2"><div class="info-item-1">阻力系数($C_d$)是与 $C_p$ 并列的核心无量纲参数。如果说 $C_p$ 描述了流场中某一点的压力状态,那么 $C_d$ 则是对物体表面所有受力情况的宏观积分总和。对于不可压缩单相流,它是评价气动&#x2F;水动外形效率的终极指标。本文解析 $C_d$ 的构成、计算原理以及开发者复现时的关键细节。 参数速览 Name: Drag Coefficient Symbol: $C_d$ Fluent Variable: drag-coefficient Setup Location: Report Definitions -&gt; New -&gt; Force Report -&gt; Drag Key Configuration: Report -&gt; Reference Values(同样,这是 $C_d$ 计算的命门)  原理数学定义$$C_d &#x3D; \frac{F_d}{\frac{1}{2} \rho_{ref} v_{ref}^2 A_{ref}}$$  $F_d$:阻力(Drag Force),即流体作用在物体上平行于来流方向的总力; $\frac...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-rayleigh/" title="瑞利数(Rayleigh Number)——自然对流失稳的判据"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">瑞利数(Rayleigh Number)——自然对流失稳的判据</div></div><div class="info-2"><div class="info-item-1">瑞利数(Rayleigh number,简称 Ra)描述浮力驱动的自然对流强度,定义为浮力效应与粘性耗散、热扩散效应的比值。它是判断自然对流”起不起来”的第一判据:底部加热的流体层,究竟靠导热安静地传热,还是失稳翻腾形成对流,经典答案就落在 Ra 的临界值上。与 Gr 数相比,Ra 把流体的热扩散特性也纳入了竞争,因此对热对流稳定性更具直接性。 定义与物理意义$$Ra &#x3D; \frac{\text{浮力效应}}{\text{粘性耗散} \times \text{热扩散}} &#x3D; \frac{g \beta \Delta T L^3}{\nu \alpha}$$ 参数含义:  $g$:重力加速度(m&#x2F;s²) $\beta$:流体热膨胀系数(K⁻¹) $\Delta T$:特征温差(如流体层上下表面温差,单位 K) $L$:特征长度(如流体层高度,单位 m) $\nu$:运动粘度(m²&#x2F;s) $\alpha$:热扩散率(m²&#x2F;s)  物理意义:Ra 值越大,浮力效应越显著,流体易发生对流(例如热水上升、冷空气下沉)。临界值方面:  $Ra...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-weber/" title="韦伯数(Weber Number)——惯性力与表面张力的对决"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">韦伯数(Weber Number)——惯性力与表面张力的对决</div></div><div class="info-2"><div class="info-item-1">韦伯数(Weber number,简称 We)衡量流体惯性力与表面张力的相对大小,是多相流分析中出场率最高的无量纲数之一。一颗液滴撞上壁面是弹开、铺展还是碎裂,一股射流最终雾化到多细,背后都是 We 数在起裁决作用。对做气液两相流 CFD 的人来说,它几乎是设置工况前要看的第一个数。 定义与表达式$$We &#x3D; \frac{\rho U^2 L}{\sigma}$$ 其中:  $\rho$:流体密度(kg&#x2F;m³); $U$:特征速度(m&#x2F;s); $L$:特征长度,如液滴直径(m); $\sigma$:表面张力系数(N&#x2F;m)。  分子 $\rho U^2 L$ 代表惯性力强度,分母 $\sigma$ 代表表面张力的约束作用,二者的比值直接刻画界面被”拉变形”与”拽回来”之间的竞争。 物理意义 We ≫ 1:惯性力远大于表面张力,界面容易剧烈变形。常见于高速射流、液滴撞击等场合,液滴容易碎裂,产生波纹或分裂现象; We ≪ 1:表面张力主导流动,界面趋于稳定,液滴不易分裂,保持接近球形的光滑界面。  直观理解:表面张力总想把界面收缩成能量最低的球...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-froude/" title="弗劳德数(Froude Number)——惯性力与重力的较量"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">弗劳德数(Froude Number)——惯性力与重力的较量</div></div><div class="info-2"><div class="info-item-1">弗劳德数(Froude Number,简称 Fr)描述惯性力与重力在流动中的相对重要性,是明渠水力学和船舶水动力学中最基础的无量纲数。水跃为什么发生在那个位置、船模实验为什么要按 Fr 而不是 Re 来设计,答案都藏在 Fr &#x3D; 1 这条临界线两侧的流动差异里。凡是有自由液面、重力起作用的流动,Fr 都是第一个要算的数。 定义与表达式$$Fr &#x3D; \frac{V}{\sqrt{g \cdot L}}$$ 其中:  $V$:流体速度(m&#x2F;s); $g$:重力加速度(m&#x2F;s²,通常取 9.81); $L$:特征长度,如水深、船舶长度(m)。  分母 $\sqrt{gL}$ 正是重力波的传播速度,所以 Fr 的本质是流速与波速之比:流体跑得比波快还是慢,流动性质截然不同。 物理意义按惯性力与重力的相对强弱,流动被 Fr 划分为三种状态:  Fr &gt; 1:惯性力主导,流动为超临界流(急流),如急滩、高速船舶航行; Fr &lt; 1:重力主导,流动为亚临界流(缓流),如缓坡河道、低速水流; Fr &#x3D; 1:临界流动状态,典型现象是水跃...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">CFD 无量纲数手册——系列导航</div></div><div class="info-2"><div class="info-item-1">做 CFD 的人绕不开无量纲数——它们是把一堆物理量压缩成一个”力与力的比值”的智慧。这个系列把我在学习和工程中积累的无量纲数笔记逐个整理成文,每篇包含定义、物理意义、典型数值、与其他数的换算关系和 CFD 工程应用要点。 速查表   无量纲数 符号 比的是什么 关键应用场景    格拉晓夫数 Gr 浮升力 vs 粘性力 自然对流   瑞利数 Ra 浮力效应 vs (粘性×热扩散) 自然对流失稳判据   普朗特数 Pr 动量扩散 vs 热扩散 流热耦合   努塞尔数 Nu 对流换热 vs 纯导热 换热效率   斯坦顿数 St 壁面换热 vs 热容输运 换热效率(实验友好)   理查德森数 Ri 浮力 vs 剪切 分层流稳定性   佩克莱数 Pe 对流输运 vs 扩散输运 数值格式选择   施密特数 Sc 动量扩散 vs 质量扩散 传质模拟   韦伯数 We 惯性力 vs 表面张力 界面破碎&#x2F;液滴   邦德→宾汉数 Bn 屈服应力 vs 粘性力 非牛顿流体   阿基米德数 Ar 浮力 vs 粘性力(密度差驱动) 颗粒沉降&#x2F;流化床   弗劳德数 Fr 惯性力 vs...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">定义与表达式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E6%84%8F%E4%B9%89-%E6%B5%81%E5%8A%A8%E4%B8%8E%E4%BC%A0%E8%B4%A8%E7%9A%84%E5%8D%8F%E5%90%8C%E6%BC%94%E5%8C%96"><span class="toc-number">2.</span> <span class="toc-text">物理意义:流动与传质的协同演化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E5%B1%82%E7%89%B9%E5%BE%81%E5%AF%B9%E6%AF%94"><span class="toc-number">2.1.</span> <span class="toc-text">边界层特征对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E4%BC%A0%E8%B4%A8%E6%95%88%E7%8E%87%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">2.2.</span> <span class="toc-text">对传质效率的影响</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8-CFD-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">在 CFD 中的应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">4.</span> <span class="toc-text">工程应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0%E7%9A%84%E5%85%B3%E8%81%94"><span class="toc-number">5.</span> <span class="toc-text">与其他无量纲数的关联</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/deploy-blog-new-machine/" title="博客新机部署实录——从空仓库到上线">博客新机部署实录——从空仓库到上线</a><time datetime="2026-09-15T03:15:18.000Z" title="Created 2026-09-15 11:15:18">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/hello-world/" title="Hello World">Hello World</a><time datetime="2026-09-15T01:33:38.643Z" title="Created 2026-09-15 09:33:38">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航">CFD 无量纲数手册——系列导航</a><time datetime="2026-09-13T07:30:00.000Z" title="Created 2026-09-13 15:30:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标">阻力系数(Drag Coefficient)——气动性能的终极积分指标</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币">压力系数(Pressure Coefficient)——CFD 验证的通用货币</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

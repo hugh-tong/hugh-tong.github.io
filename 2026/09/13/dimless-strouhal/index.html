@@ -1,0 +1,401 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="斯特劳哈尔数 St 表征振荡惯性力与对流惯性力之比,圆柱绕流中经典值约 0.2,是涡脱落频率预测、流致振动评估与 CFD 时间步长选择的依据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/13/dimless-strouhal/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="斯特劳哈尔数 St 表征振荡惯性力与对流惯性力之比,圆柱绕流中经典值约 0.2,是涡脱落频率预测、流致振动评估与 CFD 时间步长选择的依据。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-13T07:20:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T01:33:38.643Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="无量纲数">
+<meta property="article:tag" content="Strouhal number">
+<meta property="article:tag" content="涡脱落">
+<meta property="article:tag" content="非定常流动">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺",
+  "url": "https://hugh-tong.github.io/2026/09/13/dimless-strouhal/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-13T07:20:00.000Z",
+  "dateModified": "2026-09-15T01:33:38.643Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/13/dimless-strouhal/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T01:33:38.643Z" title="Updated 2026-09-15 09:33:38">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>斯特劳哈尔数(Strouhal number,简称 <strong>St</strong>)是流体力学中描述非定常流动周期性特征的关键无量纲参数,在涡脱落(如圆柱绕流)和振荡流分析中至关重要。桥梁为什么会风致共振、换热器管束为什么会流致振动疲劳、CFD 算涡街时时间步长该取多小,这些问题的答案都绕不开 St。它与斯坦顿数(Stanton number)缩写相同但物理含义完全不同,后者另文单独介绍。</p>
+<h2 id="定义与表达式"><a href="#定义与表达式" class="headerlink" title="定义与表达式"></a>定义与表达式</h2><p>斯特劳哈尔数的定义为:</p>
+<p>$$<br>St &#x3D; \frac{f \cdot L}{U}<br>$$</p>
+<p>其中:</p>
+<ul>
+<li>$f$:流动中主导振荡的频率(Hz),如涡脱落频率;</li>
+<li>$L$:特征长度(m),如圆柱直径或障碍物尺度;</li>
+<li>$U$:来流速度(m&#x2F;s)。</li>
+</ul>
+<blockquote>
+<p><strong>物理意义</strong>:<br>St 表征振荡惯性力与对流惯性力的比值,反映流动周期性与其时间尺度的关联性:</p>
+<ul>
+<li><strong>St ≈ 0.2</strong>:经典圆柱绕流中涡脱落的典型值(如 Re≈200 时 St≈0.1977);</li>
+<li><strong>St ≪ 1</strong>:振荡缓慢,准稳态流动;</li>
+<li><strong>St ≫ 1</strong>:高频振荡,如超声速流动中的激波抖动。</li>
+</ul>
+</blockquote>
+<h2 id="关键特性-涡脱落模式与非线性动力学"><a href="#关键特性-涡脱落模式与非线性动力学" class="headerlink" title="关键特性:涡脱落模式与非线性动力学"></a>关键特性:涡脱落模式与非线性动力学</h2><h3 id="1-雷诺数对-St-的影响"><a href="#1-雷诺数对-St-的影响" class="headerlink" title="1. 雷诺数对 St 的影响"></a>1. 雷诺数对 St 的影响</h3><p>实验与数值模拟表明,圆柱绕流存在显著的 Re 依赖性分岔:</p>
+<ul>
+<li><strong>Re &lt; 180</strong>:二维层流涡街,St 随 Re 单调递增;</li>
+<li><strong>180 ≤ Re ≤ 280</strong>:出现模式 A 和模式 B 两种三维涡结构,St 发生跃变:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>Re 范围</th>
+<th>涡结构特征</th>
+<th>St 变化</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模式 A</td>
+<td>180–190</td>
+<td>展向涡配对,低频大尺度</td>
+<td>St 突降(双稳态)</td>
+</tr>
+<tr>
+<td>模式 B</td>
+<td>230–280</td>
+<td>细丝状涡,高频小尺度</td>
+<td>St 二次跃升</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>Re &gt; 300</strong>:向湍流转捩,St 渐趋稳定(≈0.21)。</li>
+</ul>
+<h3 id="2-振荡机制解析"><a href="#2-振荡机制解析" class="headerlink" title="2. 振荡机制解析"></a>2. 振荡机制解析</h3><ul>
+<li><strong>涡脱落锁定(Lock-in)</strong>:当外部激励频率接近 St 表征的固有频率时,涡脱落同步增强,引发共振(如桥梁风振);</li>
+<li><strong>马赫数(Ma)影响</strong>:可压缩流中(如 Ma&gt;0.8),St 与激波振荡耦合,导致复杂频谱。</li>
+</ul>
+<h2 id="CFD-应用关键点"><a href="#CFD-应用关键点" class="headerlink" title="CFD 应用关键点"></a>CFD 应用关键点</h2><h3 id="1-数值稳定性约束"><a href="#1-数值稳定性约束" class="headerlink" title="1. 数值稳定性约束"></a>1. 数值稳定性约束</h3><ul>
+<li><strong>时间步长选择</strong>:需满足 $\Delta t &lt; 1&#x2F;(f \cdot St)$,否则无法捕捉振荡细节(如 Re&#x3D;200 时 $\Delta t \le 0.005,\text{s}$);</li>
+<li><strong>离散格式</strong>:高 St 问题需采用隐式时间格式(如 Crank-Nicolson)抑制数值耗散。</li>
+</ul>
+<h3 id="2-网格与模型要求"><a href="#2-网格与模型要求" class="headerlink" title="2. 网格与模型要求"></a>2. 网格与模型要求</h3><ul>
+<li><strong>近壁面加密</strong>:涡脱落起始区需 y⁺≈1 解析剪切层;</li>
+<li><strong>湍流模型修正</strong>:大涡模拟(LES)或分离涡模拟(DES)优于 RANS,因 RANS 易抹平瞬态结构。</li>
+</ul>
+<h3 id="3-边界条件设置"><a href="#3-边界条件设置" class="headerlink" title="3. 边界条件设置"></a>3. 边界条件设置</h3><ul>
+<li><strong>非惯性参考系</strong>:旋转流中需添加科氏力项(见 N-S 方程非惯性形式);</li>
+<li><strong>周期边界</strong>:简化计算域时需保证 St 对应的波长匹配。</li>
+</ul>
+<h2 id="工程应用场景"><a href="#工程应用场景" class="headerlink" title="工程应用场景"></a>工程应用场景</h2><table>
+<thead>
+<tr>
+<th>领域</th>
+<th>典型问题</th>
+<th>St 的作用</th>
+<th>案例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>结构风工程</strong></td>
+<td>桥梁&#x2F;烟囱涡激振动抑制</td>
+<td>优化结构外形使 St 偏离敏感区(0.15–0.25)</td>
+<td>伦敦千禧桥减振设计</td>
+</tr>
+<tr>
+<td><strong>航空航天</strong></td>
+<td>飞机翼梢涡脱落噪声控制</td>
+<td>通过 St 预测声压主频,设计锯齿翼梢</td>
+<td>A350 降噪翼梢小翼</td>
+</tr>
+<tr>
+<td><strong>能源设备</strong></td>
+<td>换热器管束流致振动疲劳评估</td>
+<td>计算 St 预判共振风险点</td>
+<td>核电站蒸汽发生器防振设计</td>
+</tr>
+<tr>
+<td><strong>生物流体</strong></td>
+<td>鱼类游动尾迹动力学</td>
+<td>St≈0.3 为高效推进区间(如海豚游速优化)</td>
+<td></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>典型案例</strong>:</p>
+<ul>
+<li><strong>圆柱绕流控制</strong>:Re&#x3D;200 时,若 St 计算偏差 &gt;5%,将导致升力幅值误差 20%+;</li>
+<li><strong>微流控混合器</strong>:利用 St 调谐振荡流频率,实现低 Re 下高效混合。</li>
+</ul>
+</blockquote>
+<h2 id="与其他无量纲数的关联"><a href="#与其他无量纲数的关联" class="headerlink" title="与其他无量纲数的关联"></a>与其他无量纲数的关联</h2><ul>
+<li><strong>St 与 Re</strong>:主导涡脱落的双参数耦合,高 Re 下 St 渐近恒定;</li>
+<li><strong>St 与 Ma</strong>:可压缩流中满足 $St \propto Ma^{-1}$(声学相似律);</li>
+<li><strong>St 与 Fr(弗劳德数)</strong>:自由表面流动中联合表征波浪频率。</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>斯特劳哈尔数 St 是解析非定常流动周期性的核心标尺:</p>
+<ol>
+<li><strong>机理层面</strong>:量化涡脱落分岔与锁定效应,揭示转捩路径;</li>
+<li><strong>设计层面</strong>:指导抗振结构优化与流体机械噪声控制;</li>
+<li><strong>数值层面</strong>:约束 CFD 时间步长与湍流模型选择。</li>
+</ol>
+<p>深入掌握 St 数,可显著提升对风工程、空化、生物推进等跨尺度流动问题的预测精度。</p>
+<p><em>本文整理自个人 CFD 学习笔记系列</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/13/dimless-strouhal/">https://hugh-tong.github.io/2026/09/13/dimless-strouhal/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a><a class="post-meta__tags" href="/tags/Strouhal-number/">Strouhal number</a><a class="post-meta__tags" href="/tags/%E6%B6%A1%E8%84%B1%E8%90%BD/">涡脱落</a><a class="post-meta__tags" href="/tags/%E9%9D%9E%E5%AE%9A%E5%B8%B8%E6%B5%81%E5%8A%A8/">非定常流动</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">CFD 无量纲数手册——系列导航</div></div><div class="info-2"><div class="info-item-1">做 CFD 的人绕不开无量纲数——它们是把一堆物理量压缩成一个”力与力的比值”的智慧。这个系列把我在学习和工程中积累的无量纲数笔记逐个整理成文,每篇包含定义、物理意义、典型数值、与其他数的换算关系和 CFD 工程应用要点。 速查表   无量纲数 符号 比的是什么 关键应用场景    格拉晓夫数 Gr 浮升力 vs 粘性力 自然对流   瑞利数 Ra 浮力效应 vs (粘性×热扩散) 自然对流失稳判据   普朗特数 Pr 动量扩散 vs 热扩散 流热耦合   努塞尔数 Nu 对流换热 vs 纯导热 换热效率   斯坦顿数 St 壁面换热 vs 热容输运 换热效率(实验友好)   理查德森数 Ri 浮力 vs 剪切 分层流稳定性   佩克莱数 Pe 对流输运 vs 扩散输运 数值格式选择   施密特数 Sc 动量扩散 vs 质量扩散 传质模拟   韦伯数 We 惯性力 vs 表面张力 界面破碎&#x2F;液滴   邦德→宾汉数 Bn 屈服应力 vs 粘性力 非牛顿流体   阿基米德数 Ar 浮力 vs 粘性力(密度差驱动) 颗粒沉降&#x2F;流化床   弗劳德数 Fr 惯性力 vs...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-richardson/" title="理查德森数(Richardson Number)——浮力与剪切的稳定性之争"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">理查德森数(Richardson Number)——浮力与剪切的稳定性之争</div></div><div class="info-2"><div class="info-item-1">理查德森数(Richardson number,简称 Ri)是流体力学中描述流动稳定性的关键无量纲参数,用于衡量浮力效应与剪切效应(惯性力)的相对重要性。大气边界层会不会翻腾混合、海洋分层流的湍流会不会被抑制、自然对流散热设计会不会失稳,这些问题第一眼该看的往往就是 Ri。它与瑞利数 Ra 名字相近,但物理含义不同,后者专注浮力驱动对流的强度,前者关心浮力与剪切的竞争。 基本定义与物理意义Ri 的数学表达式为: $$Ri &#x3D; \frac{\text{浮力效应}}{\text{剪切效应}} &#x3D; \frac{g \beta \Delta T H}{U^2}$$ 其中:  $g$:重力加速度; $\beta$:流体的体积膨胀系数; $\Delta T$:特征温差(如流体层上下壁面温差); $H$:特征长度(如流体层高度); $U$:特征流速(如剪切流速)。  物理意义:  Ri &gt; 0:浮力主导,抑制湍流,流动趋于稳定(如分层大气中热空气上升受阻); Ri &lt; 0:剪切力主导,促进湍流,流动失稳(如强风破坏温度分层); Ri &#x3D; 0:浮力效应消...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/13/dimless-nusselt/" title="努塞尔数(Nusselt Number)——对流换热的增益倍数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">努塞尔数(Nusselt Number)——对流换热的增益倍数</div></div><div class="info-2"><div class="info-item-1">努塞尔数(Nusselt number,简称 Nu)量化对流换热强度相对于纯导热的倍数关系,是传热学中最核心的无量纲参数。工程上真正关心的往往是”换热量到底有多少”,而 Nu 把答案归一成了一个数:Nu &#x3D; 3 意味着对流把传热增强了 3 倍。换热器设计、芯片冷却方案评估、CFD 换热结果校验,最终几乎都落到这个数的比较上。 定义与表达式$$Nu &#x3D; \frac{\text{对流换热强度}}{\text{纯导热强度}} &#x3D; \frac{h L}{k}$$ 其中:  $h$:对流换热系数(W&#x2F;(m²·K)),反映流体与固体表面的实际换热能力; $L$:特征长度(如管道直径、平板长度,单位:m); $k$:流体热导率(W&#x2F;(m·K)),反映流体自身的导热能力。   物理意义:  Nu &#x3D; 1:对流换热强度等于纯导热(仅存在于静止流体或对称热边界条件); Nu &gt; 1:对流增强传热(如流动流体冲刷壁面); Nu ≫ 1:强湍流或高流速下显著强化换热。   物理意义:边界层与传热机制 边界层主导作用 Nu 直接关联速度边界...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">压力系数(Pressure Coefficient)——CFD 验证的通用货币</div></div><div class="info-2"><div class="info-item-1">压力系数($C_p$)是一个非常基础但极其重要的无量纲参数。对于 CFD 开发者而言,它是求解器验证(Validation)时的”通用货币”:无论在 OpenFOAM 还是 Fluent 中计算,也无论风洞吹的模型是 1:1 还是 1:10,只要雷诺数相似,$C_p$ 的分布曲线必须重合。如果不重合,说明求解器算错了。本文针对不可压缩单相流展开。 参数速览 Name: Pressure Coefficient Symbol: $C_p$ Fluent Variable: pressure-coefficient Key Configuration: Report -&gt; Reference Values(这是计算 $C_p$ 的命门)  原理数学定义对于不可压缩流动,压力系数定义为: $$C_p &#x3D; \frac{P - P_\infty}{q_\infty} &#x3D; \frac{P_{static} - P_{ref}}{\frac{1}{2} \rho_{ref} v_{ref}^2}$$  $P_{static}$:某一点(如机翼表面)的静压; $P_{r...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">CFD 无量纲数手册——系列导航</div></div><div class="info-2"><div class="info-item-1">做 CFD 的人绕不开无量纲数——它们是把一堆物理量压缩成一个”力与力的比值”的智慧。这个系列把我在学习和工程中积累的无量纲数笔记逐个整理成文,每篇包含定义、物理意义、典型数值、与其他数的换算关系和 CFD 工程应用要点。 速查表   无量纲数 符号 比的是什么 关键应用场景    格拉晓夫数 Gr 浮升力 vs 粘性力 自然对流   瑞利数 Ra 浮力效应 vs (粘性×热扩散) 自然对流失稳判据   普朗特数 Pr 动量扩散 vs 热扩散 流热耦合   努塞尔数 Nu 对流换热 vs 纯导热 换热效率   斯坦顿数 St 壁面换热 vs 热容输运 换热效率(实验友好)   理查德森数 Ri 浮力 vs 剪切 分层流稳定性   佩克莱数 Pe 对流输运 vs 扩散输运 数值格式选择   施密特数 Sc 动量扩散 vs 质量扩散 传质模拟   韦伯数 We 惯性力 vs 表面张力 界面破碎&#x2F;液滴   邦德→宾汉数 Bn 屈服应力 vs 粘性力 非牛顿流体   阿基米德数 Ar 浮力 vs 粘性力(密度差驱动) 颗粒沉降&#x2F;流化床   弗劳德数 Fr 惯性力 vs...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-froude/" title="弗劳德数(Froude Number)——惯性力与重力的较量"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">弗劳德数(Froude Number)——惯性力与重力的较量</div></div><div class="info-2"><div class="info-item-1">弗劳德数(Froude Number,简称 Fr)描述惯性力与重力在流动中的相对重要性,是明渠水力学和船舶水动力学中最基础的无量纲数。水跃为什么发生在那个位置、船模实验为什么要按 Fr 而不是 Re 来设计,答案都藏在 Fr &#x3D; 1 这条临界线两侧的流动差异里。凡是有自由液面、重力起作用的流动,Fr 都是第一个要算的数。 定义与表达式$$Fr &#x3D; \frac{V}{\sqrt{g \cdot L}}$$ 其中:  $V$:流体速度(m&#x2F;s); $g$:重力加速度(m&#x2F;s²,通常取 9.81); $L$:特征长度,如水深、船舶长度(m)。  分母 $\sqrt{gL}$ 正是重力波的传播速度,所以 Fr 的本质是流速与波速之比:流体跑得比波快还是慢,流动性质截然不同。 物理意义按惯性力与重力的相对强弱,流动被 Fr 划分为三种状态:  Fr &gt; 1:惯性力主导,流动为超临界流(急流),如急滩、高速船舶航行; Fr &lt; 1:重力主导,流动为亚临界流(缓流),如缓坡河道、低速水流; Fr &#x3D; 1:临界流动状态,典型现象是水跃...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-grashof/" title="格拉晓夫数(Grashof Number)——自然对流的驱动力标尺"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">格拉晓夫数(Grashof Number)——自然对流的驱动力标尺</div></div><div class="info-2"><div class="info-item-1">格拉晓夫数(Grashof number,简称 Gr)表征浮升力与粘性力的相对强弱,是自然对流分析中最重要的无量纲参数。没有外加驱动的流动问题,比如暖气片周围的空气爬升、芯片在无风扇条件下的散热,流动由密度差驱动,此时判断”流动会不会发生、处于什么流态”,首先就要看 Gr 数。它之于自然对流,大致相当于雷诺数之于强制对流。 定义与表达式$$Gr &#x3D; \frac{\text{浮升力}}{\text{粘性力}} &#x3D; \frac{g \beta \Delta T L^3}{\nu^2}$$ 其中:  $g$:重力加速度(m&#x2F;s²); $\beta$:流体热膨胀系数(K⁻¹),反映温度变化引起的密度变化; $\Delta T$:特征温差(K),如壁面与主流温差; $L$:特征长度(m),如平板高度或管道直径; $\nu$:运动粘度(m²&#x2F;s)。   注:  对于理想气体,$\beta &#x3D; 1&#x2F;T$($T$ 为绝对温度); 若流动由浓度差驱动(如溶质扩散),$\Delta T$ 需替换为浓度差 $\Delta C$,此时称溶质 G...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-prandtl/" title="普朗特数(Prandtl Number)——动量与热扩散的竞速"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">普朗特数(Prandtl Number)——动量与热扩散的竞速</div></div><div class="info-2"><div class="info-item-1">普朗特数(Prandtl number,简称 Pr)表征动量扩散与热扩散的相对速率,直接影响流动与传热的耦合行为。它有一个独特之处:Pr 纯由流体物性组成,与流动尺度、速度无关,同一状态下空气永远约 0.7、机油上千、液态金属约 0.01。这个”物性指纹”决定了速度边界层与热边界层谁厚谁薄,进而在边界层相似性、换热经验关联式和 CFD 数值格式选择中反复出现。 定义与表达式$$Pr &#x3D; \frac{\text{动量扩散率}}{\text{热扩散率}} &#x3D; \frac{\nu}{\kappa} &#x3D; \frac{\mu c_p}{k}$$ 其中:  $\nu$:运动粘度(m²&#x2F;s),反映动量传递能力; $\kappa$:热扩散率(m²&#x2F;s),$\kappa &#x3D; \frac{k}{\rho c_p}$,反映热量传递能力; $\mu$:动态粘度(Pa·s); $c_p$:定压比热容(J&#x2F;(kg·K)); $k$:热导率(W&#x2F;(m·K))。  物理上,Pr 描述流体中速度边界层与热边界层的相对厚度。例如:  P...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">定义与表达式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%89%B9%E6%80%A7-%E6%B6%A1%E8%84%B1%E8%90%BD%E6%A8%A1%E5%BC%8F%E4%B8%8E%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%8A%A8%E5%8A%9B%E5%AD%A6"><span class="toc-number">2.</span> <span class="toc-text">关键特性:涡脱落模式与非线性动力学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E9%9B%B7%E8%AF%BA%E6%95%B0%E5%AF%B9-St-%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">2.1.</span> <span class="toc-text">1. 雷诺数对 St 的影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%8C%AF%E8%8D%A1%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90"><span class="toc-number">2.2.</span> <span class="toc-text">2. 振荡机制解析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CFD-%E5%BA%94%E7%94%A8%E5%85%B3%E9%94%AE%E7%82%B9"><span class="toc-number">3.</span> <span class="toc-text">CFD 应用关键点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E5%80%BC%E7%A8%B3%E5%AE%9A%E6%80%A7%E7%BA%A6%E6%9D%9F"><span class="toc-number">3.1.</span> <span class="toc-text">1. 数值稳定性约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%BD%91%E6%A0%BC%E4%B8%8E%E6%A8%A1%E5%9E%8B%E8%A6%81%E6%B1%82"><span class="toc-number">3.2.</span> <span class="toc-text">2. 网格与模型要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6%E8%AE%BE%E7%BD%AE"><span class="toc-number">3.3.</span> <span class="toc-text">3. 边界条件设置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">4.</span> <span class="toc-text">工程应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0%E7%9A%84%E5%85%B3%E8%81%94"><span class="toc-number">5.</span> <span class="toc-text">与其他无量纲数的关联</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/deploy-blog-new-machine/" title="博客新机部署实录——从空仓库到上线">博客新机部署实录——从空仓库到上线</a><time datetime="2026-09-15T03:15:18.000Z" title="Created 2026-09-15 11:15:18">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/hello-world/" title="Hello World">Hello World</a><time datetime="2026-09-15T01:33:38.643Z" title="Created 2026-09-15 09:33:38">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航">CFD 无量纲数手册——系列导航</a><time datetime="2026-09-13T07:30:00.000Z" title="Created 2026-09-13 15:30:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标">阻力系数(Drag Coefficient)——气动性能的终极积分指标</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币">压力系数(Pressure Coefficient)——CFD 验证的通用货币</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

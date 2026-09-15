@@ -1,0 +1,375 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>阻力系数(Drag Coefficient)——气动性能的终极积分指标 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="阻力系数 Cd 是物体表面压差阻力与摩擦阻力的宏观积分总和,参考面积的选取是最易出错的环节,阻力危机则是检验湍流模型精度的最强试金石。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阻力系数(Drag Coefficient)——气动性能的终极积分指标">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/13/dimless-drag-coefficient/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="阻力系数 Cd 是物体表面压差阻力与摩擦阻力的宏观积分总和,参考面积的选取是最易出错的环节,阻力危机则是检验湍流模型精度的最强试金石。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-13T07:20:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T01:33:38.639Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="无量纲数">
+<meta property="article:tag" content="Drag Coefficient">
+<meta property="article:tag" content="OpenFOAM">
+<meta property="article:tag" content="Fluent">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "阻力系数(Drag Coefficient)——气动性能的终极积分指标",
+  "url": "https://hugh-tong.github.io/2026/09/13/dimless-drag-coefficient/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-13T07:20:00.000Z",
+  "dateModified": "2026-09-15T01:33:38.639Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/13/dimless-drag-coefficient/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '阻力系数(Drag Coefficient)——气动性能的终极积分指标',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">阻力系数(Drag Coefficient)——气动性能的终极积分指标</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">阻力系数(Drag Coefficient)——气动性能的终极积分指标</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T01:33:38.639Z" title="Updated 2026-09-15 09:33:38">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>阻力系数($C_d$)是与 $C_p$ 并列的核心无量纲参数。如果说 $C_p$ 描述了流场中某一点的压力状态,那么 $C_d$ 则是对物体表面所有受力情况的宏观积分总和。对于不可压缩单相流,它是评价气动&#x2F;水动外形效率的终极指标。本文解析 $C_d$ 的构成、计算原理以及开发者复现时的关键细节。</p>
+<h2 id="参数速览"><a href="#参数速览" class="headerlink" title="参数速览"></a>参数速览</h2><ul>
+<li><strong>Name</strong>: Drag Coefficient</li>
+<li><strong>Symbol</strong>: $C_d$</li>
+<li><strong>Fluent Variable</strong>: <code>drag-coefficient</code></li>
+<li><strong>Setup Location</strong>: <code>Report Definitions</code> -&gt; <code>New</code> -&gt; <code>Force Report</code> -&gt; <code>Drag</code></li>
+<li><strong>Key Configuration</strong>: <code>Report</code> -&gt; <code>Reference Values</code>(同样,这是 $C_d$ 计算的命门)</li>
+</ul>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><h3 id="数学定义"><a href="#数学定义" class="headerlink" title="数学定义"></a>数学定义</h3><p>$$<br>C_d &#x3D; \frac{F_d}{\frac{1}{2} \rho_{ref} v_{ref}^2 A_{ref}}<br>$$</p>
+<ul>
+<li>$F_d$:阻力(Drag Force),即流体作用在物体上平行于来流方向的总力;</li>
+<li>$\frac{1}{2} \rho_{ref} v_{ref}^2$:参考动压(Reference Dynamic Pressure);</li>
+<li><strong>$A_{ref}$</strong>:参考面积(Reference Area)。这是最容易出错的参数。</li>
+</ul>
+<h3 id="物理构成-阻力的两个来源"><a href="#物理构成-阻力的两个来源" class="headerlink" title="物理构成:阻力的两个来源"></a>物理构成:阻力的两个来源</h3><p>在不可压缩粘性流动中,总阻力分解为两部分:</p>
+<ol>
+<li><p><strong>压差阻力(Pressure Drag &#x2F; Form Drag)</strong>:</p>
+<ul>
+<li>来源:物体前后表面的压力差。</li>
+<li>物理机制:只要有流动分离(Flow Separation),后方形成低压尾迹区,压差阻力就会占主导。</li>
+<li>计算方式:对表面静压在阻力方向上的积分。<br>$$<br>F_{d,p} &#x3D; \int_{Surface} (P - P_{ref}) (\vec{n} \cdot \vec{d}) dA<br>$$<br>其中 $\vec{n}$ 是面法向量,$\vec{d}$ 是阻力方向矢量。</li>
+</ul>
+</li>
+<li><p><strong>摩擦阻力(Viscous Drag &#x2F; Skin Friction Drag)</strong>:</p>
+<ul>
+<li>来源:流体粘性在壁面产生的剪切应力。</li>
+<li>物理机制:边界层内的速度梯度 $\tau_w &#x3D; \mu \frac{\partial u}{\partial y}|_{wall}$。</li>
+<li>计算方式:对壁面剪切应力在阻力方向上的积分。<br>$$<br>F_{d,v} &#x3D; \int_{Surface} (\vec{\tau}_w \cdot \vec{d}) dA<br>$$</li>
+</ul>
+</li>
+</ol>
+<p>$$<br>C_d &#x3D; C_{d, pressure} + C_{d, viscous}<br>$$</p>
+<h2 id="物理意义"><a href="#物理意义" class="headerlink" title="物理意义"></a>物理意义</h2><h3 id="1-流动状态的指示器"><a href="#1-流动状态的指示器" class="headerlink" title="1. 流动状态的指示器"></a>1. 流动状态的指示器</h3><ul>
+<li><strong>流线型物体(Streamlined Body)</strong>:如机翼、鱼雷。<ul>
+<li>流体附着良好,分离极少。</li>
+<li>特征:$C_d$ 很小(例如 0.04),其中摩擦阻力占主导。</li>
+</ul>
+</li>
+<li><strong>钝体(Bluff Body)</strong>:如圆柱、垂直平板、汽车。<ul>
+<li>流体在大面积区域发生分离,形成宽阔的低压尾迹。</li>
+<li>特征:$C_d$ 很大(例如 1.0 - 2.0),其中压差阻力占绝对主导(&gt;90%)。</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-雷诺数相关性"><a href="#2-雷诺数相关性" class="headerlink" title="2. 雷诺数相关性"></a>2. 雷诺数相关性</h3><p>对于不可压缩流,$C_d$ 强依赖于 $Re$:</p>
+<ul>
+<li><strong>Stokes 区(Re &lt; 1)</strong>:$C_d \propto 1&#x2F;Re$(纯粘性主导)。</li>
+<li><strong>亚临界区(Sub-critical)</strong>:$C_d$ 相对稳定(如圆柱在 $Re&#x3D;10^3 \sim 10^5$ 时 $C_d \approx 1.2$)。</li>
+<li><strong>阻力危机(Drag Crisis)</strong>:当边界层从层流转捩为湍流(圆柱约在 $Re \approx 3 \times 10^5$),分离点后移,尾迹变窄,$C_d$ 突然暴跌(从 1.2 跌至 0.3)。<ul>
+<li>验证要点:如果求解器能算出这个跌落,说明湍流模型和转捩预测非常准。</li>
+</ul>
+</li>
+</ul>
+<h2 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h2><p>在开发求解器时,计算 $C_d$ 实际上是一个表面积分(Surface Integration)过程。</p>
+<h3 id="积分逻辑-Numerical-Integration"><a href="#积分逻辑-Numerical-Integration" class="headerlink" title="积分逻辑(Numerical Integration)"></a>积分逻辑(Numerical Integration)</h3><p>不要指望直接解出一个 $C_d$ 方程。这是后处理步骤。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码：计算 Drag Force</span></span><br><span class="line">Vector3 dragDir = &#123;<span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>&#125;; <span class="comment">// 假设X方向是流向</span></span><br><span class="line"><span class="type">double</span> totalPressureForce = <span class="number">0.0</span>;</span><br><span class="line"><span class="type">double</span> totalViscousForce = <span class="number">0.0</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (Face&amp; f : wallFaces) &#123;</span><br><span class="line">    <span class="comment">// 1. 获取面数据</span></span><br><span class="line">    <span class="type">double</span> P = f.pressure;        <span class="comment">// 单元中心或面心静压</span></span><br><span class="line">    Vector3 n = f.normal;         <span class="comment">// 指向流体的单位法向</span></span><br><span class="line">    <span class="type">double</span> area = f.area;         <span class="comment">// 面面积</span></span><br><span class="line">    Vector3 tau = f.wallShearStress; <span class="comment">// 壁面剪切矢量 (由速度梯度计算)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 压力分量 (Pressure Drag)</span></span><br><span class="line">    <span class="comment">// 力 = 压力 * 面积 * (法向投影到阻力方向)</span></span><br><span class="line">    <span class="comment">// 注意方向：压力是指向壁面的，所以通常取反，取决于法向定义</span></span><br><span class="line">    <span class="comment">// Fluent中法向是指向外部的，所以压力力向量是 P * Area * n</span></span><br><span class="line">    <span class="type">double</span> f_p = P * area * <span class="built_in">dot</span>(n, dragDir);</span><br><span class="line">    totalPressureForce += f_p;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. 粘性分量 (Viscous Drag)</span></span><br><span class="line">    <span class="comment">// 剪切力是切向的</span></span><br><span class="line">    <span class="type">double</span> f_v = <span class="built_in">dot</span>(tau, dragDir) * area;</span><br><span class="line">    totalViscousForce += f_v;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">double</span> totalDrag = totalPressureForce + totalViscousForce;</span><br></pre></td></tr></table></figure>
+
+<h3 id="参考值的陷阱-Reference-Area"><a href="#参考值的陷阱-Reference-Area" class="headerlink" title="参考值的陷阱(Reference Area)"></a>参考值的陷阱(Reference Area)</h3><p>这是开发者和用户最容易产生偏差的地方。</p>
+<ul>
+<li><strong>定义</strong>:$A_{ref}$ 是什么?<ul>
+<li>对于飞机&#x2F;机翼:通常是投影面积(Planform Area)(俯视图面积);</li>
+<li>对于汽车&#x2F;圆柱:通常是迎风面积(Frontal Area)(正视图面积)。</li>
+</ul>
+</li>
+<li><strong>Fluent 默认值</strong>:Fluent 默认 $A_{ref} &#x3D; 1.0\ m^2$。它不会自动帮用户算物体的迎风面积。<ul>
+<li>开发备注:在自研求解器中,要么提供工具让用户计算投影面积,要么强制用户输入 $A_{ref}$。千万不要默认使用 <code>Total Surface Area</code>(湿表面积),否则算出来的 $C_d$ 会比标准值小好几倍。</li>
+</ul>
+</li>
+</ul>
+<h3 id="验证基准-Benchmarks"><a href="#验证基准-Benchmarks" class="headerlink" title="验证基准(Benchmarks)"></a>验证基准(Benchmarks)</h3><ol>
+<li><strong>2D 圆柱绕流(Re &#x3D; 100,层流)</strong>:<ul>
+<li>目标 $C_d \approx 1.3 \sim 1.4$;</li>
+<li>如果算出 1.0 或 1.8,检查积分逻辑或边界条件。</li>
+</ul>
+</li>
+<li><strong>3D 球体绕流</strong>:<ul>
+<li>标准阻力曲线图(Schlichting 图)。</li>
+</ul>
+</li>
+<li><strong>平板层流边界层(Blasius Solution)</strong>:<ul>
+<li>$C_d &#x3D; \frac{1.328}{\sqrt{Re_L}}$;</li>
+<li>这是一个纯摩擦阻力案例(压差阻力为 0),用来验证壁面剪切应力 $\tau_w$ 的计算精度。</li>
+</ul>
+</li>
+</ol>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ol>
+<li>$C_d$ 是压力阻力和摩擦阻力的总和。在 Fluent 中一定要分别检查这两个分量(<code>Force Report</code> 可以分别输出),以判断阻力来源。</li>
+<li><strong>参考面积($A_{ref}$)的选择决定了 $C_d$ 的数值大小</strong>,必须明确定义。</li>
+<li>在不可压流中,$C_d$ 是验证湍流模型准确性(特别是分离点预测)的最强指标。</li>
+</ol>
+<p><em>本文整理自个人 CFD 学习笔记系列</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/13/dimless-drag-coefficient/">https://hugh-tong.github.io/2026/09/13/dimless-drag-coefficient/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a><a class="post-meta__tags" href="/tags/Drag-Coefficient/">Drag Coefficient</a><a class="post-meta__tags" href="/tags/OpenFOAM/">OpenFOAM</a><a class="post-meta__tags" href="/tags/Fluent/">Fluent</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">压力系数(Pressure Coefficient)——CFD 验证的通用货币</div></div><div class="info-2"><div class="info-item-1">压力系数($C_p$)是一个非常基础但极其重要的无量纲参数。对于 CFD 开发者而言,它是求解器验证(Validation)时的”通用货币”:无论在 OpenFOAM 还是 Fluent 中计算,也无论风洞吹的模型是 1:1 还是 1:10,只要雷诺数相似,$C_p$ 的分布曲线必须重合。如果不重合,说明求解器算错了。本文针对不可压缩单相流展开。 参数速览 Name: Pressure Coefficient Symbol: $C_p$ Fluent Variable: pressure-coefficient Key Configuration: Report -&gt; Reference Values(这是计算 $C_p$ 的命门)  原理数学定义对于不可压缩流动,压力系数定义为: $$C_p &#x3D; \frac{P - P_\infty}{q_\infty} &#x3D; \frac{P_{static} - P_{ref}}{\frac{1}{2} \rho_{ref} v_{ref}^2}$$  $P_{static}$:某一点(如机翼表面)的静压; $P_{r...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-weber/" title="韦伯数(Weber Number)——惯性力与表面张力的对决"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">韦伯数(Weber Number)——惯性力与表面张力的对决</div></div><div class="info-2"><div class="info-item-1">韦伯数(Weber number,简称 We)衡量流体惯性力与表面张力的相对大小,是多相流分析中出场率最高的无量纲数之一。一颗液滴撞上壁面是弹开、铺展还是碎裂,一股射流最终雾化到多细,背后都是 We 数在起裁决作用。对做气液两相流 CFD 的人来说,它几乎是设置工况前要看的第一个数。 定义与表达式$$We &#x3D; \frac{\rho U^2 L}{\sigma}$$ 其中:  $\rho$:流体密度(kg&#x2F;m³); $U$:特征速度(m&#x2F;s); $L$:特征长度,如液滴直径(m); $\sigma$:表面张力系数(N&#x2F;m)。  分子 $\rho U^2 L$ 代表惯性力强度,分母 $\sigma$ 代表表面张力的约束作用,二者的比值直接刻画界面被”拉变形”与”拽回来”之间的竞争。 物理意义 We ≫ 1:惯性力远大于表面张力,界面容易剧烈变形。常见于高速射流、液滴撞击等场合,液滴容易碎裂,产生波纹或分裂现象; We ≪ 1:表面张力主导流动,界面趋于稳定,液滴不易分裂,保持接近球形的光滑界面。  直观理解:表面张力总想把界面收缩成能量最低的球...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">压力系数(Pressure Coefficient)——CFD 验证的通用货币</div></div><div class="info-2"><div class="info-item-1">压力系数($C_p$)是一个非常基础但极其重要的无量纲参数。对于 CFD 开发者而言,它是求解器验证(Validation)时的”通用货币”:无论在 OpenFOAM 还是 Fluent 中计算,也无论风洞吹的模型是 1:1 还是 1:10,只要雷诺数相似,$C_p$ 的分布曲线必须重合。如果不重合,说明求解器算错了。本文针对不可压缩单相流展开。 参数速览 Name: Pressure Coefficient Symbol: $C_p$ Fluent Variable: pressure-coefficient Key Configuration: Report -&gt; Reference Values(这是计算 $C_p$ 的命门)  原理数学定义对于不可压缩流动,压力系数定义为: $$C_p &#x3D; \frac{P - P_\infty}{q_\infty} &#x3D; \frac{P_{static} - P_{ref}}{\frac{1}{2} \rho_{ref} v_{ref}^2}$$  $P_{static}$:某一点(如机翼表面)的静压; $P_{r...</div></div></div></a><a class="pagination-related" href="/2023/08/24/openfoam-fluent-simple-k-e/" title="OpenFOAM和fluent的SIMPLE计算设置对比【还没写完】"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-24</div><div class="info-item-2">OpenFOAM和fluent的SIMPLE计算设置对比【还没写完】</div></div><div class="info-2"><div class="info-item-1">预备知识 (Dynamic viscosity)动力粘度：$\mu$ $，这个$$\mu$与牛顿内摩擦公式有关：$\tau &#x3D; \mu du&#x2F; dy$， 单位为$Pa\cdot s$或$N\cdot s&#x2F;m^2$ (Kinematic viscosity)运动粘度：$\nu &#x3D; \mu &#x2F; \rho$  ，单位为$m^2&#x2F;s$  在OpenFOAM中，一般设置运动粘度： 1nu [ 0 2 -1 0 0 0 0 ] 0.01;  theory.pdf (dyfluid.com)对于simpleFoam来说，OpenFOAM求解的方程是这样的： $$\begin{align}\nabla\cdot\bf{U}&#x3D;0 \\nabla \cdot (\mathbf{U}\mathbf{U})-\nabla \cdot(\nu \nabla \mathbf{U})&#x3D;-\nabla p \end{align}$$对于不可压流体时，OpenFOAM对上述方程整个除了密度$\rho$ 。所以会在边界条件的p文件内看到...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-strouhal/" title="斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺</div></div><div class="info-2"><div class="info-item-1">斯特劳哈尔数(Strouhal number,简称 St)是流体力学中描述非定常流动周期性特征的关键无量纲参数,在涡脱落(如圆柱绕流)和振荡流分析中至关重要。桥梁为什么会风致共振、换热器管束为什么会流致振动疲劳、CFD 算涡街时时间步长该取多小,这些问题的答案都绕不开 St。它与斯坦顿数(Stanton number)缩写相同但物理含义完全不同,后者另文单独介绍。 定义与表达式斯特劳哈尔数的定义为: $$St &#x3D; \frac{f \cdot L}{U}$$ 其中:  $f$:流动中主导振荡的频率(Hz),如涡脱落频率; $L$:特征长度(m),如圆柱直径或障碍物尺度; $U$:来流速度(m&#x2F;s)。   物理意义:St 表征振荡惯性力与对流惯性力的比值,反映流动周期性与其时间尺度的关联性:  St ≈ 0.2:经典圆柱绕流中涡脱落的典型值(如 Re≈200 时 St≈0.1977); St ≪ 1:振荡缓慢,准稳态流动; St ≫ 1:高频振荡,如超声速流动中的激波抖动。   关键特性:涡脱落模式与非线性动力学1. 雷诺数对 St 的影响实验与数值模拟表明,圆柱...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-schmidt/" title="施密特数(Schmidt Number)——动量扩散与质量扩散的竞速"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">施密特数(Schmidt Number)——动量扩散与质量扩散的竞速</div></div><div class="info-2"><div class="info-item-1">施密特数(Schmidt number,简称 Sc)量化动量扩散与质量扩散的相对速率,是流体力学和传质过程中的关键无量纲参数。如果说普朗特数 Pr 管的是动量与热量的扩散竞速,那么 Sc 管的就是动量与组分的扩散竞速:它决定了浓度边界层比速度边界层厚还是薄,进而影响从化学反应器到污染物扩散等一系列传质问题的分析。 定义与表达式$$Sc &#x3D; \frac{\text{动量扩散率}}{\text{质量扩散率}} &#x3D; \frac{\nu}{D} &#x3D; \frac{\mu}{\rho D}$$ 其中:  $\nu$:运动粘度(m²&#x2F;s),反映流体动量传递能力; $D$:质量扩散系数(m²&#x2F;s),反映组分在流体中的扩散能力; $\mu$:动态粘度(Pa·s); $\rho$:密度(kg&#x2F;m³)。  物理上,Sc 描述流体中速度边界层与浓度边界层的相对厚度:  Sc ≫ 1(如甘油 Sc≈1000):动量扩散远快于质量扩散,浓度边界层薄于速度边界层,典型如高黏液体中溶质扩散缓慢; Sc ≪ 1(如气体 Sc≈0.1~1):质量扩散占主导...</div></div></div></a><a class="pagination-related" href="/2026/09/13/openfoam-schemes-review/" title="OpenFOAM 离散格式选型指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">OpenFOAM 离散格式选型指南</div></div><div class="info-2"><div class="info-item-1">离散格式(fvSchemes)是 OpenFOAM 案例配置里最影响结果质量的一环。这篇笔记整理时间项、对流项、拉普拉斯项、梯度项的选型逻辑,配 Wolfdy 教程和补充技巧文档的原始幻灯片,并附两段数学推导(upwind 的人工粘性、三种梯度格式对比)。 时间离散格式速查   Scheme Order Formulation Advantages When to Use    First Order Implicit 1st $\frac{\phi^{n+1}-\phi^n}{\Delta t} &#x3D; F(\phi^{n+1})$; solved iteratively. Unconditionally stable; simple. Quick transients: when accuracy is not critical.   Second Order Implicit 2nd $\frac{3\phi^{n+1}-4\phi^n+\phi^{n-1}}{2\Delta t} &#x3D; F(\phi^{n+1})$. Higher temporal accu...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-froude/" title="弗劳德数(Froude Number)——惯性力与重力的较量"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">弗劳德数(Froude Number)——惯性力与重力的较量</div></div><div class="info-2"><div class="info-item-1">弗劳德数(Froude Number,简称 Fr)描述惯性力与重力在流动中的相对重要性,是明渠水力学和船舶水动力学中最基础的无量纲数。水跃为什么发生在那个位置、船模实验为什么要按 Fr 而不是 Re 来设计,答案都藏在 Fr &#x3D; 1 这条临界线两侧的流动差异里。凡是有自由液面、重力起作用的流动,Fr 都是第一个要算的数。 定义与表达式$$Fr &#x3D; \frac{V}{\sqrt{g \cdot L}}$$ 其中:  $V$:流体速度(m&#x2F;s); $g$:重力加速度(m&#x2F;s²,通常取 9.81); $L$:特征长度,如水深、船舶长度(m)。  分母 $\sqrt{gL}$ 正是重力波的传播速度,所以 Fr 的本质是流速与波速之比:流体跑得比波快还是慢,流动性质截然不同。 物理意义按惯性力与重力的相对强弱,流动被 Fr 划分为三种状态:  Fr &gt; 1:惯性力主导,流动为超临界流(急流),如急滩、高速船舶航行; Fr &lt; 1:重力主导,流动为亚临界流(缓流),如缓坡河道、低速水流; Fr &#x3D; 1:临界流动状态,典型现象是水跃...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E9%80%9F%E8%A7%88"><span class="toc-number">1.</span> <span class="toc-text">参数速览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E5%AD%A6%E5%AE%9A%E4%B9%89"><span class="toc-number">2.1.</span> <span class="toc-text">数学定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E6%9E%84%E6%88%90-%E9%98%BB%E5%8A%9B%E7%9A%84%E4%B8%A4%E4%B8%AA%E6%9D%A5%E6%BA%90"><span class="toc-number">2.2.</span> <span class="toc-text">物理构成:阻力的两个来源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E6%84%8F%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">物理意义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B5%81%E5%8A%A8%E7%8A%B6%E6%80%81%E7%9A%84%E6%8C%87%E7%A4%BA%E5%99%A8"><span class="toc-number">3.1.</span> <span class="toc-text">1. 流动状态的指示器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%9B%B7%E8%AF%BA%E6%95%B0%E7%9B%B8%E5%85%B3%E6%80%A7"><span class="toc-number">3.2.</span> <span class="toc-text">2. 雷诺数相关性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="toc-number">4.</span> <span class="toc-text">实现细节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A7%AF%E5%88%86%E9%80%BB%E8%BE%91-Numerical-Integration"><span class="toc-number">4.1.</span> <span class="toc-text">积分逻辑(Numerical Integration)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E5%80%BC%E7%9A%84%E9%99%B7%E9%98%B1-Reference-Area"><span class="toc-number">4.2.</span> <span class="toc-text">参考值的陷阱(Reference Area)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E5%9F%BA%E5%87%86-Benchmarks"><span class="toc-number">4.3.</span> <span class="toc-text">验证基准(Benchmarks)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/deploy-blog-new-machine/" title="博客新机部署实录——从空仓库到上线">博客新机部署实录——从空仓库到上线</a><time datetime="2026-09-15T03:15:18.000Z" title="Created 2026-09-15 11:15:18">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/hello-world/" title="Hello World">Hello World</a><time datetime="2026-09-15T01:33:38.643Z" title="Created 2026-09-15 09:33:38">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航">CFD 无量纲数手册——系列导航</a><time datetime="2026-09-13T07:30:00.000Z" title="Created 2026-09-13 15:30:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标">阻力系数(Drag Coefficient)——气动性能的终极积分指标</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币">压力系数(Pressure Coefficient)——CFD 验证的通用货币</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

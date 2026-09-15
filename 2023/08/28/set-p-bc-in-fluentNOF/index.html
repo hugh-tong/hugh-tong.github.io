@@ -1,0 +1,325 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>学习在fluent和OpenFOAM中设置压力边界条件 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="update: [CFD] When and Why do I need Operating Pressure, Temperature and Density? - YouTube  为什么需要Operating Pressue  补充关于压力出入口边界设置的资料： ANSYS FLUENT 12.0 User’s Guide - 7.3.3 Pressure Inlet Boundary Co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习在fluent和OpenFOAM中设置压力边界条件">
+<meta property="og:url" content="https://hugh-tong.github.io/2023/08/28/set-p-bc-in-fluentNOF/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="update: [CFD] When and Why do I need Operating Pressure, Temperature and Density? - YouTube  为什么需要Operating Pressue  补充关于压力出入口边界设置的资料： ANSYS FLUENT 12.0 User’s Guide - 7.3.3 Pressure Inlet Boundary Co">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2023-08-28T15:40:17.000Z">
+<meta property="article:modified_time" content="2026-09-15T01:33:38.643Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="OpenFOAM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "学习在fluent和OpenFOAM中设置压力边界条件",
+  "url": "https://hugh-tong.github.io/2023/08/28/set-p-bc-in-fluentNOF/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2023-08-28T15:40:17.000Z",
+  "dateModified": "2026-09-15T01:33:38.643Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2023/08/28/set-p-bc-in-fluentNOF/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '学习在fluent和OpenFOAM中设置压力边界条件',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">学习在fluent和OpenFOAM中设置压力边界条件</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">学习在fluent和OpenFOAM中设置压力边界条件</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-08-28T15:40:17.000Z" title="Created 2023-08-28 23:40:17">2023-08-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T01:33:38.643Z" title="Updated 2026-09-15 09:33:38">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6/">边界条件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>update:</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=zFDDhXEsIZ4">[CFD] When and Why do I need Operating Pressure, Temperature and Density? - YouTube</a></p>
+<blockquote>
+<p>为什么需要Operating Pressue</p>
+</blockquote>
+<p>补充关于压力出入口边界设置的资料：</p>
+<p><a target="_blank" rel="noopener" href="https://www.afs.enea.it/project/neptunius/docs/fluent/html/ug/node239.htm">ANSYS FLUENT 12.0 User’s Guide - 7.3.3 Pressure Inlet Boundary Conditions (enea.it)</a></p>
+<p>！！[<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=Er2j5Kq17as">CFD] Pressure-Inlet Boundary Conditions - YouTube</a></p>
+<blockquote>
+<p>讲的超好！里面有对不同速度工况下（不可压，可压，其中可压又分为亚音速和超音速）压力入口的设置</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV12s4y1j7vs/?spm_id_from=333.337.search-card.all.click&vd_source=c32136bd36d786f2220cfc980f5de7c2">一个视频理解Ansys Fluent里的压力设置及含义（表压or静压）_哔哩哔哩_bilibili</a></p>
+<ul>
+<li><p>Operating Condition</p>
+<ul>
+<li>Operating Pressure[Pa] +Gauge Pressure(Relative Pressure, Static Pressure)<br>$P_{absolute} &#x3D; P_{operating}+P_{gauge}$<br> The gauge pressure is what we enter in the Boundary conditions panels. Set the gauge pressure is used to avoid problems with round-off errors which occur when the dynamic pressure differences in a fluid are small compared to the absolute pressure level</li>
+</ul>
+</li>
+<li><p>Reference pressure location, is where the absolute static pressure is known</p>
+</li>
+</ul>
+<p><img src="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20230828222040140.png" alt="image-20230828222040140"></p>
+<p><a target="_blank" rel="noopener" href="https://www.cfd-online.com/Forums/openfoam-solving/76073-reference-pressure-openfoam.html">Reference pressure in OpenFOAM – CFD Online Discussion Forums (cfd-online.com)</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">In others the reference is set only if required.</span><br><span class="line"></span><br><span class="line">Quote:</span><br><span class="line"></span><br><span class="line">*In fluent, if we specify pref=1atm, then if we entering a guage perssure of 0 atm at outlet then we can directly enter the value 0.  even if I am giving the perssure boundary condition p=0 at outlet, there wont be any wrong in specifying the pref value = 0 in tne fvSolution file, right?*</span><br><span class="line"></span><br><span class="line">Right, since you&#x27;re solving for incompressible flows. As long as you do not over-specify the boundary (setting p and U at the same side, for example), it will be fine. The only difference could be a translation of the values of p.</span><br></pre></td></tr></table></figure>
+
+<p>这个算例里面有句话值得注意：over-specify！(setting p and U at the same side)</p>
+<p><strong>ASK GPT:</strong></p>
+<p>In OpenFOAM, when setting up a boundary condition with a constant mass flow rate velocity, you usually need to also specify an appropriate pressure boundary condition to ensure the problem is well-posed and physically accurate. The choice of pressure boundary condition depends on the specific problem and flow conditions. Here are a few options you can consider:</p>
+<ol>
+<li><p><strong>Inlet&#x2F;Outlet Pressure:</strong> You can use the <code>inletOutlet</code> boundary condition for pressure at the inlet or outlet. This condition allows the pressure to be determined based on the velocity field and the specified mass flow rate, ensuring that the flow is consistent with the desired mass flow rate.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">inletOutlet</span><br><span class="line">&#123;</span><br><span class="line">    type inletOutlet;</span><br><span class="line">    <span class="function">inletValue <span class="title">uniform</span> <span class="params">(<span class="number">0</span> <span class="number">0</span> <span class="number">0</span>)</span></span>; <span class="comment">// Specify the velocity components</span></span><br><span class="line">    value $internalField; <span class="comment">// To set pressure equal to internalField</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Fixed Value or Fixed Gradient:</strong> Depending on the flow problem, you might be able to set a fixed value or fixed gradient for the pressure at the boundary. However, ensure that the boundary conditions do not lead to unphysical results.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fixedValue</span><br><span class="line">&#123;</span><br><span class="line">    type fixedValue;</span><br><span class="line">    value $internalField; <span class="comment">// Specify the desired pressure value</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fixedGradient</span><br><span class="line">&#123;</span><br><span class="line">    type fixedGradient;</span><br><span class="line">    <span class="function">gradient <span class="title">uniform</span> <span class="params">(<span class="number">0</span> <span class="number">0</span> <span class="number">0</span>)</span></span>; <span class="comment">// Specify a gradient if needed</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Zero Gradient:</strong> For some cases, you might use a zero gradient condition for pressure at the boundary. This assumes that the pressure gradient is zero, which might be suitable if the boundary is far from the region of interest or if you have a long enough domain.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zeroGradient</span><br><span class="line">&#123;</span><br><span class="line">    type zeroGradient;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Pressure Inlet:</strong> If you have a known pressure value at the inlet, you can directly specify that value. However, this might affect the mass flow rate, so ensure consistency with your velocity boundary condition.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pressureInlet</span><br><span class="line">&#123;</span><br><span class="line">    type pressureInlet;</span><br><span class="line">    p uniform <span class="number">101325</span>; <span class="comment">// Specify the pressure value</span></span><br><span class="line">    <span class="function">U <span class="title">uniform</span> <span class="params">(<span class="number">0</span> <span class="number">0</span> <span class="number">0</span>)</span></span>; <span class="comment">// Specify the velocity components</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>Remember to select a pressure boundary condition that is consistent with your desired mass flow rate velocity condition and that reflects the physics of your problem. Always validate your choice through simulations and comparisons with experimental or analytical results if available.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2023/08/28/set-p-bc-in-fluentNOF/">https://hugh-tong.github.io/2023/08/28/set-p-bc-in-fluentNOF/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/OpenFOAM/">OpenFOAM</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/08/29/install-zsh/" title="安装zsh以及oh my zsh"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">安装zsh以及oh my zsh</div></div><div class="info-2"><div class="info-item-1"> oh my zsh可以在WSL中安装，用vscode和windows自带的终端打开就是oh my zsh的界面！ 安装oh my zsh之前先安装zsh  oh my zsh:ohmyzsh&#x2F;ohmyzsh: 🙃 A delightful community-driven (with 2,100+ contributors) framework for managing your zsh configuration. Includes 300+ optional plugins (rails, git, macOS, hub, docker, homebrew, node, php, python, etc), 140+ themes to spice up your morning, and an auto-update tool so that makes it easy to keep up with the latest updates from the community. (github.com) CuSO4Gem&#x2F;ohmyzsh-offlin...</div></div></div></a><a class="pagination-related" href="/2023/08/27/vscode-c-cpp-properties/" title="c_cpp_properties的设置"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">c_cpp_properties的设置</div></div><div class="info-2"><div class="info-item-1">ubuntu 下 GCC&#x2F;G++ 的 include 搜索路径查看与设置_ubuntu g++ clude_许野平的博客-CSDN博客  echo ‘main(){}’|gcc -E -v -  123456#include &lt;...&gt; search starts here: /usr/lib/gcc/x86_64-linux-gnu/7/include /usr/local/include /usr/lib/gcc/x86_64-linux-gnu/7/include-fixed /usr/include/x86_64-linux-gnu /usr/include      </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/09/26/gen-doxgen-cpp/" title="用doxygen生成类似OpenFOAM的继承关系图和接口手册"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-26</div><div class="info-item-2">用doxygen生成类似OpenFOAM的继承关系图和接口手册</div></div><div class="info-2"><div class="info-item-1">生成用的指令 doxygen -g  Doxygen.config ： 会在当前路径下生成一个 Doxygen.config  Doxygen.config文件里面有个选项HAVE_DOT推荐打开（不打开就是OpenFOAM那种类图，成员变量和函数较多的时候就不打开了），打开了里面有详细的函数。   更多设置就要研究这个Doxygen.config啦   doxygen Doxigen.config：当前路径生成了html 如果在linux下firefox ./html/index.html打开，windows直接网页打开，就可以看到了  生成后的（代码中按照一定的注释规范，doxygen会自动识别）：  这个图就和OpenFOAM的API Guide一样啦 The OpenFOAM Source Code Guide | OpenFOAM v7 | The OpenFOAM Foundation  以前刚开始学OpenFOAM，既不会C++也不会Doxygen，看API Guide简直是痛苦-0 -。 现在自己写个类试一试用doxygen生成一下，对阅读OpenFOAM的API...</div></div></div></a><a class="pagination-related" href="/2026/09/13/openfoam-schemes-review/" title="OpenFOAM 离散格式选型指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">OpenFOAM 离散格式选型指南</div></div><div class="info-2"><div class="info-item-1">离散格式(fvSchemes)是 OpenFOAM 案例配置里最影响结果质量的一环。这篇笔记整理时间项、对流项、拉普拉斯项、梯度项的选型逻辑,配 Wolfdy 教程和补充技巧文档的原始幻灯片,并附两段数学推导(upwind 的人工粘性、三种梯度格式对比)。 时间离散格式速查   Scheme Order Formulation Advantages When to Use    First Order Implicit 1st $\frac{\phi^{n+1}-\phi^n}{\Delta t} &#x3D; F(\phi^{n+1})$; solved iteratively. Unconditionally stable; simple. Quick transients: when accuracy is not critical.   Second Order Implicit 2nd $\frac{3\phi^{n+1}-4\phi^n+\phi^{n-1}}{2\Delta t} &#x3D; F(\phi^{n+1})$. Higher temporal accu...</div></div></div></a><a class="pagination-related" href="/2023/09/27/of-intelli-includePath-vscode/" title="更新版：OpenFOAM在vscode的代码跳转设置"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-27</div><div class="info-item-2">更新版：OpenFOAM在vscode的代码跳转设置</div></div><div class="info-2"><div class="info-item-1">以前写过一些（理解还不太够），主要对法1的具体操作进行更新， OpenFOAM代码跳转设置 (qq.com) 代码跳转的本质：找到这个文件  找到所有OpenFOAM中（编译后）的lnInclude所在路径  find . -name &quot;lnInclude&quot; &gt; tttt.findlnInclude	将OpenFOAM所有的lnInclude都找到。将所有的lnInclude链接都加在includePath中（仅仅加上Make&#x2F;options下链接到的库还不够，代码中还是有不能跳转的地方）。 VScode: ctrl + shift + P， 搜索C++。 ​	同理，代码不用编译都可以跳转，在windows下一样的。只要找到合适的lnInclude路径。  linux下OpenFOAM7的lnInclude。/home/tttt/OpenFOAM前面替换一下即可。  一个例子：#include &lt;typeinfo&gt; 是标准库中的头文件，要跳转这个，可以加上C++编译器的includePath，方法如下：       gcc -E -...</div></div></div></a><a class="pagination-related" href="/2023/08/24/openfoam-fluent-simple-k-e/" title="OpenFOAM和fluent的SIMPLE计算设置对比【还没写完】"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-24</div><div class="info-item-2">OpenFOAM和fluent的SIMPLE计算设置对比【还没写完】</div></div><div class="info-2"><div class="info-item-1">预备知识 (Dynamic viscosity)动力粘度：$\mu$ $，这个$$\mu$与牛顿内摩擦公式有关：$\tau &#x3D; \mu du&#x2F; dy$， 单位为$Pa\cdot s$或$N\cdot s&#x2F;m^2$ (Kinematic viscosity)运动粘度：$\nu &#x3D; \mu &#x2F; \rho$  ，单位为$m^2&#x2F;s$  在OpenFOAM中，一般设置运动粘度： 1nu [ 0 2 -1 0 0 0 0 ] 0.01;  theory.pdf (dyfluid.com)对于simpleFoam来说，OpenFOAM求解的方程是这样的： $$\begin{align}\nabla\cdot\bf{U}&#x3D;0 \\nabla \cdot (\mathbf{U}\mathbf{U})-\nabla \cdot(\nu \nabla \mathbf{U})&#x3D;-\nabla p \end{align}$$对于不可压流体时，OpenFOAM对上述方程整个除了密度$\rho$ 。所以会在边界条件的p文件内看到...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">压力系数(Pressure Coefficient)——CFD 验证的通用货币</div></div><div class="info-2"><div class="info-item-1">压力系数($C_p$)是一个非常基础但极其重要的无量纲参数。对于 CFD 开发者而言,它是求解器验证(Validation)时的”通用货币”:无论在 OpenFOAM 还是 Fluent 中计算,也无论风洞吹的模型是 1:1 还是 1:10,只要雷诺数相似,$C_p$ 的分布曲线必须重合。如果不重合,说明求解器算错了。本文针对不可压缩单相流展开。 参数速览 Name: Pressure Coefficient Symbol: $C_p$ Fluent Variable: pressure-coefficient Key Configuration: Report -&gt; Reference Values(这是计算 $C_p$ 的命门)  原理数学定义对于不可压缩流动,压力系数定义为: $$C_p &#x3D; \frac{P - P_\infty}{q_\infty} &#x3D; \frac{P_{static} - P_{ref}}{\frac{1}{2} \rho_{ref} v_{ref}^2}$$  $P_{static}$:某一点(如机翼表面)的静压; $P_{r...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">阻力系数(Drag Coefficient)——气动性能的终极积分指标</div></div><div class="info-2"><div class="info-item-1">阻力系数($C_d$)是与 $C_p$ 并列的核心无量纲参数。如果说 $C_p$ 描述了流场中某一点的压力状态,那么 $C_d$ 则是对物体表面所有受力情况的宏观积分总和。对于不可压缩单相流,它是评价气动&#x2F;水动外形效率的终极指标。本文解析 $C_d$ 的构成、计算原理以及开发者复现时的关键细节。 参数速览 Name: Drag Coefficient Symbol: $C_d$ Fluent Variable: drag-coefficient Setup Location: Report Definitions -&gt; New -&gt; Force Report -&gt; Drag Key Configuration: Report -&gt; Reference Values(同样,这是 $C_d$ 计算的命门)  原理数学定义$$C_d &#x3D; \frac{F_d}{\frac{1}{2} \rho_{ref} v_{ref}^2 A_{ref}}$$  $F_d$:阻力(Drag Force),即流体作用在物体上平行于来流方向的总力; $\frac...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/deploy-blog-new-machine/" title="博客新机部署实录——从空仓库到上线">博客新机部署实录——从空仓库到上线</a><time datetime="2026-09-15T03:15:18.000Z" title="Created 2026-09-15 11:15:18">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/hello-world/" title="Hello World">Hello World</a><time datetime="2026-09-15T01:33:38.643Z" title="Created 2026-09-15 09:33:38">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航">CFD 无量纲数手册——系列导航</a><time datetime="2026-09-13T07:30:00.000Z" title="Created 2026-09-13 15:30:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标">阻力系数(Drag Coefficient)——气动性能的终极积分指标</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币">压力系数(Pressure Coefficient)——CFD 验证的通用货币</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

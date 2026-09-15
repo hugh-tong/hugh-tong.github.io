@@ -1,0 +1,434 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>努塞尔数(Nusselt Number)——对流换热的增益倍数 | tttt's</title><meta name="author" content="tttt"><meta name="copyright" content="tttt"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="努塞尔数 Nu 量化对流换热相对纯导热的增益倍数,是评价换热器性能、校验 CFD 热边界层解析精度的核心指标。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="努塞尔数(Nusselt Number)——对流换热的增益倍数">
+<meta property="og:url" content="https://hugh-tong.github.io/2026/09/13/dimless-nusselt/index.html">
+<meta property="og:site_name" content="tttt&#39;s">
+<meta property="og:description" content="努塞尔数 Nu 量化对流换热相对纯导热的增益倍数,是评价换热器性能、校验 CFD 热边界层解析精度的核心指标。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://hugh-tong.github.io/img/tttt.png">
+<meta property="article:published_time" content="2026-09-13T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-15T01:33:38.639Z">
+<meta property="article:author" content="tttt">
+<meta property="article:tag" content="无量纲数">
+<meta property="article:tag" content="Nusselt number">
+<meta property="article:tag" content="对流换热">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hugh-tong.github.io/img/tttt.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "努塞尔数(Nusselt Number)——对流换热的增益倍数",
+  "url": "https://hugh-tong.github.io/2026/09/13/dimless-nusselt/",
+  "image": "https://hugh-tong.github.io/img/tttt.png",
+  "datePublished": "2026-09-13T07:00:00.000Z",
+  "dateModified": "2026-09-15T01:33:38.639Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "tttt",
+      "url": "https://hugh-tong.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon-32.png"><link rel="canonical" href="https://hugh-tong.github.io/2026/09/13/dimless-nusselt/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"No results found for: ${query}","hits_stats":"${hits} articles found"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '努塞尔数(Nusselt Number)——对流换热的增益倍数',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">tttt's</span></a><a class="nav-page-title" href="/"><span class="site-name">努塞尔数(Nusselt Number)——对流换热的增益倍数</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></span></div></div></nav><div id="post-info"><h1 class="post-title">努塞尔数(Nusselt Number)——对流换热的增益倍数</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2026-09-13T07:00:00.000Z" title="Created 2026-09-13 15:00:00">2026-09-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2026-09-15T01:33:38.639Z" title="Updated 2026-09-15 09:33:38">2026-09-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/">CFD</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CFD/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>努塞尔数(Nusselt number,简称 <strong>Nu</strong>)量化对流换热强度相对于纯导热的倍数关系,是传热学中最核心的无量纲参数。工程上真正关心的往往是”换热量到底有多少”,而 Nu 把答案归一成了一个数:Nu &#x3D; 3 意味着对流把传热增强了 3 倍。换热器设计、芯片冷却方案评估、CFD 换热结果校验,最终几乎都落到这个数的比较上。</p>
+<h2 id="定义与表达式"><a href="#定义与表达式" class="headerlink" title="定义与表达式"></a>定义与表达式</h2><p>$$<br>Nu &#x3D; \frac{\text{对流换热强度}}{\text{纯导热强度}} &#x3D; \frac{h L}{k}<br>$$</p>
+<p>其中:</p>
+<ul>
+<li>$h$:对流换热系数(W&#x2F;(m²·K)),反映流体与固体表面的实际换热能力;</li>
+<li>$L$:特征长度(如管道直径、平板长度,单位:m);</li>
+<li>$k$:流体热导率(W&#x2F;(m·K)),反映流体自身的导热能力。</li>
+</ul>
+<blockquote>
+<p><strong>物理意义</strong>:</p>
+<ul>
+<li><strong>Nu &#x3D; 1</strong>:对流换热强度等于纯导热(仅存在于静止流体或对称热边界条件);</li>
+<li><strong>Nu &gt; 1</strong>:对流增强传热(如流动流体冲刷壁面);</li>
+<li><strong>Nu ≫ 1</strong>:强湍流或高流速下显著强化换热。</li>
+</ul>
+</blockquote>
+<h2 id="物理意义-边界层与传热机制"><a href="#物理意义-边界层与传热机制" class="headerlink" title="物理意义:边界层与传热机制"></a>物理意义:边界层与传热机制</h2><ol>
+<li><strong>边界层主导作用</strong><ul>
+<li>Nu 直接关联<strong>速度边界层</strong>与<strong>热边界层</strong>的相对发展:<ul>
+<li><strong>高 Nu</strong>:热边界层薄,温度梯度大(如湍流冲击冷却);</li>
+<li><strong>低 Nu</strong>:热边界层厚,传热效率低(如层流自然对流)。</li>
+</ul>
+</li>
+<li>典型流体举例:</li>
+</ul>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>流体类型</th>
+<th>Nu 范围</th>
+<th>边界层特征</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>空气(强制对流)</td>
+<td>10–100</td>
+<td>热边界层薄,梯度显著</td>
+</tr>
+<tr>
+<td>水(自然对流)</td>
+<td>5–50</td>
+<td>热边界层较厚</td>
+</tr>
+<tr>
+<td>液态金属(高速流)</td>
+<td>100–1000</td>
+<td>极薄热边界层,高效传热</td>
+</tr>
+</tbody></table>
+<ol start="2">
+<li><strong>与普朗特数(Pr)的关联</strong><ul>
+<li>对于强制对流,Nu 常通过 <strong>Re(雷诺数)</strong> 和 <strong>Pr(普朗特数)</strong> 关联:<br>$$Nu &#x3D; C \cdot Re^m \cdot Pr^n$$<ul>
+<li>$C, m, n$:经验系数(依赖几何与流动状态);</li>
+<li><strong>Pr 的影响</strong>:高 Pr 流体(如油)Nu 较低,低 Pr 流体(如液态金属)Nu 较高。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="关键影响因素"><a href="#关键影响因素" class="headerlink" title="关键影响因素"></a>关键影响因素</h2><ol>
+<li><p><strong>流动状态</strong></p>
+<ul>
+<li><strong>层流</strong>:$Nu \propto Re^{0.5}$(如管内层流 Nu ≈ 3.66);</li>
+<li><strong>湍流</strong>:$Nu \propto Re^{0.8}$(如光滑管湍流 $Nu \approx 0.023 Re^{0.8} Pr^{0.4}$)。</li>
+</ul>
+</li>
+<li><p><strong>几何形状</strong></p>
+<ul>
+<li><strong>平板</strong>:Nu 随长度增加而减小(入口效应);</li>
+<li><strong>圆管</strong>:Nu 随曲率与长径比变化(如弯曲管 Nu 比直管高 20–30%)。</li>
+</ul>
+</li>
+<li><p><strong>热边界条件</strong></p>
+<ul>
+<li><strong>恒壁温</strong> vs <strong>恒热流</strong>:后者通常给出更高 Nu(因温度梯度更陡)。</li>
+</ul>
+</li>
+</ol>
+<h2 id="在-CFD-中的应用"><a href="#在-CFD-中的应用" class="headerlink" title="在 CFD 中的应用"></a>在 CFD 中的应用</h2><ol>
+<li><p><strong>壁面函数选择</strong></p>
+<ul>
+<li>高 Nu 场景需细网格(y⁺ ≈ 1)以解析热边界层;低 Nu 可用标准壁面函数(如 <code>nutkWallFunction</code>)。</li>
+</ul>
+</li>
+<li><p><strong>数值稳定性约束</strong></p>
+<ul>
+<li>网格 Peclet 数需满足 <strong>Peᵢ &#x3D; Reᵢ · Pr ≤ 2</strong>,否则需改用迎风格式避免振荡。</li>
+</ul>
+</li>
+<li><p><strong>空化与相变模拟</strong></p>
+<ul>
+<li>在 <code>interPhaseChangeFoam</code> 中,Nu 影响气-液界面蒸发&#x2F;冷凝速率。</li>
+</ul>
+</li>
+</ol>
+<h2 id="工程应用场景"><a href="#工程应用场景" class="headerlink" title="工程应用场景"></a>工程应用场景</h2><table>
+<thead>
+<tr>
+<th>领域</th>
+<th>典型问题</th>
+<th>Nu 的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>换热器设计</strong></td>
+<td>管壳式换热器优化</td>
+<td>通过 Nu 评估翅片效率与压降平衡点</td>
+</tr>
+<tr>
+<td><strong>电子散热</strong></td>
+<td>芯片冷却液选型</td>
+<td>高 Nu 流体(如水)优先用于高热流密度场景</td>
+</tr>
+<tr>
+<td><strong>能源工程</strong></td>
+<td>核反应堆液态金属冷却</td>
+<td>低 Pr 流体 Nu ≈ 5–10,适合高效传热设计</td>
+</tr>
+<tr>
+<td><strong>化工反应器</strong></td>
+<td>反应物温度均匀性控制</td>
+<td>通过 Nu 预测混合死区与热点风险</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>典型案例</strong>:</p>
+<ul>
+<li><strong>微通道散热器</strong>:通过微尺度涡流发生器将 Nu 提升至 200+,解决 5G 芯片散热瓶颈;</li>
+<li><strong>太阳能集热管</strong>:选择性涂层 + 真空层设计使 Nu 降低至 0.5,抑制热损失。</li>
+</ul>
+</blockquote>
+<h2 id="与其他无量纲数的关系"><a href="#与其他无量纲数的关系" class="headerlink" title="与其他无量纲数的关系"></a>与其他无量纲数的关系</h2><ul>
+<li><strong>Nu 与 Bi(毕渥数)</strong>:<ul>
+<li>$Bi &#x3D; hL&#x2F;k_s$($k_s$ 为固体热导率),Bi 用于固体内部导热阻力分析,Nu 用于流体侧对流分析;</li>
+</ul>
+</li>
+<li><strong>Nu 与 St(斯坦顿数)</strong>:<ul>
+<li>$St &#x3D; Nu &#x2F; (Re \cdot Pr) &#x3D; h &#x2F; (\rho c_p U)$,表征传热与流动动能的比率。</li>
+</ul>
+</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>努塞尔数 Nu 是连接流动特性与传热效率的核心桥梁:</p>
+<ol>
+<li><strong>量化传热增益</strong>:指导换热设备选型(如高 Nu 流体优先用于紧凑式换热器);</li>
+<li><strong>约束数值设计</strong>:确保 CFD 壁面解析精度(y⁺ 与 Nu 强关联);</li>
+<li><strong>优化热管理方案</strong>:从微电子冷却到反应堆安全均依赖 Nu 范围分析。</li>
+</ol>
+<p>CFD 算完一个换热问题,先把截面 Nu 与经验关联式对一遍,是最基本的可信度检查。</p>
+<p><em>本文整理自个人 CFD 学习笔记系列</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io">tttt</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://hugh-tong.github.io/2026/09/13/dimless-nusselt/">https://hugh-tong.github.io/2026/09/13/dimless-nusselt/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0/">无量纲数</a><a class="post-meta__tags" href="/tags/Nusselt-number/">Nusselt number</a><a class="post-meta__tags" href="/tags/%E5%AF%B9%E6%B5%81%E6%8D%A2%E7%83%AD/">对流换热</a></div><div class="post-share"><div class="social-share" data-image="/img/tttt.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/13/dimless-prandtl/" title="普朗特数(Prandtl Number)——动量与热扩散的竞速"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">普朗特数(Prandtl Number)——动量与热扩散的竞速</div></div><div class="info-2"><div class="info-item-1">普朗特数(Prandtl number,简称 Pr)表征动量扩散与热扩散的相对速率,直接影响流动与传热的耦合行为。它有一个独特之处:Pr 纯由流体物性组成,与流动尺度、速度无关,同一状态下空气永远约 0.7、机油上千、液态金属约 0.01。这个”物性指纹”决定了速度边界层与热边界层谁厚谁薄,进而在边界层相似性、换热经验关联式和 CFD 数值格式选择中反复出现。 定义与表达式$$Pr &#x3D; \frac{\text{动量扩散率}}{\text{热扩散率}} &#x3D; \frac{\nu}{\kappa} &#x3D; \frac{\mu c_p}{k}$$ 其中:  $\nu$:运动粘度(m²&#x2F;s),反映动量传递能力; $\kappa$:热扩散率(m²&#x2F;s),$\kappa &#x3D; \frac{k}{\rho c_p}$,反映热量传递能力; $\mu$:动态粘度(Pa·s); $c_p$:定压比热容(J&#x2F;(kg·K)); $k$:热导率(W&#x2F;(m·K))。  物理上,Pr 描述流体中速度边界层与热边界层的相对厚度。例如:  P...</div></div></div></a><a class="pagination-related" href="/2026/09/13/openfoam-schemes-review/" title="OpenFOAM 离散格式选型指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">OpenFOAM 离散格式选型指南</div></div><div class="info-2"><div class="info-item-1">离散格式(fvSchemes)是 OpenFOAM 案例配置里最影响结果质量的一环。这篇笔记整理时间项、对流项、拉普拉斯项、梯度项的选型逻辑,配 Wolfdy 教程和补充技巧文档的原始幻灯片,并附两段数学推导(upwind 的人工粘性、三种梯度格式对比)。 时间离散格式速查   Scheme Order Formulation Advantages When to Use    First Order Implicit 1st $\frac{\phi^{n+1}-\phi^n}{\Delta t} &#x3D; F(\phi^{n+1})$; solved iteratively. Unconditionally stable; simple. Quick transients: when accuracy is not critical.   Second Order Implicit 2nd $\frac{3\phi^{n+1}-4\phi^n+\phi^{n-1}}{2\Delta t} &#x3D; F(\phi^{n+1})$. Higher temporal accu...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/13/dimless-stanton/" title="斯坦顿数(Stanton Number)——换热与热容输运的效率之比"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">斯坦顿数(Stanton Number)——换热与热容输运的效率之比</div></div><div class="info-2"><div class="info-item-1">斯坦顿数(Stanton number,简称 St)表征流体与壁面之间的对流换热强度与流体热容输运能力的比值。与 Nu 数”对流比导热强多少倍”的视角不同,St 回答的是另一个问题:流过壁面的流体,有多大比例的”携热能力”被真正用上了。它不需要特征长度的选取,测量和估算都更直接,又通过雷诺类比把传热与流动阻力联系起来,因此在换热器设计和 CFD 湍流传热建模中非常实用。 定义与表达式$$St &#x3D; \frac{\text{对流换热系数}}{\text{流体热容输运率}} &#x3D; \frac{h}{\rho c_p U} &#x3D; \frac{Nu}{Re \cdot Pr}$$ 其中:  $h$:对流换热系数(W&#x2F;(m²·K)),反映流体与壁面间的换热效率; $\rho$:流体密度(kg&#x2F;m³); $c_p$:定压比热容(J&#x2F;(kg·K)); $U$:特征流速(m&#x2F;s); $Nu$:努塞尔数(表征对流与导热的相对强弱); $Re$:雷诺数(表征惯性力与粘性力的比值); $Pr$:普朗特数(表征动量与热扩散的比值)。   注...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-strouhal/" title="斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">斯特劳哈尔数(Strouhal Number)——非定常流动的周期性标尺</div></div><div class="info-2"><div class="info-item-1">斯特劳哈尔数(Strouhal number,简称 St)是流体力学中描述非定常流动周期性特征的关键无量纲参数,在涡脱落(如圆柱绕流)和振荡流分析中至关重要。桥梁为什么会风致共振、换热器管束为什么会流致振动疲劳、CFD 算涡街时时间步长该取多小,这些问题的答案都绕不开 St。它与斯坦顿数(Stanton number)缩写相同但物理含义完全不同,后者另文单独介绍。 定义与表达式斯特劳哈尔数的定义为: $$St &#x3D; \frac{f \cdot L}{U}$$ 其中:  $f$:流动中主导振荡的频率(Hz),如涡脱落频率; $L$:特征长度(m),如圆柱直径或障碍物尺度; $U$:来流速度(m&#x2F;s)。   物理意义:St 表征振荡惯性力与对流惯性力的比值,反映流动周期性与其时间尺度的关联性:  St ≈ 0.2:经典圆柱绕流中涡脱落的典型值(如 Re≈200 时 St≈0.1977); St ≪ 1:振荡缓慢,准稳态流动; St ≫ 1:高频振荡,如超声速流动中的激波抖动。   关键特性:涡脱落模式与非线性动力学1. 雷诺数对 St 的影响实验与数值模拟表明,圆柱...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-froude/" title="弗劳德数(Froude Number)——惯性力与重力的较量"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">弗劳德数(Froude Number)——惯性力与重力的较量</div></div><div class="info-2"><div class="info-item-1">弗劳德数(Froude Number,简称 Fr)描述惯性力与重力在流动中的相对重要性,是明渠水力学和船舶水动力学中最基础的无量纲数。水跃为什么发生在那个位置、船模实验为什么要按 Fr 而不是 Re 来设计,答案都藏在 Fr &#x3D; 1 这条临界线两侧的流动差异里。凡是有自由液面、重力起作用的流动,Fr 都是第一个要算的数。 定义与表达式$$Fr &#x3D; \frac{V}{\sqrt{g \cdot L}}$$ 其中:  $V$:流体速度(m&#x2F;s); $g$:重力加速度(m&#x2F;s²,通常取 9.81); $L$:特征长度,如水深、船舶长度(m)。  分母 $\sqrt{gL}$ 正是重力波的传播速度,所以 Fr 的本质是流速与波速之比:流体跑得比波快还是慢,流动性质截然不同。 物理意义按惯性力与重力的相对强弱,流动被 Fr 划分为三种状态:  Fr &gt; 1:惯性力主导,流动为超临界流(急流),如急滩、高速船舶航行; Fr &lt; 1:重力主导,流动为亚临界流(缓流),如缓坡河道、低速水流; Fr &#x3D; 1:临界流动状态,典型现象是水跃...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">CFD 无量纲数手册——系列导航</div></div><div class="info-2"><div class="info-item-1">做 CFD 的人绕不开无量纲数——它们是把一堆物理量压缩成一个”力与力的比值”的智慧。这个系列把我在学习和工程中积累的无量纲数笔记逐个整理成文,每篇包含定义、物理意义、典型数值、与其他数的换算关系和 CFD 工程应用要点。 速查表   无量纲数 符号 比的是什么 关键应用场景    格拉晓夫数 Gr 浮升力 vs 粘性力 自然对流   瑞利数 Ra 浮力效应 vs (粘性×热扩散) 自然对流失稳判据   普朗特数 Pr 动量扩散 vs 热扩散 流热耦合   努塞尔数 Nu 对流换热 vs 纯导热 换热效率   斯坦顿数 St 壁面换热 vs 热容输运 换热效率(实验友好)   理查德森数 Ri 浮力 vs 剪切 分层流稳定性   佩克莱数 Pe 对流输运 vs 扩散输运 数值格式选择   施密特数 Sc 动量扩散 vs 质量扩散 传质模拟   韦伯数 We 惯性力 vs 表面张力 界面破碎&#x2F;液滴   邦德→宾汉数 Bn 屈服应力 vs 粘性力 非牛顿流体   阿基米德数 Ar 浮力 vs 粘性力(密度差驱动) 颗粒沉降&#x2F;流化床   弗劳德数 Fr 惯性力 vs...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-richardson/" title="理查德森数(Richardson Number)——浮力与剪切的稳定性之争"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">理查德森数(Richardson Number)——浮力与剪切的稳定性之争</div></div><div class="info-2"><div class="info-item-1">理查德森数(Richardson number,简称 Ri)是流体力学中描述流动稳定性的关键无量纲参数,用于衡量浮力效应与剪切效应(惯性力)的相对重要性。大气边界层会不会翻腾混合、海洋分层流的湍流会不会被抑制、自然对流散热设计会不会失稳,这些问题第一眼该看的往往就是 Ri。它与瑞利数 Ra 名字相近,但物理含义不同,后者专注浮力驱动对流的强度,前者关心浮力与剪切的竞争。 基本定义与物理意义Ri 的数学表达式为: $$Ri &#x3D; \frac{\text{浮力效应}}{\text{剪切效应}} &#x3D; \frac{g \beta \Delta T H}{U^2}$$ 其中:  $g$:重力加速度; $\beta$:流体的体积膨胀系数; $\Delta T$:特征温差(如流体层上下壁面温差); $H$:特征长度(如流体层高度); $U$:特征流速(如剪切流速)。  物理意义:  Ri &gt; 0:浮力主导,抑制湍流,流动趋于稳定(如分层大气中热空气上升受阻); Ri &lt; 0:剪切力主导,促进湍流,流动失稳(如强风破坏温度分层); Ri &#x3D; 0:浮力效应消...</div></div></div></a><a class="pagination-related" href="/2026/09/13/dimless-peclet/" title="佩克莱数(Peclet Number)——对流与扩散的攻守易形"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-13</div><div class="info-item-2">佩克莱数(Peclet Number)——对流与扩散的攻守易形</div></div><div class="info-2"><div class="info-item-1">佩克莱数(Peclet number,简称 Pe)衡量对流与扩散输运效应的相对强弱,是流体力学和传热传质学中的关键无量纲参数。一个物理量是被流动”带着跑”还是被扩散”抹平”,取决于 Pe 的大小;而在 CFD 里它还有另一重身份:网格 Peclet 数直接决定离散格式的稳定性,是数值设置绕不开的检查项。 定义与公式$$Pe &#x3D; \frac{\text{对流速率}}{\text{扩散速率}} &#x3D; \frac{V L}{\kappa}$$ 其中:  $V$:特征流速(m&#x2F;s); $L$:特征长度,如管道直径或物体尺度(m); $\kappa$:扩散系数,可取热扩散率 $\alpha$ 或质量扩散率 $D$(m²&#x2F;s)。  按应用场景,Peclet 数可细分为:  热 Peclet 数(Peₜ):$\kappa$ 取热扩散率 $\alpha$,适用于传热问题; 质量 Peclet 数(Peₘ):$\kappa$ 取质量扩散率 $D$,适用于传质问题。  当扩散系数取运动粘度 $\nu$ 时,Pe 与雷诺数的关系为 Pe &#x3D; Re · P...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/tttt.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">tttt</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">博客已恢复维护,欢迎常来 🎉</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">定义与表达式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%A9%E7%90%86%E6%84%8F%E4%B9%89-%E8%BE%B9%E7%95%8C%E5%B1%82%E4%B8%8E%E4%BC%A0%E7%83%AD%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">物理意义:边界层与传热机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%BD%B1%E5%93%8D%E5%9B%A0%E7%B4%A0"><span class="toc-number">3.</span> <span class="toc-text">关键影响因素</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8-CFD-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">4.</span> <span class="toc-text">在 CFD 中的应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">5.</span> <span class="toc-text">工程应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E6%97%A0%E9%87%8F%E7%BA%B2%E6%95%B0%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.</span> <span class="toc-text">与其他无量纲数的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/deploy-blog-new-machine/" title="博客新机部署实录——从空仓库到上线">博客新机部署实录——从空仓库到上线</a><time datetime="2026-09-15T03:15:18.000Z" title="Created 2026-09-15 11:15:18">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/15/hello-world/" title="Hello World">Hello World</a><time datetime="2026-09-15T01:33:38.643Z" title="Created 2026-09-15 09:33:38">2026-09-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-index/" title="CFD 无量纲数手册——系列导航">CFD 无量纲数手册——系列导航</a><time datetime="2026-09-13T07:30:00.000Z" title="Created 2026-09-13 15:30:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-drag-coefficient/" title="阻力系数(Drag Coefficient)——气动性能的终极积分指标">阻力系数(Drag Coefficient)——气动性能的终极积分指标</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/13/dimless-pressure-coefficient/" title="压力系数(Pressure Coefficient)——CFD 验证的通用货币">压力系数(Pressure Coefficient)——CFD 验证的通用货币</a><time datetime="2026-09-13T07:20:00.000Z" title="Created 2026-09-13 15:20:00">2026-09-13</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2023 - 2026 By tttt</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer src="/js/mathjax-global.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,128,255" opacity="0.6" zIndex="-1" count="120" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading Database</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
