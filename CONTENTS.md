@@ -1,7 +1,7 @@
 # CONTENTS.md — 博客内容管理总控台
 
 > **这是我们俩的工作协议文档。** 你想发布/搬运/修改什么,直接编辑本文档对应的区块(或直接在对话里说"按 CONTENTS.md 执行"),我按这里的状态和队列干活,干完回写状态。
-> 最后同步:2026-09-13 · 由 Sisyphus 维护 · 博客:hugh-tong.github.io
+> 最后同步:2026-09-15 · 由 Sisyphus 维护 · 博客:hugh-tong.github.io
 
 ## 一、分类体系(定稿)
 
@@ -39,6 +39,7 @@ CFD/                        ← CFD 技术主体
 | 12 | 2026-09-13 | OpenFOAM 离散格式选型指南 | CFD/OpenFOAM | openfoam-schemes-review | ✅ 首篇 Obsidian 搬运 |
 | 13 | 2026-09-13 | CFD 无量纲数手册——系列导航 | CFD/无量纲数 | dimless-index | ✅ |
 | 14 | 2026-09-13 | 无量纲数 15 篇(Gr/Ra/Pr/Nu/St/Ri/Pe/Sc/We/Bn/Ar/Fr/Sr/Cp/Cd) | CFD/无量纲数 | dimless-* | ✅ 已全部上线 |
+| 15 | 2026-09-15 | 博客新机部署实录——从空仓库到上线 | 工具/Hexo | deploy-blog-new-machine | ✅ 新机部署流程实测 |
 
 > 状态图例:✅ 已发布 · 🚧 草稿中 · ⏸ 暂缓 · ⚠️ 有遗留问题
 
