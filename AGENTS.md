@@ -7,8 +7,8 @@ Hexo 静态博客（GitHub Pages：hugh-tong.github.io）。这是三分支仓�
 | 分支 | 内容 | 操作 |
 |---|---|---|
 | `dev_tttt` | Hexo 源码、配置、主题覆盖、工具与 Actions 工作流 | **所有修改只在这里** |
-| `main` | 旧 `hexo-deployer-git` 生成产物，Pages artifact 迁移期保留 | 不要手改 |
-| `master` | 2023 年旧部署产物；远端默认分支迁移前可能仍指向它 | 忽略 |
+| `main` | 历史 `hexo-deployer-git` 生成产物，已停止更新 | 不要手改 |
+| `master` | 2023 年旧部署产物 | 忽略 |
 
 如果检出的是 `master`，看到的是旧静态结果。任何操作前先执行 `git checkout dev_tttt`。
 
@@ -41,7 +41,7 @@ npm run verify
 
 - Butterfly 覆盖配置：`_config.butterfly.yml`
 - NexT 覆盖配置：`_config.next.yml`
-- 发布主题选择：`themes/butterfly.mode.yml`、`themes/next.mode.yml`
+- 构建主题选择：`themes/butterfly.mode.yml`、`themes/next.mode.yml`
 
 不要修改 `node_modules`，也不要恢复原来没有 `.gitmodules` 的 `themes/next` 裸 gitlink。主题命令使用 `_config.yml,themes/*.mode.yml` 的逗号列表进行深合并；不能只传 mode 文件。
 
@@ -49,8 +49,9 @@ npm run verify
 
 - `.github/workflows/ci.yml`：push/PR 到 `dev_tttt` 时执行依赖审计和双主题验证。
 - `.github/workflows/pages.yml`：手动构建 Butterfly，上传 artifact 并部署 Pages。
-- 新发布流程启用前，仓库管理员必须把默认分支改成 `dev_tttt`，并把 Pages Source 改成 `GitHub Actions`。
-- 新流程验证完成前，`npm run deploy:*` 保留为向 `main` 发布的临时后备；不要同时使用新旧发布方式。
+- 默认分支已是 `dev_tttt`，Pages Source 已是 `GitHub Actions`；2026-09-16 已验证真实部署。
+- 仓库不再安装 `hexo-deployer-git`，也不提供 `npm run deploy`。发布只能通过 Pages 工作流完成。
+- 回滚使用 `git revert` 源码提交、等待 CI 通过后重新运行 Pages 工作流；禁止恢复生成分支 force-push。
 - 不得由 agent 自行触发部署、push、修改 GitHub Settings 或 force-push，除非用户明确授权。
 
 ## 仓库维护规则
@@ -62,4 +63,4 @@ npm run verify
 - 工作区可能含用户自己的改动。只暂存本次明确修改的路径，禁止 `git add .`。
 - 不要手工修改生成分支或生成目录来修问题，应在源码、配置或构建工具中修复。
 
-日常手册见 `README.md`，完整迁移和回退步骤见 `DEPLOYMENT.md`。
+日常手册见 `README.md`，完整发布和回滚步骤见 `DEPLOYMENT.md`。

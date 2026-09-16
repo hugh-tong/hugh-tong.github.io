@@ -5,7 +5,6 @@
   "scripts": {
     "build": "hexo generate --bail",
     "clean": "hexo clean",
-    "deploy": "npm run deploy:butterfly",
     "server": "hexo server",
     "build:butterfly": "hexo generate --config _config.yml,themes/butterfly.mode.yml --bail",
     "build:next": "hexo generate --config _config.yml,themes/next.mode.yml --bail",
@@ -15,9 +14,7 @@
     "check:generated": "node tools/check-generated-site.mjs",
     "verify:butterfly": "npm run clean && npm run build:butterfly && npm run check:generated",
     "verify:next": "npm run clean && npm run build:next && npm run check:generated",
-    "verify": "npm run check:source && npm run verify:butterfly && npm run verify:next",
-    "deploy:butterfly": "npm run verify:butterfly && hexo deploy --config _config.yml,themes/butterfly.mode.yml",
-    "deploy:next": "npm run verify:next && hexo deploy --config _config.yml,themes/next.mode.yml"
+    "verify": "npm run check:source && npm run verify:butterfly && npm run verify:next"
   },
   "hexo": {
     "version": "8.1.2"
@@ -28,7 +25,6 @@
   "packageManager": "npm@10.9.8",
   "dependencies": {
     "hexo": "8.1.2",
-    "hexo-deployer-git": "^4.0.0",
     "hexo-generator-archive": "^2.0.0",
     "hexo-generator-category": "^2.0.0",
     "hexo-generator-feed": "4.0.0",

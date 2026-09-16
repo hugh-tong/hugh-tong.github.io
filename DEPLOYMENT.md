@@ -2,7 +2,7 @@
 
 本手册记录可复现的建站、验证和发布过程。日常命令速查见 `README.md`，agent 操作边界见 `AGENTS.md`。
 
-## 已验证环境（2026-09-15）
+## 已验证环境（2026-09-16）
 
 | 项目 | 版本或约束 |
 |---|---|
@@ -56,25 +56,25 @@ CI 在 push 或 pull request 指向 `dev_tttt` 时执行相同验证，并额外
 
 仓库中的 `.github/workflows/pages.yml` 保持手动发布语义：只有在 Actions 页面触发 `workflow_dispatch` 时才发布。它不提交生成 HTML，也不修改 `main`。
 
-### 一次性仓库设置
+### 当前仓库设置
 
-1. 推送本次源码改造到 `dev_tttt`。
-2. Settings → General → Default branch：选择 `dev_tttt`。
-3. Settings → Pages → Build and deployment → Source：选择 `GitHub Actions`。
-4. Actions → Deploy GitHub Pages → Run workflow，选择 `dev_tttt`。
-5. 验证线上首页、文章、搜索、404、`/sitemap.xml` 和 `/atom.xml`。
+- Default branch：`dev_tttt`。
+- Pages Source：`GitHub Actions`。
+- 发布主题：Butterfly。
+- 发布触发：Actions → Deploy GitHub Pages → Run workflow。
 
-为什么需要先改默认分支：GitHub 只从默认分支展示和接收手动工作流；Dependabot 也从默认分支读取配置。
+2026-09-16 已完成一次真实 artifact 发布，CI、Pages build/deploy 以及线上核心路由均通过。
 
-### 迁移期回退
+### 回滚
 
-Pages 设置切换完成前，可继续使用旧路径：
+错误发布应通过源码历史回滚，不通过生成分支修补：
 
 ```bash
-npm run deploy:butterfly
+git revert <bad-commit>
+git push origin dev_tttt
 ```
 
-该命令先完整验证，再由 `hexo-deployer-git` 把 `public/` 推送到 `main`。这是临时回退手段；新 Pages 工作流验证稳定后，再单独删除 `hexo-deployer-git`、`deploy` 配置和旧部署脚本，并决定是否归档 `main` / `master`。不要在同一次发布中同时运行新旧流程。
+等待 `Validate blog` 通过后，重新运行 `Deploy GitHub Pages`。`main` 和 `master` 只保留历史静态产物，不再作为 Pages 来源，也不要手工修改。
 
 ## 发布后检查
 
