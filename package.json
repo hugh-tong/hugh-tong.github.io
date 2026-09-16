@@ -40,6 +40,6 @@
     "hexo-theme-next": "8.29.0"
   },
   "devDependencies": {
-    "hexo-front-matter": "4.2.1"
+    "hexo-front-matter": "5.0.0"
   }
 }
