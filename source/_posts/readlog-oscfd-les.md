@@ -1,6 +1,7 @@
 ---
 title: 教程阅读:OSCFD LES tutorial(占位)
 date: 2026-09-15 16:10:00
+published: false
 categories:
   - [CFD, 论文阅读]
 tags:
@@ -40,4 +41,3 @@ singlePhaseTransportModel laminarTransport(U,phi);
 有这个`laminalTranpsort`的原因是，`eddy-viscosity turbulence`需要计算一个有效粘度，这个粘度包含laminar和非牛顿流体non-Newton对laminar的影响。
 
 **[PDF 素材:OSCFD2019_ImplementTurbulenceModel.pdf]**
-

@@ -1,6 +1,7 @@
 ---
 title: OpenFOAM 矩阵求解器选择(占位)
 date: 2026-09-15 15:10:00
+published: false
 categories:
   - [CFD, 数值方法]
 tags:

@@ -1,6 +1,7 @@
 ---
 title: PyFoam 工具集(占位)
 date: 2026-09-15 15:10:00
+published: false
 categories:
   - [CFD, OpenFOAM, 工具链]
 tags:

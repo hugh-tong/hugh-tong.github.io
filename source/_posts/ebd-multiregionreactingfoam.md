@@ -1,6 +1,7 @@
 ---
 title: multiRegionReactingFoam 多区域反应求解器(占位)
 date: 2026-09-15 14:00:00
+published: false
 categories:
   - [CFD, OpenFOAM, 求解器]
 tags:
