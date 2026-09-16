@@ -69,6 +69,8 @@ inject:
     - <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
   bottom:
     - <script defer src="/js/mathjax-global.js"></script>
+    - <link rel="stylesheet" href="/css/deploy-age.css">
+    - <script defer src="/js/deploy-age.js"></script>
 
 # ---------- 阅读体验 ----------
 copy_btn: true

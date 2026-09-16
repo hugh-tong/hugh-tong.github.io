@@ -28,6 +28,8 @@ jobs:
         run: npm ci
       - name: Validate source
         run: npm run check:source
+      - name: Record deployment timestamp
+        run: printf '{"deployedAt":"%s","source":"github-actions"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > source/deploy-meta.json
       - name: Build Butterfly site
         run: npm run verify:butterfly
       - name: Configure Pages
