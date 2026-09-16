@@ -18,10 +18,21 @@
     var old = document.getElementById(widgetId);
     if (old) old.remove();
 
+    var wrapper = document.createElement('div');
+    wrapper.className = 'site-deploy-age-wrap';
+
+    var handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'site-deploy-age__handle';
+    handle.setAttribute('aria-label', '显示网站部署状态');
+    handle.setAttribute('title', '显示网站部署状态');
+    wrapper.appendChild(handle);
+
     var box = document.createElement('aside');
     box.id = widgetId;
     box.className = 'site-deploy-age';
     box.setAttribute('aria-label', '网站部署状态');
+    wrapper.appendChild(box);
 
     var title = document.createElement('div');
     title.className = 'site-deploy-age__title';
@@ -34,14 +45,16 @@
 
     if (!meta || !meta.deployedAt) {
       detail.textContent = '等待下一次 GitHub Actions 发布写入时间';
-      document.body.appendChild(box);
+      document.body.appendChild(wrapper);
+      scheduleHide(wrapper);
       return;
     }
 
     var deployedAt = new Date(meta.deployedAt);
     if (Number.isNaN(deployedAt.getTime())) {
       detail.textContent = '部署时间格式无效';
-      document.body.appendChild(box);
+      document.body.appendChild(wrapper);
+      scheduleHide(wrapper);
       return;
     }
 
@@ -64,7 +77,30 @@
     }
     updateAge();
     window.setInterval(updateAge, 60000);
-    document.body.appendChild(box);
+    document.body.appendChild(wrapper);
+    scheduleHide(wrapper);
+
+    function scheduleHide(target) {
+      var hideTimer;
+      function hide() {
+        target.classList.add('is-hidden');
+      }
+      function show() {
+        window.clearTimeout(hideTimer);
+        target.classList.remove('is-hidden');
+        hideTimer = window.setTimeout(hide, 12000);
+      }
+      wrapper.addEventListener('mouseenter', show);
+      wrapper.addEventListener('mouseleave', function () {
+        window.clearTimeout(hideTimer);
+        hideTimer = window.setTimeout(hide, 2500);
+      });
+      handle.addEventListener('click', function () {
+        if (target.classList.contains('is-hidden')) show();
+        else hide();
+      });
+      hideTimer = window.setTimeout(hide, 12000);
+    }
   }
 
   function start() {
