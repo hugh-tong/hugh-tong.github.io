@@ -108,7 +108,7 @@ $$
 
 
 
-![A rectangular control volume whose size increases with time due to a difference in the grid velocities at its boundaries](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240228141921646.png)
+考虑一个二维矩形控制体：东西、南北两组边界以不同网格速度移动，因此新旧时间层的控制体面积不同。下面直接由该几何关系推导，不再嵌入教材截图。
 
 采用隐式欧拉，离散的连续性方程在上图13.6类似的控制体中，有：
 $$
@@ -190,7 +190,7 @@ $$
 
 
 
-![Fig.13.7 A typical 2D CV at two time steps and the volume swept by a cell face](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240228151803081.png)
+令 $\delta V_k$ 表示第 $k$ 个面在两个时间层之间扫过的有符号体积。
 
 在这里求和是指对控制体积的所有面进行求和。$\delta V_k$​的求和为控制体积在不同的时间步，旧的位置到新的位置，对应面扫过的体积。
 $$
@@ -231,9 +231,7 @@ $$
 $$
 在瞬态 SIMPLE 算法中，新时刻$ t_{n+1}$ 的值是通过外迭代得到的。根据方程在外迭代中计算新质量通量$\dot{m}^{n+1}_k$的近似值。为满足质量守恒，质量通量的修正通过在cell-face速度时加一个修正项（该项与压力修正的梯度成正比）。如果是可压缩流动，还需要对cell-face密度进行修正（该项直接与压力项成正比）。
 
-![image-20240229164017280](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240229164017280.png)
-
-在3D的情况下，由cell faces扫过的体积必须准确计算（因为cell edge可能会发生转动）。扫过体积的计算需要图13.8阴影部分表面。阴影部分的面积由两个控制体积共有，需要保证他们以相同的方式进行三角化以满足空间守恒。
+在 3D 情况下，由 cell faces 扫过的体积必须准确计算，因为 cell edge 可能发生转动。相邻控制体共享的扫掠表面必须采用一致的三角化，才能满足空间守恒。
 
 ==TODO:网格体积的计算==
 

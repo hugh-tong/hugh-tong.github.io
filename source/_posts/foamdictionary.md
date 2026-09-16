@@ -9,7 +9,7 @@ tags:
   - Bash
   - RANS
   - OpenFOAM
-description: foamFoam 命令行读写字典工具:查询、修改、新增条目的完整用法。
+description: foamDictionary 命令行读写字典工具：查询、修改、新增条目的完整用法。
 mathjax: true
 ---
 

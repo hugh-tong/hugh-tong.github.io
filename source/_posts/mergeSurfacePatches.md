@@ -14,9 +14,12 @@ mathjax: true
 ---
 > "The utility allow the user to specify the patches in the surface mesh which shall be merge together."
 
+[OpenFOAM v2406 utility reference: mergeSurfacePatches](https://www.openfoam.com/documentation/guides/v2406/man/mergeSurfacePatches.html) —— 选项和覆盖/输出行为以对应发行版手册为准
 
-```
-~/work/TJU/freeCAD_prj/meshCase_simp_geo ❯ mergeSurfacePatches -help        tttt@tttt-cfd-ganggang 16:28:00
+
+```shell
+cd "$CASE_DIR"
+mergeSurfacePatches -help
 
 Usage: mergeSurfacePatches [OPTIONS] <input surface file> <new patch>
 Options:

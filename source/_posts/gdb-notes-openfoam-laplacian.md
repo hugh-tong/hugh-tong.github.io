@@ -48,9 +48,7 @@ whatis var  //显示变量var的类型
 ```
 
 
-GdbOF专属命令：
-
-![gdbOf常用命令](https://picx.zhimg.com/v2-9c50f356526b4d9e90215708369cd3e5_r.jpg)
+GdbOF 专属命令应以所安装插件的帮助输出为准。原文使用了一张来源和许可不明确的知乎热链图片，现已移除；常用命令在下文用可搜索文本整理。
 
 ## 1. 启动与附加调试
 
@@ -174,4 +172,3 @@ GdbOF专属命令：
 - 步骤 6: 动态观察
     - (gdb) watch Gamma
     - (gdb) continue
-

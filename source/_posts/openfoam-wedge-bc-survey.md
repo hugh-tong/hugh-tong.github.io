@@ -40,11 +40,7 @@ mathjax: true
 
 
 
-[OpenFOAM v11 User Guide - 5.3 Mesh boundary (cfd.direct)](https://doc.cfd.direct/openfoam/user-guide-v11/boundaries)
-
-
-
-![wedge](https://doc.cfd.direct/openfoam/user-guide-v11/img/index311x.png)
+[OpenFOAM v11 User Guide - 5.3 Mesh boundary (cfd.direct)](https://doc.cfd.direct/openfoam/user-guide-v11/boundaries) 中给出了 wedge 几何示意图。本文不直接热链该图片。
 
 
 
@@ -60,21 +56,19 @@ PDF 素材:Master_Thesis_Giacomo_Quattrucci_4820428.pdf(原本机路径不可供
 
 > 这里面谈及的之前遇到的`internalCoeffs_`与`boundaryCoeffs_`。讨论了这两个的含义。这个回答很有意思，感觉可以回答之前的"Why using LDU in OpenFOAM"的问题。
 >
-> ![image-20240308161138560](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240308161138560.png)
+> 原帖还讨论了 `internalCoeffs_` 与 `boundaryCoeffs_` 的含义。本文不嵌入论坛截图，结论需要回到固定版本源码验证。
 
 
 
 NOTE：在`MULESTemplates.C`中，还发现MULES算法对`wedge`边界条件做了单独的分支判断。
 
-![image-20240308151258184](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240308151258184.png)
+相关分支应直接引用对应版本的 `MULESTemplates.C` 行号；截图已移除。
 
 
 
 
 
-Versteeg书中，关于施加边界条件的讨论
-
-![image-20240308152653521](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240308152653521.png)
+Versteeg 的有限体积教材讨论了边界条件如何通过取消边界侧连接并修改源项进入离散方程。这里保留转述，不嵌入教材截图。
 
 > In Chapters 4 and 5 we saw that boundary conditions enter the discretised equations by suppression of the link to the boundary side and modification of the source terms.
 >
@@ -189,13 +183,9 @@ fixed value, zero gradient etc.
 
 [OpenFOAM矩阵组装的系统介绍(全) - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/366736087)
 
-<img src="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240313134528546.png" alt="image-20240313134528546" style="zoom:50%;" />
 
 
-
-这篇帖子里对`::New`函数的说明和之前的内容对上了。这种return一个`::New`的方式就是OpenFOAM的`RTS`选择机制。
-
-<img src="https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240313135526443.png" alt="image-20240313135526443" style="zoom:50%;" />
+这篇帖子里对 `::New` 函数的说明可作为检索线索；运行时选择机制应以对应 OpenFOAM 版本源码为准，不嵌入帖子截图。
 
 
 
@@ -416,9 +406,7 @@ wedgeFvPatchField (const wedgeFvPatchField< Type > &, const DimensionedField< Ty
   }
   ```
 
-- 其中的函数`rotationTensor`本质为找到张量A转动到张量B的转动矩阵。经查阅，与如下公式类似：
-
-![计算从矢量a到矢量b的转动矩阵](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240320111403543.png)
+- 其中的函数 `rotationTensor` 构造把一个方向旋转到另一个方向的张量。具体公式应以对应版本的函数实现和退化情况处理为准。
 
 
 
@@ -660,5 +648,3 @@ forAll(T.boundaryField(), patchI)
 2. `wedge`边界条件和`cyclic`旋转边界的旋转（坐标变换）数学意义不确定相同
 3. 旋转周期边界和`wedge`是否能通用需要进一步调研与测试
 4. `wedge`用于轴对称和球对称，需要对wedge的角度进行坐标变换，而不是简单的镜像对应的patch。
-
-

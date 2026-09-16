@@ -13,6 +13,8 @@ mathjax: true
 ---
 [OpenFOAM: API Guide: timeVaryingMappedFixedValueFvPatchField< Type > Class Template Reference](https://www.openfoam.com/documentation/guides/v2206/api/classFoam_1_1timeVaryingMappedFixedValueFvPatchField.html)
 
+[OpenFOAM Documentation: timeVaryingMappedFixedValue (v2312)](https://doc.openfoam.com/2312/tools/processing/boundary-conditions/rtm/derived/meshMotion/timeVaryingMappedFixedValue/)
+
 [Non-uniform time-varying boundary conditions in OpenFOAM : r/CFD](https://www.reddit.com/r/CFD/comments/ogv644/nonuniform_timevarying_boundary_conditions_in/)
 
 
@@ -220,7 +222,7 @@ From Field< Type > (selection):
 ### 总的文件结构
 
 ```
-~/work/202509/atmFlatTerrain > tree  -L 2                                       11:05:47
+$CASE_DIR > tree -L 2
 .
 ├── Allclean
 ├── Allrun
@@ -246,7 +248,7 @@ From Field< Type > (selection):
 
 
 ```
-~/work/202509/atmFlatTerrain/successor/results/kEpsilon/constant > tree -L 3                                                                                                                                                                                        % 09:52:18
+$CASE_DIR/successor/results/kEpsilon/constant > tree -L 3
 .
 ├── boundaryData
 │   ├── p1
@@ -392,20 +394,20 @@ functions
 
 
 ```
-~/work/202509/atmFlatTerrain > ./Allrun                                                               10:48:32
+$CASE_DIR > ./Allrun
 
 # Create the setup: kEpsilon
 
 # Run the setup: kEpsilon
 
 Restore 0/ from 0.orig/
-Running blockMesh on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon
-Running renumberMesh on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon
-Running checkMesh on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon
-Running decomposePar on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon
-Running buoyantBoussinesqSimpleFoam (2 processes) on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon 
-Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon
-Running transformPoints on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kEpsilon
+Running blockMesh on $CASE_DIR/precursor/results/kEpsilon
+Running renumberMesh on $CASE_DIR/precursor/results/kEpsilon
+Running checkMesh on $CASE_DIR/precursor/results/kEpsilon
+Running decomposePar on $CASE_DIR/precursor/results/kEpsilon
+Running buoyantBoussinesqSimpleFoam (2 processes) on $CASE_DIR/precursor/results/kEpsilon
+Running reconstructPar on $CASE_DIR/precursor/results/kEpsilon
+Running transformPoints on $CASE_DIR/precursor/results/kEpsilon
 
 ## Store the mesh of kEpsilon as the common mesh
 
@@ -417,10 +419,10 @@ Running transformPoints on /home/tttt/work/202509/atmFlatTerrain/precursor/resul
 ## Copy the common mesh to the setup: kOmegaSST
 
 Restore 0/ from 0.orig/
-Running decomposePar on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kOmegaSST
-Running buoyantBoussinesqSimpleFoam (2 processes) on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kOmegaSST 
-Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kOmegaSST
-Running transformPoints on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kOmegaSST
+Running decomposePar on $CASE_DIR/precursor/results/kOmegaSST
+Running buoyantBoussinesqSimpleFoam (2 processes) on $CASE_DIR/precursor/results/kOmegaSST
+Running reconstructPar on $CASE_DIR/precursor/results/kOmegaSST
+Running transformPoints on $CASE_DIR/precursor/results/kOmegaSST
 
 # Create the setup: kL
 
@@ -429,27 +431,27 @@ Running transformPoints on /home/tttt/work/202509/atmFlatTerrain/precursor/resul
 ## Copy the common mesh to the setup: kL
 
 Restore 0/ from 0.orig/
-Running decomposePar on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kL
-Running buoyantBoussinesqSimpleFoam (2 processes) on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kL 
+Running decomposePar on $CASE_DIR/precursor/results/kL
+Running buoyantBoussinesqSimpleFoam (2 processes) on $CASE_DIR/precursor/results/kL
 
 
-Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kL
-Running transformPoints on /home/tttt/work/202509/atmFlatTerrain/precursor/results/kL
+Running reconstructPar on $CASE_DIR/precursor/results/kL
+Running transformPoints on $CASE_DIR/precursor/results/kL
 
 # Create the setup: kEpsilon
 
 # Run the setup: kEpsilon
 
 Restore 0/ from 0.orig/
-Running blockMesh on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running topoSet on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running createPatch on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running renumberMesh on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running checkMesh on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running mapFields on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running decomposePar on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
-Running buoyantBoussinesqSimpleFoam (8 processes) on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon 
-Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/successor/results/kEpsilon
+Running blockMesh on $CASE_DIR/successor/results/kEpsilon
+Running topoSet on $CASE_DIR/successor/results/kEpsilon
+Running createPatch on $CASE_DIR/successor/results/kEpsilon
+Running renumberMesh on $CASE_DIR/successor/results/kEpsilon
+Running checkMesh on $CASE_DIR/successor/results/kEpsilon
+Running mapFields on $CASE_DIR/successor/results/kEpsilon
+Running decomposePar on $CASE_DIR/successor/results/kEpsilon
+Running buoyantBoussinesqSimpleFoam (8 processes) on $CASE_DIR/successor/results/kEpsilon
+Running reconstructPar on $CASE_DIR/successor/results/kEpsilon
 
 ## Store the mesh of kEpsilon as the common mesh
 
@@ -461,10 +463,10 @@ Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/successor/result
 ## Copy the common mesh to the setup: kOmegaSST
 
 Restore 0/ from 0.orig/
-Running mapFields on /home/tttt/work/202509/atmFlatTerrain/successor/results/kOmegaSST
-Running decomposePar on /home/tttt/work/202509/atmFlatTerrain/successor/results/kOmegaSST
-Running buoyantBoussinesqSimpleFoam (8 processes) on /home/tttt/work/202509/atmFlatTerrain/successor/results/kOmegaSST 
-Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/successor/results/kOmegaSST
+Running mapFields on $CASE_DIR/successor/results/kOmegaSST
+Running decomposePar on $CASE_DIR/successor/results/kOmegaSST
+Running buoyantBoussinesqSimpleFoam (8 processes) on $CASE_DIR/successor/results/kOmegaSST
+Running reconstructPar on $CASE_DIR/successor/results/kOmegaSST
 
 # Create the setup: kL
 
@@ -473,8 +475,8 @@ Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/successor/result
 ## Copy the common mesh to the setup: kL
 
 Restore 0/ from 0.orig/
-Running mapFields on /home/tttt/work/202509/atmFlatTerrain/successor/results/kL
-Running decomposePar on /home/tttt/work/202509/atmFlatTerrain/successor/results/kL
-Running buoyantBoussinesqSimpleFoam (8 processes) on /home/tttt/work/202509/atmFlatTerrain/successor/results/kL 
-Running reconstructPar on /home/tttt/work/202509/atmFlatTerrain/successor/results/kL
+Running mapFields on $CASE_DIR/successor/results/kL
+Running decomposePar on $CASE_DIR/successor/results/kL
+Running buoyantBoussinesqSimpleFoam (8 processes) on $CASE_DIR/successor/results/kL
+Running reconstructPar on $CASE_DIR/successor/results/kL
 ```

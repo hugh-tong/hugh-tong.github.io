@@ -44,6 +44,10 @@ update:
 
 [Reference pressure in OpenFOAM -- CFD Online Discussion Forums (cfd-online.com)](https://www.cfd-online.com/Forums/openfoam-solving/76073-reference-pressure-openfoam.html)
 
+[OpenFOAM Documentation: fixedFluxPressure](https://doc.openfoam.com/2212/tools/processing/boundary-conditions/rtm/derived/inlet/fixedFluxPressure/) —— 使压力梯度与速度边界给定的通量一致
+
+[OpenFOAM Documentation: pressure–velocity common combinations](https://doc.openfoam.com/2312/tools/processing/boundary-conditions/common-combinations/) —— 不可压缩/可压缩压力速度边界组合的官方对照
+
 ```
 In others the reference is set only if required.
 

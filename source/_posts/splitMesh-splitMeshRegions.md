@@ -14,6 +14,8 @@ mathjax: true
 ---
 [OpenFOAM: Manual Pages: splitMesh](https://www.openfoam.com/documentation/guides/latest/man/splitMesh.html)
 
+[OpenFOAM v2506 API: splitMeshRegions](https://api.openfoam.com/2506/splitMeshRegions_8C.html)
+
 
 [02 chtMultiRegionFoam求解器- splitMesh - 哔哩哔哩](https://www.bilibili.com/opus/874133021354098706)
 
@@ -22,7 +24,7 @@ mathjax: true
 `OpenFOAM-v2406`采用`splitMeshRegions`的一个例子。
 
 ```shell
-~/work/202506/chtInOF/snappyMultiRegionHeaterImplicit > splitMeshRegions -cellZones                                                                         % 16:14:08
+$ splitMeshRegions -cellZones
 /*---------------------------------------------------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
@@ -35,10 +37,10 @@ Arch   : "LSB;label=32;scalar=64"
 Exec   : splitMeshRegions -cellZones
 Date   : Jun 29 2025
 Time   : 16:14:21
-Host   : tttt
+Host   : example-host
 PID    : 464597
 I/O    : uncollated
-Case   : /home/tttt/work/202506/chtInOF/snappyMultiRegionHeaterImplicit
+Case   : $CASE_DIR
 nProcs : 1
 trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
 fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
@@ -56,9 +58,9 @@ Trying to match regions to existing cell zones.
 
 Number of regions:5
 
-Writing region per cell file (for manual decomposition) to "/home/tttt/work/202506/chtInOF/snappyMultiRegionHeaterImplicit/constant/cellToRegion"
+Writing region per cell file (for manual decomposition) to "$CASE_DIR/constant/cellToRegion"
 
-Writing region per cell as volScalarField to "/home/tttt/work/202506/chtInOF/snappyMultiRegionHeaterImplicit/0/cellToRegion"
+Writing region per cell as volScalarField to "$CASE_DIR/0/cellToRegion"
 
 Region  Cells
 ------  -----

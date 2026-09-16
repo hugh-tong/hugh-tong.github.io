@@ -23,7 +23,7 @@ mathjax: true
 
 
 ```
-~/O/OpenFOAM-v23/t/heatTransfer/chtMultiRegionFoam/snappyMultiRegionHeater > tree -L 3                                                                                                                                                                                                                      17:35:59
+$FOAM_TUTORIALS/heatTransfer/chtMultiRegionFoam/snappyMultiRegionHeater > tree -L 3
 .
 ├── 0.orig
 │   ├── T

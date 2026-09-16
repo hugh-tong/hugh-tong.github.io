@@ -32,7 +32,7 @@ mathjax: true
 
 - 这个`setSet`工具在`v2306`中的解释
 ```shell
-~/O/OpenFOAM-v2306/applications/solvers/heatTransfer/chtMultiRegionFoam > setSet -help-full                                                                             % 16:00:40
+$FOAM_SOLVERS/heatTransfer/chtMultiRegionFoam > setSet -help-full
 
 Usage: setSet [OPTIONS]
 Options:

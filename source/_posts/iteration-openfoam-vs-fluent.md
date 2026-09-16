@@ -1,88 +1,69 @@
 ---
-title: OpenFOAM 稳态求解为什么有「时间」:与 Fluent 迭代步的对应关系
+title: OpenFOAM 稳态求解为什么仍使用 Time 目录
 date: 2026-09-15 13:00:00
+updated: 2026-09-16 18:00:00
 categories:
   - [CFD, OpenFOAM, 求解器]
 tags:
   - CFD/OpenFOAM/求解器
   - 求解器
   - simpleFoam
-  - Ansys
   - 迭代步
-description: OpenFOAM 稳态计算的 Time 本质是迭代计数,与 Fluent 的迭代步概念对应关系详解。
+description: 区分 OpenFOAM 稳态循环中的输出时间标签、物理时间和局部伪时间，并说明与 Fluent iteration 只能作粗略类比。
 mathjax: true
 ---
-Q： OpenFOAM中的稳态为什么写出也有时间的概念。OpenFOAM的稳态计算的时间步，和Fluent的稳态迭代的关系是什么？
 
+> 适用范围：经典 `simpleFoam`/SIMPLE 稳态工作流。不同 OpenFOAM 发行版和新模块化求解器的循环组织可能不同，但“`steadyState` 时间导数为零”这一数值含义不变。
 
-这是一个非常经典的问题，很多从商业软件（如 Ansys Fluent）转到 OpenFOAM 的工程师都会感到困惑。
+## 结论
 
-简单直接的结论是：**在 OpenFOAM 的稳态计算（SIMPLE 算法）中，“时间步”就是一个“迭代计数器”。它只是披着“时间”外衣的“迭代步”。**
+稳态 OpenFOAM 算例仍使用 `Time` 对象和数字目录，是因为运行控制、写出和重启机制复用了统一框架。若 `fvSchemes` 使用 `steadyState`，方程中的时间导数为零；目录名不是物理秒数。
 
-下面我为你详细拆解其中的逻辑以及它与 Fluent 的对应关系。
+把一次 OpenFOAM 外层 SIMPLE 循环粗略类比为一次 Fluent steady iteration 有助于理解界面，但不能认为两者“完全等价”：每次外层循环内部的压力修正、非正交修正、方程求解次数和停止条件都可能不同。
 
----
+## `deltaT` 在经典稳态算例中的作用
 
-### 1. 为什么 OpenFOAM 稳态也有“时间”？
-
-这完全是因为 **OpenFOAM 的软件架构设计** 决定的。
-
-*   **统一的架构**：OpenFOAM 为了代码复用，所有的求解器（不管是稳态 `simpleFoam` 还是瞬态 `pisoFoam`）都共用一套顶层的时间循环控制类（`Time` 类）。
-*   **强制的时间循环**：OpenFOAM 的核心运行逻辑是 `runTime.loop()`。为了让这个循环跑起来，必须有一个“时间”在往前走。
-*   **对于稳态求解器**：
-    *   开发者并没有专门写一套“只计数不计时”的循环逻辑。
-    *   而是直接利用现有的时间循环机制，把 `deltaT`（时间步长）人为地理解为“步数增量”。
-    *   通常，我们会在 `controlDict` 里设置 `deltaT` 为 `1`。这样，第 1000 步就是 Time = 1000。
-
-**本质上：**
-在 `simpleFoam` 中，`Time` 这个变量**没有任何物理意义**，它仅仅是一个**标签（Label）**，用来标记当前计算到了第几次迭代，以及方便把结果写出到对应的文件夹（例如 `100/`, `200/`）里。
-
----
-
-### 2. OpenFOAM 稳态 vs Fluent 稳态：对应关系
-
-它们在数学本质上是**完全一样**的，都是基于松弛因子的迭代求解，只是“叫法”不同。
-
-| 特性 | **OpenFOAM (simpleFoam)** | **Ansys Fluent (Steady)** | **关系** |
-| :--- | :--- | :--- | :--- |
-| **推进变量** | `Time` (时间) | `Iteration` (迭代步) | **完全等价** |
-| **推进增量** | `deltaT` (通常设为 1) | 默认就是 1 | **完全等价** |
-| **物理含义** | **无** (伪时间) | **无** | 都是为了迭代收敛 |
-| **库朗数 (Co)** | 无意义 (不限制 `deltaT`) | 无意义 | 稳态不看 Co 数 |
-| **局部时间步** | 通过 `localEuler` 等差分格式实现 | 默认开启 (伪时间步进) | 都是为了加速收敛 |
-
-#### 关键区别点：关于“伪时间步” (Pseudo Time Step)
-
-虽然宏观的“时间步”只是迭代计数，但在**方程求解的微观层面**，两者有一个微妙的区别，这常常导致 OpenFOAM 比 Fluent 更难收敛：
-
-*   **Fluent**：默认在稳态计算中使用了**隐式的“局部时间步长”（Local Time Stepping）**技术。它会自动给每个网格单元一个虚拟的 $\Delta t$，让计算更稳定、收敛更快。你不需要显式设置它，它融合在亚松驰因子和求解器内部。
-*   **OpenFOAM**：
-    *   标准的 `simpleFoam` 使用的是纯粹的**欠松弛因子（Under-Relaxation Factors）**方法（在 `fvSolution` 里设置 `relaxationFactors`）。这相当于数学上的定点迭代。
-    *   如果你想在 OpenFOAM 里用类似 Fluent 的那种“伪时间步”来增加稳定性，你需要使用 `localEuler` 差分格式（在 `fvSchemes` 的 `ddtSchemes` 里设置），但这属于进阶操作，默认配置通常不这么做。
-
----
-
-### 3. 给你的 `controlDict` 设置建议
-
-为了让 OpenFOAM 的行为看起来更像 Fluent，你可以这样设置 `controlDict`，让“时间”直接变成“迭代步数”：
+常见设置如下：
 
 ```cpp
-application     simpleFoam;
-
-startFrom       startTime;
-startTime       0;
-
-stopAt          endTime;
-endTime         5000;    // 相当于 Fluent 里的 "Number of Iterations" = 5000
-
-deltaT          1;       // 关键！设为 1，这样 Time = 5000 就是第 5000 步
-
-writeControl    timeStep;
-writeInterval   100;     // 每迭代 100 步保存一次结果 (写出 100, 200... 文件夹)
+// system/fvSchemes
+ddtSchemes
+{
+    default steadyState;
+}
 ```
 
-### 总结
+```cpp
+// system/controlDict
+endTime       5000;
+deltaT        1;
+writeControl  timeStep;
+writeInterval 100;
+```
 
-*   **OpenFOAM 的 `Time = 100`** $\Leftrightarrow$ **Fluent 的 `Iteration = 100`**。
-*   **OpenFOAM 的 `deltaT`** 在稳态下只是一个“计数单位”，没有物理秒数的含义。
-*   你在 OpenFOAM 里看到的所谓“稳态时间”，**纯粹是为了把数据写在以数字命名的文件夹里（如 `0/`, `100/`）而借用的一个容器。**
+此时 `deltaT 1` 让运行标签按 1 增长，便于把 `Time = 5000` 理解成第 5000 个外层循环附近的输出。它不进入已经被 `steadyState` 置零的时间导数，因此不能解释为 1 秒。
+
+如果把 `deltaT` 改成其他值，目录标签和 `endTime` 对应的循环次数也会变化，所以更准确的说法是“常用作迭代标签”，而不是语言层面固定的整数计数器。
+
+## 欠松弛不等于局部伪时间
+
+经典 SIMPLE 稳态求解通常通过 `fvSolution` 中的 `relaxationFactors` 控制外层迭代稳定性。`localEuler` 则是另一类离散：它要求求解器保留时间导数形式并提供每个单元的局部倒数时间步场，用局部伪时间推进到稳态。
+
+因此，不能在标准 `simpleFoam` 算例里仅把 `steadyState` 改成 `localEuler`，就声称获得了与 Fluent 相同的 pseudo-transient 方法。求解器结构、局部时间尺度计算、残差定义和默认设置都必须分别核实；Fluent 是否启用 pseudo-transient 也取决于所选 solver 和用户设置，不能写成“稳态默认开启”。
+
+## 判断目录是不是物理时间
+
+依次检查：
+
+1. `fvSchemes/ddtSchemes` 是 `steadyState`、物理时间格式，还是 local time scheme；
+2. 求解器是否真的组装了 `ddt` 项；
+3. `controlDict` 的停止与写出控制；
+4. 求解器是否创建和更新局部时间步场；
+5. 结果是否通过时间步收敛性验证。
+
+只有采用统一物理时间步并完成时间精度检查时，数字目录才适合解释为物理时间。
+
+## 参考
+
+- [CFD Direct：OpenFOAM time schemes](https://doc.cfd.direct/openfoam/user-guide-v6/fvschemes)
+- [OpenFOAM Foundation 13：localEulerDdtScheme](https://cpp.openfoam.org/v13/classFoam_1_1fv_1_1localEulerDdtScheme.html)

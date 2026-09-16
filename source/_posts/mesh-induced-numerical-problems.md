@@ -19,7 +19,7 @@ https://cfmesh.com/is-it-always-the-mesh-part-2-skewness/
 
 
 
-![mesh skewness](https://cfmesh.com/wp-content/uploads/2023/06/skewness-1.jpg)
+歪斜度示意图见上方 CF-MESH+ 原文。这里不直接热链第三方图片。
 
 
 ---
@@ -170,7 +170,7 @@ These properties depend not only on numerical schemes but also on **mesh quality
 [网格质量和拉普拉斯离散格式(fvSchemes)的设置](https://mp.weixin.qq.com/s/mPdGfQ3QwiqR-c-dLlGh-Q)
 上面推送阐述了三种正交性网格的情况：
 
-![3 kinds of non-Orthgonality](https://mmbiz.qpic.cn/mmbiz_png/P99n1fuKyYlLL1BicgvVKs29ICQySKkicE75KU0IuNmLmTzRRb0BqNJXV1j4Oibop806xbSgqrvB25E4ZgH0IrmQQ/640?wx_fmt=png&from=appmsg&tp=webp&wxfrom=5&wx_lazy=1#imgIndex=0)
+三种非正交情况的示意图见上方原文链接。
 
 
 
@@ -192,7 +192,7 @@ nNonOrthogonalCorrectors
 [Non-Orthogonal Correctors | CFD Numerics | SimScale](https://www.simscale.com/docs/simulation-setup/numerics/non-orthogonal-correctors/)
 上面这个网页中，简要的说明了non-Orthogonal迭代修正的位置：
 
-![non-orthCorrectors_correctLoop](https://lh6.googleusercontent.com/kKLbVU6sh67P4R-XiNGezUFqRHzSsoa5jQ2_5Vpu090L-rMig1MXI_XCtGgRfoZQvvWCrIIbN2sZJjvVryOKmnpCUQWnxh3-LUM-uu1Ol9A_4OSJxfzUiE18mzOEAGHsNs_Xhd77)
+算法流程图见上方 SimScale 文档；下面保留其文字化步骤，避免依赖外部图片。
 
 So for a good mesh, with no need for non-orthogonal correctors, the default SIMPLE algorithm is performed, that includes the following steps:
 
@@ -232,7 +232,7 @@ The amount of non-orthogonal correctors that are selected should be correspondin
 >  
 Non-orthogonal correctorsare here to save you if your code is blowing up because the mesh is so non-orthogonal that the first solution is driving the velocity to be stupid. If your velocity is OK, you just keep doing "normal" correctors, without special need for non-orthogonal ones.  
 >  
-I use them on bad meshes (some people call them "industrial") ![](https://www.cfd-online.com/Forums/images/smilies/smile.gif "Smile") when the solver is giving me trouble. Usually, 1 is enough, and I never used more than 3.  
+I use them on bad meshes (some people call them "industrial") when the solver is giving me trouble. Usually, 1 is enough, and I never used more than 3.
  > 
 Hope this helps,  
   ?
@@ -248,7 +248,7 @@ Non-orthogonality is measured as the angle between the vector connecting neighbo
 
 非正交性被衡量为在网格面上连接相邻单元中心点的向量与网格面面积向量之间的夹角，如下图所示。我们希望非正交性角度尽可能小。但是，如果非正交性角度增加大约90度，则网格会变得无效，并且离散化将不再是守恒的，因为连接单元中心点的向量和网格面面积向量开始指向相反的方向！
 
-![cfMesh: mesh nonOrthogonality](https://cfmesh.com/wp-content/uploads/2023/09/non-orthogonality.png)
+非正交角定义示意图见上方 CF-MESH+ 原文。
 
 
 ```handdrawn-ink
@@ -294,7 +294,7 @@ V_r = \frac{V_N}{V_P}
 $$
 
 
-![problematic locations in the mesh](https://cfmesh.com/wp-content/uploads/2025/07/problematic-locations-in-the-mesh.png)
+体积比突变位置的示意图见上方 CF-MESH+ 原文。
 
 > When the pressure equation is discretised using the Finite Volume Method, we achieve strong coupling of pressure between the neighbouring cells in the spirit of the Rhie-Chow interpolation. However, the coefficient in front of the pressure gradient is dependent on the cell volume, and this requires some further analysis to understand how it influences the solution procedure. When the pressure equation is discretised using the Finite Volume Method, the integration over volume can be represented as a summation over faces:
 

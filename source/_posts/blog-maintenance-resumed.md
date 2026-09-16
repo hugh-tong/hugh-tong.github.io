@@ -1,72 +1,70 @@
 ---
-title: 博客维护恢复记录
+title: 博客维护恢复记录：从旧手工流程到可复现发布
 date: 2026-09-13 10:57:53
+updated: 2026-09-16 18:00:00
 categories:
   - 工具
   - Hexo
 tags:
   - tttt
   - Tools
+description: 回顾博客恢复维护时发现的主题、依赖和发布问题，以及它们如何被 npm 锁文件、自动验证和 GitHub Pages artifact 部署解决。
 ---
 
-时隔两年(上一篇还是 2024-05-26 的 Hexo 备忘录),重新把博客的维护捡起来了。这篇记录一下恢复过程中踩的坑,方便下次(希望不要隔两年)继续。
+时隔两年重新维护博客时，仓库仍停留在 Hexo 6、手工补主题和本机部署的状态。这篇保留问题发现过程，并记录后续解决结果；当前操作命令以仓库 `DEPLOYMENT.md` 为准。
 
-## 现状确认
+## 当时发现的问题
 
-- 博客是 Hexo 6.3.0 + NexT 主题,托管在 GitHub Pages(`hugh-tong.github.io`)
-- 仓库有三个分支,职责完全不同:
-  - `dev_tttt`:源码分支,所有文章和配置都在这里
-  - `main`:`hexo d` 的部署目标,纯生成产物
-  - `master`:2023 年的旧部署残留,已忽略
+### 1. 三个分支职责混乱
 
-## 恢复过程踩的坑
+源码位于 `dev_tttt`，`main` 和 `master` 是不同时期的静态生成结果。旧流程依靠本机部署插件改写 `main`，默认分支又曾指向 `master`，很容易在错误分支白做工作。
 
-### 1. 主题是裸 gitlink,克隆后目录是空的
+**现状：** 默认分支已经改为 `dev_tttt`，GitHub Pages Source 改为 GitHub Actions。两个生成分支只保留历史，不再参与发布。
 
-`themes/next` 在仓库里只是一个指向 commit 的引用,没有 `.gitmodules`。切到 `dev_tttt` 后 `hexo g` 直接报错。解决:
+### 2. NexT 是缺少 `.gitmodules` 的裸 gitlink
 
-```bash
-git clone https://github.com/next-theme/hexo-theme-next.git themes/next
-```
+新克隆无法自动恢复主题，而且原 commit 已从上游消失。这使构建依赖一个未记录的手工步骤。
 
-### 2. 原锁定的主题 commit 已从上游消失
+**现状：** Butterfly 和 NexT 都由 npm 安装，并由 `package-lock.json` 锁定；不再手工克隆主题。
 
-gitlink 指向的 `9c8cea6` 在 next-theme 仓库的任何分支/tag 上都找不到了(force-push 所致),codeload 归档也 404。改用发布日期最接近原锁定日期(2024-05-26)的正式版 `v8.20.0`(2024-05-01 发布)。
+### 3. Markdown 渲染依赖系统 Pandoc
 
-### 3. git 克隆 GitHub 超时(GnuTLS)
+旧的 `hexo-renderer-pandoc` 让不同机器的构建结果依赖系统包。
 
-WSL 里 `git clone` 报 `GnuTLS recv error` 或连接超时,但 `curl` 正常。解决:强制 git 用 HTTP/1.1:
+**现状：** 已改用 `hexo-renderer-marked`，不需要安装 Pandoc。
 
-```bash
-git -c http.version=HTTP/1.1 clone https://github.com/xxx/xxx.git
-```
+### 4. 站点 URL 和维护规则没有自动检查
 
-### 4. pandoc 是硬依赖
+站点 URL 曾保留默认示例值，文章元数据、站内链接和两套主题也没有流水线验证。
 
-`hexo-renderer-pandoc` 需要系统装有 `pandoc`,WSL/Debian 上:
+**现状：** URL 已修正，`npm run verify` 会检查源码并分别构建 Butterfly 与 NexT；push/PR 到 `dev_tttt` 时运行同样的 CI。
+
+## 当前恢复与验证流程
 
 ```bash
-sudo apt install pandoc
+git checkout dev_tttt
+nvm install
+nvm use
+npm ci
+npm run verify
 ```
 
-### 5. 站点 URL 一直是默认值
-
-`_config.yml` 的 `url` 还是 `http://example.com`,导致 og:url / canonical / 分享链接全错。本次已改为 `https://hugh-tong.github.io`。
-
-## 验证流程
+本地预览：
 
 ```bash
-npx hexo clean
-npx hexo g
-npx hexo s   # http://localhost:4000 确认渲染
-npx hexo d   # force-push 到 main
+npm run server:butterfly
+# 或
+npm run server:next
 ```
 
-部署后 GitHub Pages 生效有几分钟延迟。
+## 当前发布流程
 
-## 后续计划
+提交并推送 `dev_tttt`，等待 `Validate blog` 通过，然后在 GitHub Actions 中手动运行 `Deploy GitHub Pages`。workflow 生成并上传 Pages artifact，不再使用本机部署插件，也不修改 `main`。
 
-- 把 `themes/next` 改造成正规 submodule 或改用 npm 安装,根治 gitlink 问题
-- 统一锁文件(删掉 `yarn.lock`,保留 npm)
-- 清理 `_config.landscape.yml` 旧主题残留
+## 这次恢复留下的原则
+
+- 源码、依赖锁定和发布配置必须在同一条可审计链路中；
+- 新机器恢复只能依赖仓库中已经记录的步骤；
+- 两套主题都应进入自动构建，而不是等切换时才发现损坏；
+- 历史实录可以保留，但必须清楚标出当前入口，不能继续充当操作手册。
 

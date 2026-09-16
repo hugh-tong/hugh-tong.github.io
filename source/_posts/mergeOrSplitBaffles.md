@@ -9,7 +9,7 @@ tags:
   - 网格
   - snappyHexMesh
   - Bash
-description: buat
+description: 使用 mergeOrSplitBaffles 合并或拆分 OpenFOAM 网格中的 baffle 面，并说明操作前后的拓扑检查要点。
 mathjax: true
 ---
 `mergeOrSplitBaffles` 是 OpenFOAM 中一个功能强大但常被忽视的工具，主要用于处理网格中的挡板（Baffles）。它是 `createBaffles` 的“升级版”或“互补版”，专注于根据几何特征自动识别并处理挡板。

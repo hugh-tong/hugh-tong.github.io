@@ -76,15 +76,11 @@ $$
 \end{aligned}
 \end{equation}
 $$
-例如图。其中CEGD在下一时刻为LNOK，其扫过的体积为蓝色的QUTZRVWS。
-
-![image-20240325154454653](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240325154454653.png)
+例如，旧时间层的一个控制体面移动到新位置后，两处面与对应边连接形成的封闭体积就是该面的扫掠体积 $\delta V_f$。这里不再嵌入教材截图。
 
 
 
 在方程求解中，网格速度的对流项中考虑网格速度通量，见其中式。针对于其中的通量$\vec{U}_f\cdot \vec{S}_f$减去网格通量$\vec{U}_{g,f}\cdot \vec{S}_f$​可以通过`makeRelative`这个函数完成。
-
-![image-20240325155523838](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240325155523838.png)
 
 求解器代码`interFoam.C`中使用了`fvc::makeRelative(phi,U)`，从而完成了满足了ALE+动网格情况下的质量守恒。
 
@@ -118,9 +114,7 @@ $$
 
 
 
-Roenby分析了几种界面捕捉的算法或格式，对他们的界面捕捉能力进行了对比。其中的HRIC(High Resolution Interface Capturing Scheme)为STAR-CCM+用的界面捕捉格式，CICSAM(Compressive Interface Capturing Scheme for Arbitrary Mesh)为fluent中的一个可选的界面捕捉格式。可以发现MULES算法在这几种界面捕捉方法中，结果最差。
-
-![image-20240326095436892](https://testnew-1307662376.cos.ap-chengdu.myqcloud.com/image-20240326095436892.png) 
+Roenby 对多种界面捕捉算法进行了比较，包括 HRIC、CICSAM 和 MULES。具体误差指标和测试条件应回到原论文核对；在补齐图号、页码和算例条件前，不从一张截图概括出“MULES 最差”的通用结论。
 
 
 
@@ -132,4 +126,3 @@ Roenby分析了几种界面捕捉的算法或格式，对他们的界面捕捉�
 [^2]: Jasak H ,Tukovi'c.Automatic Mesh Motion for the Unstructured Finite Volume Method[J].Transactions of FAMENA, 2007, 30:1-18.
 [^3 ]: OpenFOAM-7源码
 [^4 ]: OpenFOAM-v2306源码
-
