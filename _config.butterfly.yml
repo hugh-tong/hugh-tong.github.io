@@ -26,6 +26,9 @@ highlight_theme: darker
 highlight_height_limit: 200
 
 # ---------- 站点信息 ----------
+menu:
+  关于我: /about/ || fas fa-user
+
 avatar:
   img: /img/tttt.png
   effect: true

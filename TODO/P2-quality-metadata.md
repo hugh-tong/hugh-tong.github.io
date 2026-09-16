@@ -80,6 +80,8 @@ OpenFOAM Foundation 与 OpenCFD/ESI 的命名、目录、工具参数和求解�
 
 ## 6. 标签、标题与系列结构
 
+- [x] 新增独立 `/about/` 页面，并接入 Butterfly/NexT 主导航；内容只使用已确认的公开信息，个人经历与联系方式暂不虚构。
+
 - [ ] 清除重复 `CS` 标签：`abi-overview.md`、`dcu-vs-gpu.md`、`hpc-calc-notes.md`、`ml-vs-dl.md`、`pandoc-md-to-docx.md`、`pc-monitor-ubuntu.md`、`ubuntu-server-qa.md`、`unified-vs-shared-memory.md`、`wsl-experience.md`；同时复核 `ale-conservation-law-derivation.md` 的重复“求解器”。
 - [ ] 统一 `OpenFOAM`、`OF`、`CFD/OpenFOAM/...` 的层级用法，避免同义标签拆散归档页。
 - [ ] 把测试型/临时型标题改成读者能检索的主题名，例如 `nm_ldd_init_tttt_test`。

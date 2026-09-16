@@ -8,5 +8,8 @@ avatar:
   url: /img/tttt.png
   rounded: true
 
+menu:
+  about: /about/ || fa fa-user
+
 custom_file_path:
   bodyEnd: source/_data/body-end.njk
