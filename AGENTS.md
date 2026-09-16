@@ -1,55 +1,65 @@
 # AGENTS.md
 
-Hexo 静态博客(GitHub Pages: hugh-tong.github.io)。**三分支仓库,职责完全不同,改错分支 = 白干**。
+Hexo 静态博客（GitHub Pages：hugh-tong.github.io）。这是三分支仓库，职责不同；开始工作前必须确认分支。
 
-## 分支模型(先读这个)
+## 分支模型
 
 | 分支 | 内容 | 操作 |
 |---|---|---|
-| `dev_tttt` | Hexo 源码:`source/_posts/*.md` 全部文章、`_config.yml`、`package.json`、`scaffolds/`、`themes/` | **一切修改只在这里** |
-| `main` | `hexo deploy` 生成的静态 HTML(最新 2024-05-26),由 hexo-deployer-git 自动推送 | 不要手改 |
-| `master` | 旧部署输出,2023-08-19 后停滞(旧 landscape 主题时代产物);`origin/HEAD` 仍指向它,有误导性 | 忽略 |
+| `dev_tttt` | Hexo 源码、配置、主题覆盖、工具与 Actions 工作流 | **所有修改只在这里** |
+| `main` | 旧 `hexo-deployer-git` 生成产物，Pages artifact 迁移期保留 | 不要手改 |
+| `master` | 2023 年旧部署产物；远端默认分支迁移前可能仍指向它 | 忽略 |
 
-本目录若检出的是 `master`,看到的只是 2023 年的旧生成结果。开始任何工作前先 `git checkout dev_tttt`。
+如果检出的是 `master`，看到的是旧静态结果。任何操作前先执行 `git checkout dev_tttt`。
 
-## 标准工作流(在 dev_tttt 分支)
+## 环境与标准验证
 
 ```bash
-npm install                # 首次;Hexo 6.3.0 锁定于 package.json
-npx hexo new "post title"  # 在 source/_posts/ 生成 markdown,用编辑器写
-npx hexo clean             # 清缓存,改配置或换主题后必须先跑
-npx hexo g                 # 生成;等价 npm run build
-npx hexo s                 # 本地预览 http://localhost:4000;等价 npm run server
-npx hexo d                 # 部署:force-push 生成结果到 main;等价 npm run deploy
+nvm use                  # .nvmrc = Node 22.23.2
+npm ci                   # 严格使用 package-lock.json
+npm run check:source     # 只检查文章元数据、链接和路径冲突
+npm run verify           # Butterfly + NexT 全量 clean/build/生成物检查
 ```
 
-顺序:`clean → g → s 验证 → d`。部署后 GitHub Pages 生效有延迟。
+Hexo 锁定 8.1.2，Node 支持范围为 `>=20.19.0 <23`。不需要 Pandoc。不要提交 `node_modules/`、`public/`、`db.json` 或 `_multiconfig.yml`。
 
-## 双主题与发布时切换
+## 写作流程
 
-已装两套主题,`_config.yml` 默认 `theme: next`:
+```bash
+npx hexo new "post title"
+# 编辑 source/_posts/*.md
+npm run check:source
+npm run server:butterfly
+npm run verify
+```
 
-- **NexT v8.20.0**:`themes/next` gitlink(见坑 1),配置在 `themes/next/_config.yml`
-- **Butterfly 5.7.0**:npm 安装(`node_modules/hexo-theme-butterfly`),配置覆盖在根目录 `_config.butterfly.yml`(深合并,主题可随 npm update 不丢配置)
+文章必须具有字符串 `title` 和固定 `date`。新模板还包含 `categories` 与 `description`；旧文章缺少 `description` 只警告。禁止发布 `file://` 本机链接，标签/分类不得仅大小写不同。
 
-切换命令(npm scripts 已定义):`build:butterfly` / `build:next` / `server:butterfly` / `server:next` / `deploy:butterfly` / `deploy:next`。
+## 双主题
 
-机制:Hexo 6.3.0 的 `--config a.yml,b.yml`(逗号列表)是**深合并,后者优先**;单文件 `--config custom.yml` 会**整体替换** `_config.yml`,不要单文件用。mode 文件在 `themes/*.mode.yml`,只含一行 `theme: xxx`。生成的 `_multiconfig.yml` 是临时产物,已入 .gitignore。
+默认主题是 Butterfly 5.7.0；NexT 8.29.0 作为备用。两者均由 npm 管理：
 
-## 坑(踩过才知道)
+- Butterfly 覆盖配置：`_config.butterfly.yml`
+- NexT 覆盖配置：`_config.next.yml`
+- 发布主题选择：`themes/butterfly.mode.yml`、`themes/next.mode.yml`
 
-- **`themes/next` 是无 `.gitmodules` 的裸 gitlink**(现指向 `v8.20.0` tag,commit `ba7ec07`;原始 commit `9c8cea6` 已被上游 force-push 消失,无法 fetch)。克隆/切换到 dev_tttt 后该目录是**空的**,`hexo g` 直接失败。需先手动补主题:`git clone https://github.com/next-theme/hexo-theme-next.git themes/next && git -C themes/next checkout v8.20.0`。根治方案是改造成正规 submodule 或用 npm 安装主题。
-- ~~依赖 `hexo-renderer-pandoc`~~ 已于 2026-09-13 换为 `hexo-renderer-marked`(消除系统 pandoc 依赖,且与 Butterfly 的高亮类兼容)。系统不再需要装 pandoc。
-- ~~双锁文件并存~~ 已于 2026-09-13 统一为 npm(删除 yarn.lock)。
-- ~~`_config.yml` 的 `url` 仍是默认 `http://example.com`~~ 已于 2026-09-13 修复为 `https://hugh-tong.github.io`;`deploy.repo` 同步改为 SSH 地址。
-- `_config.landscape.yml` 是旧主题残留;现行主题为 `next`(`theme: next`),其配置在 `themes/next/_config.yml`(因上面的 gitlink 问题常缺失,主题以默认配置跑)。
-- `source/.obsidian/` 是作者用 Obsidian 写作的配置,已入库,勿删勿改。
-- Deploy 目标是 `main`(`_config.yml` 的 `deploy.branch`),不是 `master`。
+不要修改 `node_modules`，也不要恢复原来没有 `.gitmodules` 的 `themes/next` 裸 gitlink。主题命令使用 `_config.yml,themes/*.mode.yml` 的逗号列表进行深合并；不能只传 mode 文件。
 
-## 无测试 / lint / CI
+## CI 与发布
 
-纯静态站,没有任何检查流水线。唯一验证手段:`hexo s` 本地预览确认渲染正常再部署。Dependabot 只在 dev_tttt 上跑(`.github/dependabot.yml`,npm 生态)。
+- `.github/workflows/ci.yml`：push/PR 到 `dev_tttt` 时执行依赖审计和双主题验证。
+- `.github/workflows/pages.yml`：手动构建 Butterfly，上传 artifact 并部署 Pages。
+- 新发布流程启用前，仓库管理员必须把默认分支改成 `dev_tttt`，并把 Pages Source 改成 `GitHub Actions`。
+- 新流程验证完成前，`npm run deploy:*` 保留为向 `main` 发布的临时后备；不要同时使用新旧发布方式。
+- 不得由 agent 自行触发部署、push、修改 GitHub Settings 或 force-push，除非用户明确授权。
 
-## 维护备忘
+## 仓库维护规则
 
-作者自己写过一篇 Hexo 备忘录(`source/_posts/reminder-of-hexo.md`,即 2024-05-26 最后一篇),命令速查以它和 https://hexo.io/docs/ 为准。
+- `source/.obsidian/` 是作者的写作配置，勿删勿改。
+- `HANDOFF_CONTEXT_*.md` 可能含机器路径或连接信息，只保留本地，已统一忽略。
+- `tools/` 存放独立校验器；根目录 `scripts/` 是 Hexo 的保留插件目录，只能放 Hexo 插件，不要放普通 Node 脚本。
+- 修改配置或主题后先 clean，再生成；`verify:*` 已包含 clean。
+- 工作区可能含用户自己的改动。只暂存本次明确修改的路径，禁止 `git add .`。
+- 不要手工修改生成分支或生成目录来修问题，应在源码、配置或构建工具中修复。
+
+日常手册见 `README.md`，完整迁移和回退步骤见 `DEPLOYMENT.md`。

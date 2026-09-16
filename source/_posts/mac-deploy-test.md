@@ -3,7 +3,7 @@ title: 部署手册实测:MacBook 环境从零到上线
 date: 2026-09-15 11:30:00
 tags:
   - hexo
-  - deploy
+  - Deploy
 categories:
   - [工具, 博客维护]
 ---

@@ -7,3 +7,5 @@ public/
 .deploy*/
 _multiconfig.yml
 .omo/
+.playwright-mcp/
+HANDOFF_CONTEXT_*.md

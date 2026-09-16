@@ -50,7 +50,7 @@ mathjax: true
 
 
 
-[Master_Thesis_Giacomo_Quattrucci_4820428.pdf](file:///Users/tongyanjun/Downloads/A-edgeDownloads/Master_Thesis_Giacomo_Quattrucci_4820428.pdf)
+PDF 素材:Master_Thesis_Giacomo_Quattrucci_4820428.pdf(原本机路径不可供站点访客访问)
 
 > for RANS simulation the approach is based on exploiting the small computational effort required by the solver. Therefore, since the problem and associated physical averaged quantities are axis-symmetric, the pipe was simplified by two-dimensional wedge geometry that represents only a slice of the total cylinder.
 
@@ -201,7 +201,7 @@ fixed value, zero gradient etc.
 
 从网上的讨论内容来看，边界条件对OpenFOAM求解过程的影响需要单独整理分析。
 
-[边界条件对OpenFOAM求解过程的影响](./边界条件对OpenFOAM求解过程的影响.md)
+[OpenFOAM 边界条件整理(2026)](/2026/09/15/openfoam-bc-overview-2026/)
 
 
 
@@ -660,6 +660,5 @@ forAll(T.boundaryField(), patchI)
 2. `wedge`边界条件和`cyclic`旋转边界的旋转（坐标变换）数学意义不确定相同
 3. 旋转周期边界和`wedge`是否能通用需要进一步调研与测试
 4. `wedge`用于轴对称和球对称，需要对wedge的角度进行坐标变换，而不是简单的镜像对应的patch。
-
 
 

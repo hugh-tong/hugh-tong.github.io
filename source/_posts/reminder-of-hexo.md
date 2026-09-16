@@ -3,8 +3,7 @@ title: Hexo 备忘录
 categories: 
   - 工具
   - Hexo
-description: 
-  - 测试，回顾，使用Hexo
+description: 测试、回顾和使用 Hexo 的命令备忘。
 date: 2024-05-26 12:13:29
 tags: 
   - tttt

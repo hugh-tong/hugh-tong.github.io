@@ -39,6 +39,18 @@ aside:
     archive: true
     tag: true
     category: true
+  card_author:
+    button:
+      enable: true
+      icon: fab fa-github
+      text: Follow Me
+      link: https://github.com/hugh-tong
+  card_tags:
+    orderby: name
+    order: 1
+  card_webinfo:
+    # 主题的“最后更新时间”实际写入构建时刻，会造成不可重复输出。
+    last_push_date: false
   card_announcement:
     enable: true
     content: 博客已恢复维护,欢迎常来 🎉

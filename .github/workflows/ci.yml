@@ -1,0 +1,28 @@
+name: Validate blog
+
+on:
+  push:
+    branches: [dev_tttt]
+  pull_request:
+    branches: [dev_tttt]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Audit locked dependencies
+        run: npm audit --audit-level=high
+      - name: Validate both themes
+        run: npm run verify

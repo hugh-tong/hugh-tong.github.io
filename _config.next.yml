@@ -1,0 +1,9 @@
+# NexT 主题覆盖配置。主题本体由 npm 管理，不要修改 node_modules。
+favicon:
+  small: /img/favicon-32.png
+  medium: /img/favicon-32.png
+  apple_touch_icon: /img/apple-touch-icon.png
+
+avatar:
+  url: /img/tttt.png
+  rounded: true

@@ -3,5 +3,13 @@ updates:
 - package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: daily
-  open-pull-requests-limit: 20
+    interval: weekly
+    day: monday
+    time: "09:00"
+    timezone: Asia/Shanghai
+  open-pull-requests-limit: 5
+  groups:
+    npm-minor-and-patch:
+      update-types:
+        - minor
+        - patch

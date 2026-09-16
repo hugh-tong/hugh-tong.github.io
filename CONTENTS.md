@@ -45,6 +45,11 @@ CFD/                        ← CFD 技术主体
 | 18 | 2026-09-15 | OpenFOAM 求解器专题 7 篇(solver 目录) | CFD/OpenFOAM/求解器 | simplefoam-vs-pisofoam 等 | ✅ P2 搬运 |
 | 19 | 2026-09-15 | 雷诺数(Reynolds Number)——系列回填 | CFD/无量纲数 | dimless-reynolds | ✅ P2 新写,系列 16 数补齐 |
 | 20 | 2026-09-15 | 求解器书签占位 8 篇(纯链接笔记) | CFD/OpenFOAM/求解器 | potentialfoam-init 等 | 🚧 占位发布,tag「占位待充实」,计划接 AI 工具充实正文 |
+| 21 | 2026-09-15 | P3 搬运:工具链 8 篇(4 实质 + 4 占位) | CFD/OpenFOAM/工具链 | foamdictionary 等 | ✅ |
+| 22 | 2026-09-15 | P3 搬运:理论专题 7 篇(5 实质 + 2 占位) | CFD/理论 | simple-piso-pimple-algorithms 等 | ✅ 求解算法/湍流/边界条件 |
+| 23 | 2026-09-15 | P3 搬运:数值方法 11 篇(7 实质 + 4 占位) | CFD/数值方法 | rhie-chow-interpolation 等 | ✅ Schemes.md 已于 09-13 搬过,跳过 |
+| 24 | 2026-09-15 | P4 搬运:CS/CSAPP 14 篇(9 实质 + 5 占位) | 工具(Python/Linux/计算机系统/C++) | gdb-notes-openfoam-laplacian 等 | ✅ 隐私 3 篇不搬(JusmarBase 调试日志/SCP 工作流/SurfTheInternet) |
+| 25 | 2026-09-15 | P5 搬运:ReadLog 4 篇(2 实质 + 2 占位)+ Zotero | CFD/论文阅读 + 工具/Zotero | readlog-2017-fu-boiling 等 | ✅ 方案 A:论文阅读挂 CFD 下 |
 
 > 状态图例:✅ 已发布 · 🚧 草稿中 · ⏸ 暂缓 · ⚠️ 有遗留问题
 
@@ -58,10 +63,10 @@ CFD/                        ← CFD 技术主体
 | P1 | CFD/OpenFOAM/BoundaryCondition/(12 篇) | CFD/边界条件 | 含 wedge_bc PDF 素材 | ✅ 2026-09-15 搬运 10/12(unifoamFixedValue 空文、From_1DTo3D 纯链接,弃) |
 | P2 | CFD/OpenFOAM/solver/(17 篇) | CFD/OpenFOAM/求解器 | | ✅ 2026-09-15 搬运 7 篇实质文 + 8 篇书签占位发布(纯链接壳文保留占位,后续接 AI 充实);空文与自研求解器源码目录不搬 |
 | P2 | CFD/DimlessNumberFluids 缺口:雷诺数 Re | CFD/无量纲数 | 笔记库无独立 Re 笔记,可新写回填系列 | ✅ 2026-09-15 新写上线,系列补齐 |
-| P3 | CFD/OpenFOAM/Tools/(8 篇) | CFD/OpenFOAM/工具链 | | ⏸ |
-| P3 | CFD/Theory/(12 篇)、CFD/Numerical/(12 篇) | CFD/理论、CFD/数值方法 | Schemes.md 已搬,余下待筛 | ⏸ |
-| P4 | CS/、CSAPP/ | 工具/计算机系统 | 需要你指认哪些值得搬 | ⏸ |
-| P5 | ReadLog/(读书笔记 5 篇) | 读书 | 需新建"读书"一级分类 | ⏸ |
+| P3 | CFD/OpenFOAM/Tools/(8 篇) | CFD/OpenFOAM/工具链 | | ✅ 2026-09-15 搬运 4 实质 + 4 占位 |
+| P3 | CFD/Theory/(12 篇)、CFD/Numerical/(12 篇) | CFD/理论、CFD/数值方法 | Schemes.md 已搬,余下待筛 | ✅ 2026-09-15 搬运 12 实质 + 6 占位(空大纲 Advection_vs_Convection/LES_Theory 弃) |
+| P4 | CS/、CSAPP/ | 工具/计算机系统 | 需要你指认哪些值得搬 | ✅ 2026-09-15 搬 14 篇(9 实质+5 占位);隐私 3 篇(JusmarBase/SCP/SurfTheInternet)作者确认不搬;mv.md 空文弃 |
+| P5 | ReadLog/(读书笔记 5 篇) | 读书 | 需新建"读书"一级分类 | ✅ 2026-09-15 方案 A:CFD 论文挂 [CFD, 论文阅读],Zotero 归工具;QBMM 空文弃;"读书"分类暂不建 |
 
 **永不搬运**(已约定):周记/、根目录任务管理散文(AGENTS.md、TaskPriorityAnalysis.md 等)、含隐私内容。
 
@@ -75,6 +80,8 @@ CFD/                        ← CFD 技术主体
 
 ## 五、最近动态(倒序,新在上)
 
+- **2026-09-15(晚二)**:P4+P5 完成——CS/CSAPP 14 篇 + ReadLog 4 篇 + Zotero,共 20 篇上线(11 实质 + 9 占位);**全部 5 个优先级队列搬运完毕**。新增分类 [CFD, 论文阅读]、工具/Python、工具/计算机系统、工具/C++、工具/Zotero。隐私红线确立:公司项目调试日志、个人工作流(含私服地址)、科学上网相关一律不搬
+- **2026-09-15(晚)**:P3 队列完成——工具链 8 + 理论 7 + 数值方法 11,共 26 篇上线(18 实质 + 8 占位);Mac 同步盘目录间歇性消失,改为远端 tar 打包一次拉取;新增分类 CFD/OpenFOAM/工具链、CFD/理论(求解算法/湍流)
 - **2026-09-15(下午二)**:按作者决策,8 篇纯链接书签笔记以**占位文**形式发布(tag「占位待充实」),保留全部原始链接与 TODO 清单,计划后续接入 AI 工具充实正文;自研求解器源码目录确认不搬
 - **2026-09-15(下午)**:P2 队列完成——solver 专题搬运 7 篇(8 篇纯链接书签壳文弃:potentialFoam/renumberMesh/LTS/ebd 简条等,待作者日后写成正文再搬)+ 雷诺数 Re 新写回填,无量纲数系列 16 数齐全
 - **2026-09-15**:P1 队列搬运完成——SSH 直连 Mac 笔记库,Mesh 17 篇 + 边界条件 10 篇(共 27 篇)转 Hexo 上线;10 张配图迁至 source/images/;2 篇空壳文弃搬。多机协作新增规则:**每次 hexo d 前先 git pull --rebase origin dev_tttt**(Mac 端发文曾被本机 deploy 覆盖)
