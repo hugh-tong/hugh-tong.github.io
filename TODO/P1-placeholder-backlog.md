@@ -1,6 +1,6 @@
 # P1：占位页处置清单
 
-基线审计发现 21 篇显式占位文章。P0 已将 LTS 和 potentialFoam 两篇改成有版本边界的说明页；P1 第一批又完成 `bound`、`renumberMesh` 两篇，并将两个重复入口改成导航页。其余尚未达到发布标准的占位文章已先设置 `published: false`，避免线上继续展示半成品。
+基线审计发现 21 篇显式占位文章。P0 已将 LTS 和 potentialFoam 两篇改成有版本边界的说明页；P1 第一批又完成 `bound`、`renumberMesh` 两篇，并将两个重复入口改成导航页；第二批完成求解算法系列三篇：`fractional-step-method`、`matrix-solver-choice`、`ebd-simplefoam`。其余尚未达到发布标准的占位文章已先设置 `published: false`，避免线上继续展示半成品。
 
 在正文完成前，建议先加 `published: false`，或移动到 `source/_drafts/`。不要把“正文待后续用 AI 工具充实”改成一篇没有验证证据的长文。
 
@@ -9,10 +9,10 @@
 | 文件 | 建议 | 完成所需证据 |
 |---|---|---|
 | `bound-function.md` | 已补全 Foundation 13 源码逻辑、使用边界及与 MULES 的区别 | 后续可增加一个可运行的小场回归测试，但不再作为公开占位页 |
-| `matrix-solver-choice.md` | 补全为矩阵性质到 solver/preconditioner 的选择表 | 官方用户指南/源码，SPD 与非对称矩阵示例，至少一个 GAMG/PCG/PBiCGStab 对比 |
-| `fractional-step-method.md` | 补全并纳入 SIMPLE/PISO/PIMPLE 系列 | Chorin/Temam 或可靠教材推导、压力泊松方程、与 OpenFOAM 实现边界 |
+| `matrix-solver-choice.md` | 已补全矩阵性质、Foundation 13 求解器清单、选择表、tolerance/relTol 收敛语义与教程实例 | 后续可补充本机算例的 GAMG/PCG/PBiCGStab 实测对比 |
+| `fractional-step-method.md` | 已补全 Chorin 投影格式推导、与 OpenFOAM 通量投影实现的差别，并纳入算法系列互链 | 后续可补充二阶压力外推格式与压力边界误差的数值实验 |
 | `lts-local-time-stepping.md` | P0 已完成概念和版本纠错；P1 补充实测 | 固定 solver 的 `ddtSchemes` 配置、全局/LTS 收敛曲线与物理时间含义说明 |
-| `ebd-simplefoam.md` | 与 `simple-piso-pimple-algorithms.md` 组成“原理 + 源码路径” | 固定版本源码调用链、UEqn/pEqn、松弛顺序和最小案例日志 |
+| `ebd-simplefoam.md` | 已补全 v2406 simpleFoam 主循环/UEqn/pEqn 逐块走读与 Foundation 13 模块对照，形成“原理 + 源码路径” | 后续可补充最小案例的完整迭代日志走读 |
 | `potentialfoam-init.md` | P0 已撤回单例外推；P1 补充对照实验 | 同一案例有/无初始化的迭代数、墙钟时间和最终解对比 |
 | `renumbermesh-init.md` | 已补全矩阵带宽直觉、Foundation 13 默认算法、命令行为和基准测试方法 | 后续可追加实测表格；当前正文不预设性能收益 |
 | `ebd-sprayfoam.md` | 原始案例和 PDF 可取得时补全 | `aachenBomb` 可运行配置、parcel/cloud 模型含义、ParaView 验证截图 |
