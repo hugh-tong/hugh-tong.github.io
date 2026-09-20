@@ -10,6 +10,8 @@ tags:
   - 投影法
 description: 分数步/投影法把动量预测与压力投影拆成两步；本文对照 Chorin 原始格式与 OpenFOAM icoFoam/incompressibleFluid 中以 rAU 加权的通量投影实现，说明两者的对应与差别。
 mathjax: true
+graph:
+  id: fractional-step-method
 ---
 
 > 适用范围：理论部分为通用内容；实现对照基于 OpenFOAM Foundation 13 与 ESI v2406 源码，其他版本应按对应源码核对。

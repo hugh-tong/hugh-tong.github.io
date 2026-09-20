@@ -8,6 +8,17 @@ tags:
   - CFD
   - 系列导航
 description: CFD 常用无量纲数的一站式索引:每个数是什么力与什么力的比值、什么场景该看哪个数、彼此如何换算,附系列文章链接。
+graph:
+  id: dimless-index
+  relations:
+    - target: dimless-reynolds
+      type: series
+    - target: dimless-prandtl
+      type: series
+    - target: dimless-peclet
+      type: series
+    - target: dimless-nusselt
+      type: series
 ---
 
 做 CFD 的人绕不开无量纲数——它们是把一堆物理量压缩成一个"力与力的比值"的智慧。这个系列把我在学习和工程中积累的无量纲数笔记逐个整理成文,每篇包含定义、物理意义、典型数值、与其他数的换算关系和 CFD 工程应用要点。

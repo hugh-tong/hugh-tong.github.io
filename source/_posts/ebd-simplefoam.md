@@ -10,6 +10,8 @@ tags:
   - SIMPLE
 description: 逐段走读 ESI v2406 simpleFoam 的主循环与 UEqn/pEqn，梳理动量预测、压力修正、两处欠松弛与 SIMPLEC 开关在源码中的位置，并对照 Foundation 13 的 incompressibleFluid 模块。
 mathjax: true
+graph:
+  id: ebd-simplefoam
 ---
 
 > 适用范围：ESI v2406 的 classic `simpleFoam`；Foundation 13 没有独立的 simpleFoam，等价物是 `foamRun -solver incompressibleFluid` 配稳态格式，结构相同。

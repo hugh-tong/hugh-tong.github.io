@@ -11,6 +11,8 @@ tags:
   - RANS
 description: 翻译整理的 meshing 实操建议:尺寸过渡、正交性、边界层、拓扑与检查工具。
 mathjax: true
+graph:
+  id: mesh-suggest
 ---
 https://cfmesh.com/tips-tricks-for-a-high-quality-meshing-process/
 
@@ -165,5 +167,4 @@ Enhanced commercial version — provides:
 - © Creative Fields Holding Ltd.
 
 ---
-
 

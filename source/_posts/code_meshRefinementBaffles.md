@@ -6,11 +6,14 @@ categories:
 tags:
   - CFD/OpenFOAM/网格
   - snappyHexMesh
+  - baffle
   - LES
   - OpenFOAM
   - 网格
 description: snappyHexMesh 网格细化与 baffle 生成的源码级解读笔记。
 mathjax: true
+graph:
+  id: mesh-refinement-baffles
 ---
 来源：https://www.openfoam.com/news/main-news/openfoam-v2312/pre-processing
 

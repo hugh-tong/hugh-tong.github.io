@@ -28,6 +28,7 @@ highlight_height_limit: 200
 # ---------- 站点信息 ----------
 menu:
   关于我: /about/ || fas fa-user
+  图谱: /knowledge/graph/ || fas fa-project-diagram
   工具箱: /tools/ || fas fa-toolbox
 
 avatar:
@@ -75,6 +76,8 @@ inject:
     - <script defer src="/js/mathjax-global.js"></script>
     - <link rel="stylesheet" href="/css/deploy-age.css">
     - <script defer src="/js/deploy-age.js"></script>
+    - <link rel="stylesheet" href="/css/note-graph.css">
+    - <script defer src="/js/note-graph.js"></script>
 
 # ---------- 阅读体验 ----------
 copy_btn: true

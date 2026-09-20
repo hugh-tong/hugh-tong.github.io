@@ -11,9 +11,11 @@ const required = [
   'archives/index.html',
   'categories/index.html',
   'tags/index.html',
+  'knowledge/graph/index.html',
   'search.json',
   'sitemap.xml',
-  'atom.xml'
+  'atom.xml',
+  'api/note-graph.json'
 ];
 
 async function walk(directory) {
@@ -54,6 +56,43 @@ for (const file of files) {
     errors.push(`生成路径仅大小写不同: ${previous} / ${relativePath}`);
   } else {
     foldedPaths.set(folded, relativePath);
+  }
+}
+
+const graphPath = path.join(publicRoot, 'api', 'note-graph.json');
+if (await exists(graphPath)) {
+  try {
+    const graph = JSON.parse(await fs.readFile(graphPath, 'utf8'));
+    if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) {
+      errors.push('api/note-graph.json: nodes 与 edges 必须是数组');
+    } else {
+      const ids = new Set(graph.nodes.map(node => node.id));
+      for (const edge of graph.edges) {
+        if (!ids.has(edge.source) || !ids.has(edge.target)) errors.push(`api/note-graph.json: 边指向不存在节点: ${edge.source} → ${edge.target}`);
+      }
+      for (const node of graph.nodes.filter(node => node.explicitId)) {
+        const relativePage = node.path.replace(/^\/+/, '');
+        const page = path.join(publicRoot, relativePage, 'index.html');
+        if (!(await exists(page))) {
+          errors.push(`api/note-graph.json: 显式节点页面不存在: ${node.path}`);
+          continue;
+        }
+        const pageHtml = await fs.readFile(page, 'utf8');
+        if (!pageHtml.includes('data-note-relationship-graph="true"')) {
+          errors.push(`api/note-graph.json: 显式节点未渲染关系区块: ${node.path}`);
+        }
+      }
+    }
+  } catch (error) {
+    errors.push(`api/note-graph.json: JSON 无法解析: ${error.message}`);
+  }
+}
+
+const overviewPath = path.join(publicRoot, 'knowledge', 'graph', 'index.html');
+if (await exists(overviewPath)) {
+  const overviewHtml = await fs.readFile(overviewPath, 'utf8');
+  if (!overviewHtml.includes('data-note-graph-overview="true"')) {
+    errors.push('knowledge/graph/index.html: 未渲染全站关系图谱容器');
   }
 }
 

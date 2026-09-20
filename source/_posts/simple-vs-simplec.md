@@ -9,6 +9,8 @@ tags:
   - SIMPLE
 description: 两种压力修正方程的核心差异(邻点项处理)与网格非正交/歪斜时的选择建议。
 mathjax: true
+graph:
+  id: simple-vs-simplec
 ---
 
 ## SIMPLE vs SIMPLEC

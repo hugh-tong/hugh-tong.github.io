@@ -11,6 +11,8 @@ tags:
   - OpenFOAM
 description: OpenFOAM 官方 improveMeshQuality 工具的效果实测与适用场景。
 mathjax: true
+graph:
+  id: improve-mesh-quality
 ---
 https://www.openfoam.com/documentation/guides/v2112/man/improveMeshQuality.html
 

@@ -1,0 +1,82 @@
+# 关系图谱的增量标签治理层。未列出的标签只用于展示/筛选，不会自动产生图边。
+# relation_weight 为 0 的泛化标签不参与弱关系计算。
+tags:
+  CFD:
+    kind: domain
+    relation_weight: 0
+  OpenFOAM:
+    kind: platform
+    relation_weight: 0
+  OF:
+    kind: platform
+    relation_weight: 0
+  CS:
+    kind: domain
+    relation_weight: 0
+  网格:
+    kind: topic
+    relation_weight: 0
+  求解器:
+    kind: topic
+    relation_weight: 0
+  无量纲数:
+    kind: series
+    relation_weight: 0
+  CFD/OpenFOAM/网格:
+    kind: hierarchy
+    relation_weight: 0
+  CFD/OpenFOAM/求解器:
+    kind: hierarchy
+    relation_weight: 0
+  CFD/OpenFOAM/边界条件:
+    kind: hierarchy
+    relation_weight: 0
+  CFD/数值方法:
+    kind: hierarchy
+    relation_weight: 0
+  CFD/理论/求解算法:
+    kind: hierarchy
+    relation_weight: 0
+  snappyHexMesh:
+    kind: tool
+    relation_weight: 2
+  baffle:
+    kind: concept
+    relation_weight: 2
+  cfMesh:
+    kind: tool
+    relation_weight: 2
+  blockMesh:
+    kind: tool
+    relation_weight: 2
+  SIMPLE:
+    kind: method
+    relation_weight: 2
+  simpleFoam:
+    kind: solver
+    relation_weight: 2
+  RANS:
+    kind: model
+    relation_weight: 1
+  k-ε:
+    kind: model
+    relation_weight: 2
+  k-ω:
+    kind: model
+    relation_weight: 2
+  多相流:
+    kind: topic
+    relation_weight: 2
+  自然对流:
+    kind: topic
+    relation_weight: 2
+  对流换热:
+    kind: topic
+    relation_weight: 2
+  边界层:
+    kind: topic
+    relation_weight: 2
+
+weak_edges:
+  minimum_shared_tags: 2
+  maximum_per_node: 2

@@ -9,6 +9,17 @@ tags:
   - SIMPLE
 description: 三大压力-速度耦合算法的 acronym 展开、核心资料索引与 OpenFOAM 实现链接。
 mathjax: true
+graph:
+  id: simple-piso-pimple-algorithms
+  relations:
+    - target: ebd-simplefoam
+      type: series
+    - target: fractional-step-method
+      type: explains
+    - target: simple-vs-simplec
+      type: compares
+    - target: pressure-velocity-coupling-refs
+      type: series
 ---
 
 ## SIMPLE/PISO算法
@@ -66,4 +77,3 @@ SIMPLE——From User Guide
 [OpenFOAM guide/The PIMPLE algorithm in OpenFOAM - OpenFOAMWiki](https://openfoamwiki.net/index.php/OpenFOAM_guide/The_PIMPLE_algorithm_in_OpenFOAM)
 
 [2.4 PIMPLE算法 | 2.5 附加显式力的压力速度耦合（OpenFOAM理论笔记系列）_CloudBird07的博客-CSDN博客_pimple算法](https://blog.csdn.net/CloudBird07/article/details/107799986)
-

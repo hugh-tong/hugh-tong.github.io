@@ -10,6 +10,7 @@ avatar:
 
 menu:
   about: /about/ || fa fa-user
+  图谱: /knowledge/graph/ || fa fa-share-alt
   工具箱: /tools/ || fa fa-wrench
 
 custom_file_path:

@@ -9,6 +9,8 @@ tags:
   - SIMPLE
 description: SIMPLE/SIMPLEC/PISO/PIMPLE 的原始文献出处(WolfDy 培训课程整理)。
 mathjax: true
+graph:
+  id: pressure-velocity-coupling-refs
 ---
 
 #### WolfDy中的培训课程
@@ -24,4 +26,4 @@ mathjax: true
   - It is equivalent to PISO with outer iterations (iterative time - advancement of the solution).
   - Useful reference (besides PISO reference):
     - I. E. Barton, “Comparison of SIMPLE and PISO - type algorithms for transient flows, Int. J. Numerical methods in fluids, 26,459 - 483 (1998).
-    - P. Oliveira and R. I. Issa, “An improved piso algorithm for the computation of buoyancy - driven flows”, Numerical Heat Transfer, 40, 473 - 493 (2001). 
+    - P. Oliveira and R. I. Issa, “An improved piso algorithm for the computation of buoyancy - driven flows”, Numerical Heat Transfer, 40, 473 - 493 (2001).

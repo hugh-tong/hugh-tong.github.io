@@ -11,6 +11,17 @@ tags:
   - cfMesh
 description: 从 checkMesh 指标到优化工具链:smooth、refine、reposition 与遗传算法优化的思路汇总。
 mathjax: true
+graph:
+  id: openfoam-mesh-quality-improvement
+  relations:
+    - target: improve-mesh-quality
+      type: series
+    - target: mesh-refinement-baffles
+      type: extends
+    - target: mesh-suggest
+      type: series
+    - target: merge-or-split-baffles
+      type: series
 ---
 
 > 配套工具： [边界层网格计算器](/tools/bc-layer-calculator/) 可根据首层高度、伸展比、层数和总厚度做几何估算。
