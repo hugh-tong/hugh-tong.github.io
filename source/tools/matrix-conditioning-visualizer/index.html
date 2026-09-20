@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>良态 vs 病态矩阵 · 可视化对比</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+        h1 {
+            text-align: center;
+            font-weight: 300;
+            font-size: 2.2rem;
+            margin-top: 0.2rem;
+            margin-bottom: 0.2rem;
+            letter-spacing: 1px;
+            color: #0f172a;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #475569;
+            margin-top: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.8rem;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .card {
+            flex: 1 1 500px;
+            min-width: 400px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+            padding: 1.5rem 1.8rem 2rem;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+        }
+        .card h2 {
+            margin-top: 0;
+            font-weight: 500;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            font-size: 0.8rem;
+            background: #e2e8f0;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-weight: 400;
+            color: #1e293b;
+        }
+        .badge.good {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge.ill {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .matrix-display {
+            background: #f8fafc;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            border: 1px solid #e2e8f0;
+            margin: 0.2rem 0 0.6rem 0;
+            display: inline-block;
+        }
+        .cond-info {
+            font-size: 1.1rem;
+            margin: 0.2rem 0 0.8rem 0;
+        }
+        .cond-value {
+            font-weight: 600;
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+        }
+        .cond-value.good {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .cond-value.ill {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        canvas {
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            display: block;
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 1/1;
+            margin: 0.5rem 0;
+            cursor: crosshair;
+        }
+        .controls {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.2rem 2rem;
+            margin-top: 0.8rem;
+            padding: 0.8rem 0.5rem;
+            background: #f8fafc;
+            border-radius: 16px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .control-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #334155;
+        }
+        .control-group input[type="range"] {
+            width: 140px;
+            accent-color: #3b82f6;
+        }
+        .control-group .value {
+            min-width: 36px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #0f172a;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem 1.5rem;
+            font-size: 0.85rem;
+            margin-top: 0.6rem;
+            color: #475569;
+        }
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend .dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+        .footnote {
+            max-width: 1300px;
+            margin: 2rem auto 0;
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 1.2rem 2rem;
+            color: #1e293b;
+            line-height: 1.6;
+            border-left: 6px solid #3b82f6;
+        }
+        .footnote strong {
+            color: #0f172a;
+        }
+        @media (max-width: 900px) {
+            .card {
+                min-width: 300px;
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h1>🧮 矩阵条件数 · 良态 vs 病态</h1>
+<div class="subtitle">固定解 <strong>x₀ = [0.5, 0]</strong>，扰动 <strong>b</strong> 观察 <strong>x</strong> 的变化</div>
+
+<div class="container">
+    <!-- 良态矩阵卡片 -->
+    <div class="card">
+        <h2>✅ 良态矩阵 <span class="badge good">条件数小</span></h2>
+        <div class="matrix-display" id="good-matrix-text">A = [[2, 1], [1, 2]]</div>
+        <div class="cond-info">条件数 κ = <span class="cond-value good" id="good-cond">3.00</span></div>
+        <canvas id="good-canvas" width="500" height="500"></canvas>
+        <div class="controls">
+            <div class="control-group">
+                <label>扰动大小 ε</label>
+                <input type="range" id="eps-slider" min="0" max="0.5" step="0.005" value="0.15">
+                <span class="value" id="eps-value">0.15</span>
+            </div>
+            <div class="control-group">
+                <label>扰动角度 θ</label>
+                <input type="range" id="angle-slider" min="0" max="360" step="1" value="45">
+                <span class="value" id="angle-value">45°</span>
+            </div>
+        </div>
+        <div class="legend">
+            <span><span class="dot" style="background:#2563eb;"></span> b (原始)</span>
+            <span><span class="dot" style="background:#d97706;"></span> b' = b + δb</span>
+            <span><span class="dot" style="background:#16a34a;"></span> x = A⁻¹b</span>
+            <span><span class="dot" style="background:#dc2626;"></span> x' = A⁻¹b'</span>
+            <span><span class="dot" style="background:#7c3aed;"></span> δx = x' - x</span>
+        </div>
+        <div style="margin-top:6px; font-size:0.9rem; color:#475569;">
+            ||δx|| / ||δb|| = <strong id="good-ratio">—</strong>  (理论 κ ≈ <span id="good-kappa">3.00</span>)
+        </div>
+    </div>
+
+    <!-- 病态矩阵卡片 -->
+    <div class="card">
+        <h2>⚠️ 病态矩阵 <span class="badge ill">条件数巨大</span></h2>
+        <div class="matrix-display" id="ill-matrix-text">A = [[1, 1], [1, 1.0001]]</div>
+        <div class="cond-info">条件数 κ = <span class="cond-value ill" id="ill-cond">40000</span></div>
+        <canvas id="ill-canvas" width="500" height="500"></canvas>
+        <div class="controls">
+            <div class="control-group">
+                <label>扰动大小 ε</label>
+                <input type="range" id="eps-slider2" min="0" max="0.5" step="0.005" value="0.15">
+                <span class="value" id="eps-value2">0.15</span>
+            </div>
+            <div class="control-group">
+                <label>扰动角度 θ</label>
+                <input type="range" id="angle-slider2" min="0" max="360" step="1" value="45">
+                <span class="value" id="angle-value2">45°</span>
+            </div>
+        </div>
+        <div class="legend">
+            <span><span class="dot" style="background:#2563eb;"></span> b (原始)</span>
+            <span><span class="dot" style="background:#d97706;"></span> b' = b + δb</span>
+            <span><span class="dot" style="background:#16a34a;"></span> x = A⁻¹b</span>
+            <span><span class="dot" style="background:#dc2626;"></span> x' = A⁻¹b'</span>
+            <span><span class="dot" style="background:#7c3aed;"></span> δx = x' - x</span>
+        </div>
+        <div style="margin-top:6px; font-size:0.9rem; color:#475569;">
+            ||δx|| / ||δb|| = <strong id="ill-ratio">—</strong>  (理论 κ ≈ <span id="ill-kappa">40000</span>)
+        </div>
+    </div>
+</div>
+
+<div class="footnote">
+    <strong>💡 解读：</strong> 固定解 <strong>x₀ = [0.5, 0]</strong>，计算 <strong>b = A · x₀</strong>。然后对 <strong>b</strong> 施加一个微小扰动 <strong>δb</strong>（大小 ε，方向 θ），解变为 <strong>x' = A⁻¹(b + δb)</strong>。
+    病态矩阵（条件数大）会将微小的输入扰动放大为巨大的输出误差，而良态矩阵则保持稳定。拖动滑块观察 δx 的变化，其放大倍数近似等于条件数 κ。
+</div>
+
+<script>
+    (function() {
+        // ---------- 矩阵定义 ----------
+        // 良态矩阵 A_good = [[2, 1], [1, 2]]  条件数 = 3
+        const A_good = [[2, 1], [1, 2]];
+        // 病态矩阵 A_ill  = [[1, 1], [1, 1.0001]]  条件数 ≈ 40000
+        const A_ill  = [[1, 1], [1, 1.0001]];
+
+        // 固定解 x0 = [0.5, 0]
+        const x0 = [0.5, 0];
+
+        // 计算 b = A * x0
+        function matVecMul(A, v) {
+            return [
+                A[0][0]*v[0] + A[0][1]*v[1],
+                A[1][0]*v[0] + A[1][1]*v[1]
+            ];
+        }
+        const b_good = matVecMul(A_good, x0);
+        const b_ill  = matVecMul(A_ill, x0);
+
+        // 计算矩阵条件数 (对称正定, 2x2)
+        function cond2x2(A) {
+            const a = A[0][0], b = A[0][1], c = A[1][1];
+            // 特征值 lambda = (a+c ± sqrt((a-c)^2 + 4b^2)) / 2
+            const trace = a + c;
+            const disc = Math.sqrt((a - c) * (a - c) + 4 * b * b);
+            const l1 = (trace + disc) / 2;
+            const l2 = (trace - disc) / 2;
+            // 避免除以零
+            if (Math.abs(l2) < 1e-15) return Infinity;
+            return Math.abs(l1 / l2);
+        }
+        const kappa_good = cond2x2(A_good);
+        const kappa_ill = cond2x2(A_ill);
+
+        // 显示矩阵文本和条件数
+        document.getElementById('good-matrix-text').textContent = `A = [[2, 1], [1, 2]]`;
+        document.getElementById('ill-matrix-text').textContent = `A = [[1, 1], [1, 1.0001]]`;
+        document.getElementById('good-cond').textContent = kappa_good.toFixed(2);
+        document.getElementById('ill-cond').textContent = kappa_ill.toFixed(0);
+        document.getElementById('good-kappa').textContent = kappa_good.toFixed(2);
+        document.getElementById('ill-kappa').textContent = kappa_ill.toFixed(0);
+
+        // 矩阵求逆 (2x2)
+        function inv2x2(A) {
+            const [[a, b], [c, d]] = A;
+            const det = a * d - b * c;
+            if (Math.abs(det) < 1e-15) return null;
+            return [
+                [ d / det, -b / det],
+                [-c / det,  a / det]
+            ];
+        }
+        const inv_good = inv2x2(A_good);
+        const inv_ill = inv2x2(A_ill);
+
+        // 解方程: x = A^{-1} * b
+        function solve(A_inv, b) {
+            return matVecMul(A_inv, b);
+        }
+
+        // ---------- 绘图 ----------
+        const canvasGood = document.getElementById('good-canvas');
+        const canvasIll = document.getElementById('ill-canvas');
+        const ctxGood = canvasGood.getContext('2d');
+        const ctxIll = canvasIll.getContext('2d');
+
+        // 坐标映射：画布500x500，中心(250,250)，范围[-2.5, 2.5]
+        const W = 500, H = 500;
+        const cx = 250, cy = 250;
+        const scale = 90; // 每单位像素数 (2.5单位 = 225像素，取90)
+        // 范围 -2.777 ~ 2.777，但为了显示完整，我们限制显示范围 -2.5 ~ 2.5
+
+        function toCanvasX(x) { return cx + x * scale; }
+        function toCanvasY(y) { return cy - y * scale; } // 翻转Y
+
+        // 绘制坐标轴、网格
+        function drawGrid(ctx) {
+            ctx.save();
+            ctx.strokeStyle = "#e2e8f0";
+            ctx.lineWidth = 0.5;
+            // 网格线从 -2.5 到 2.5，步长 0.5
+            for (let v = -2.5; v <= 2.5; v += 0.5) {
+                if (Math.abs(v) < 1e-9) continue;
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(v), toCanvasY(-2.5));
+                ctx.lineTo(toCanvasX(v), toCanvasY(2.5));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(-2.5), toCanvasY(v));
+                ctx.lineTo(toCanvasX(2.5), toCanvasY(v));
+                ctx.stroke();
+            }
+            // 坐标轴
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(-2.5), toCanvasY(0));
+            ctx.lineTo(toCanvasX(2.5), toCanvasY(0));
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), toCanvasY(-2.5));
+            ctx.lineTo(toCanvasX(0), toCanvasY(2.5));
+            ctx.stroke();
+            // 刻度标注
+            ctx.fillStyle = "#64748b";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            for (let v = -2; v <= 2; v += 0.5) {
+                if (Math.abs(v) < 1e-9) continue;
+                ctx.fillText(v.toFixed(1), toCanvasX(v), toCanvasY(0) + 4);
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.fillText(v.toFixed(1), toCanvasX(0) - 6, toCanvasY(v));
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+            }
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            ctx.fillText("x", toCanvasX(2.4), toCanvasY(0) + 6);
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.fillText("y", toCanvasX(0) - 10, toCanvasY(2.4));
+            ctx.restore();
+        }
+
+        // 绘制箭头
+        function drawArrow(ctx, from, to, color, lineWidth = 2.5, headSize = 10) {
+            const x1 = toCanvasX(from[0]), y1 = toCanvasY(from[1]);
+            const x2 = toCanvasX(to[0]), y2 = toCanvasY(to[1]);
+            const dx = x2 - x1, dy = y2 - y1;
+            const len = Math.sqrt(dx*dx + dy*dy);
+            if (len < 0.1) return;
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            // 箭头头
+            const angle = Math.atan2(dy, dx);
+            const headLen = Math.min(headSize, len * 0.3);
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle - 0.5), y2 - headLen * Math.sin(angle - 0.5));
+            ctx.lineTo(x2 - headLen * Math.cos(angle + 0.5), y2 - headLen * Math.sin(angle + 0.5));
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 绘制单位圆和变换后的椭圆
+        function drawEllipse(ctx, A, color = "#3b82f6") {
+            // 单位圆上采样
+            const points = 80;
+            const pts = [];
+            for (let i = 0; i <= points; i++) {
+                const theta = (i / points) * 2 * Math.PI;
+                const u = [Math.cos(theta), Math.sin(theta)];
+                const v = matVecMul(A, u);
+                pts.push(v);
+            }
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < pts.length; i++) {
+                const x = toCanvasX(pts[i][0]);
+                const y = toCanvasY(pts[i][1]);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            // 填充半透明
+            ctx.fillStyle = color + '20';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 绘制单位圆（虚线）
+        function drawUnitCircle(ctx) {
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy, scale * 1, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 绘制点或向量标签
+        function drawLabel(ctx, pos, label, color, offset = [0, -14]) {
+            const x = toCanvasX(pos[0]) + offset[0];
+            const y = toCanvasY(pos[1]) + offset[1];
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.font = "bold 13px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.fillText(label, x, y);
+            ctx.restore();
+        }
+
+        // 绘制点
+        function drawPoint(ctx, pos, color, radius = 5) {
+            const x = toCanvasX(pos[0]);
+            const y = toCanvasY(pos[1]);
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 主绘图函数
+        function draw(ctx, A, invA, b, x0, kappa, canvasId, ratioId) {
+            // 获取滑块值
+            const epsSlider = document.getElementById('eps-slider');
+            const angleSlider = document.getElementById('angle-slider');
+            // 但可能两个canvas共用同一组滑块，我们使用ID，但为了独立，这里我们通过canvasId决定使用哪个滑块
+            // 实际上我们使用全局统一滑块，所以两组滑块同步，我们使用同一个事件更新两个画布
+            // 因此这个函数会被调用时从全局变量读取当前eps和angle
+            // 但是为了灵活性，我们直接从文档中读取对应的滑块（如果分别控制的话）
+            // 这里我们采用分别控制，使用各自的滑块
+            let eps, angle;
+            if (canvasId === 'good-canvas') {
+                eps = parseFloat(document.getElementById('eps-slider').value);
+                angle = parseFloat(document.getElementById('angle-slider').value);
+            } else {
+                eps = parseFloat(document.getElementById('eps-slider2').value);
+                angle = parseFloat(document.getElementById('angle-slider2').value);
+            }
+            const theta = angle * Math.PI / 180;
+            const delta_b = [eps * Math.cos(theta), eps * Math.sin(theta)];
+            const b_prime = [b[0] + delta_b[0], b[1] + delta_b[1]];
+            const x = solve(invA, b);
+            const x_prime = solve(invA, b_prime);
+            const delta_x = [x_prime[0] - x[0], x_prime[1] - x[1]];
+
+            // 计算范数比
+            const norm_db = Math.sqrt(delta_b[0]*delta_b[0] + delta_b[1]*delta_b[1]);
+            const norm_dx = Math.sqrt(delta_x[0]*delta_x[0] + delta_x[1]*delta_x[1]);
+            let ratio = (norm_db > 1e-15) ? norm_dx / norm_db : 0;
+            document.getElementById(ratioId).textContent = ratio.toFixed(2);
+
+            // 清空画布
+            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, W, H);
+
+            // 画网格
+            drawGrid(ctx);
+
+            // 画单位圆 (虚线)
+            drawUnitCircle(ctx);
+
+            // 画变换后的椭圆 (A作用在单位圆上)
+            drawEllipse(ctx, A, "#3b82f6");
+
+            // 绘制向量
+            // b (原始) 蓝色
+            drawArrow(ctx, [0, 0], b, "#2563eb", 3);
+            drawPoint(ctx, b, "#2563eb", 6);
+            drawLabel(ctx, b, "b", "#2563eb");
+
+            // b_prime 橙色
+            drawArrow(ctx, [0, 0], b_prime, "#d97706", 3);
+            drawPoint(ctx, b_prime, "#d97706", 6);
+            drawLabel(ctx, b_prime, "b'", "#d97706");
+
+            // x 绿色
+            drawArrow(ctx, [0, 0], x, "#16a34a", 3);
+            drawPoint(ctx, x, "#16a34a", 6);
+            drawLabel(ctx, x, "x", "#16a34a");
+
+            // x_prime 红色
+            drawArrow(ctx, [0, 0], x_prime, "#dc2626", 3);
+            drawPoint(ctx, x_prime, "#dc2626", 6);
+            drawLabel(ctx, x_prime, "x'", "#dc2626");
+
+            // delta_x 紫色 (从x到x')
+            drawArrow(ctx, x, x_prime, "#7c3aed", 2.5);
+            // 标出delta_x中间标签
+            const mid_x = [(x[0]+x_prime[0])/2, (x[1]+x_prime[1])/2];
+            drawLabel(ctx, mid_x, "δx", "#7c3aed", [0, -18]);
+
+            // 也显示delta_b (从b到b') 浅蓝色虚线
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = "#60a5fa";
+            ctx.lineWidth = 2;
+            const from = [toCanvasX(b[0]), toCanvasY(b[1])];
+            const to = [toCanvasX(b_prime[0]), toCanvasY(b_prime[1])];
+            ctx.beginPath();
+            ctx.moveTo(from[0], from[1]);
+            ctx.lineTo(to[0], to[1]);
+            ctx.stroke();
+            ctx.restore();
+            // 标签
+            const mid_b = [(b[0]+b_prime[0])/2, (b[1]+b_prime[1])/2];
+            drawLabel(ctx, mid_b, "δb", "#60a5fa", [0, -16]);
+
+            // 显示数值信息
+            ctx.save();
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "13px sans-serif";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            const info = `||δb|| = ${norm_db.toFixed(4)}  ||δx|| = ${norm_dx.toFixed(4)}  ||δx||/||δb|| = ${ratio.toFixed(2)}`;
+            ctx.fillText(info, 10, 10);
+            ctx.restore();
+        }
+
+        // 更新所有画布
+        function updateAll() {
+            draw(ctxGood, A_good, inv_good, b_good, x0, kappa_good, 'good-canvas', 'good-ratio');
+            draw(ctxIll, A_ill, inv_ill, b_ill, x0, kappa_ill, 'ill-canvas', 'ill-ratio');
+            // 更新滑块显示值
+            document.getElementById('eps-value').textContent = document.getElementById('eps-slider').value;
+            document.getElementById('angle-value').textContent = document.getElementById('angle-slider').value + '°';
+            document.getElementById('eps-value2').textContent = document.getElementById('eps-slider2').value;
+            document.getElementById('angle-value2').textContent = document.getElementById('angle-slider2').value + '°';
+        }
+
+        // 绑定滑块事件 (两组滑块分别控制各自的画布，但为了同步，我们让两组滑块都触发更新所有画布，但各自读取自己的值)
+        // 所以两个canvas会使用各自对应的滑块，但为了对比方便，我们也可以让它们共享一组滑块，但这里为了更灵活的对比，我们使用两组滑块，但更新时都更新所有画布（各自读自己的值）
+        // 这样可以独立调整，也可以同步。
+        const sliders = ['eps-slider', 'angle-slider', 'eps-slider2', 'angle-slider2'];
+        sliders.forEach(id => {
+            document.getElementById(id).addEventListener('input', updateAll);
+        });
+
+        // 初始绘制
+        updateAll();
+
+        // 窗口大小变化时重绘（但canvas尺寸固定，无需）
+        // 额外：为canvas添加点击显示坐标功能（可选）
+
+    })();
+</script>
+
+</body>
+</html>

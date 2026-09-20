@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>--oversubscribe -np 256 在 64 核服务器上会发生什么</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    padding: 24px;
+    line-height: 1.6;
+  }
+  h1 { font-size: 22px; margin-bottom: 6px; color: #58a6ff; }
+  h2 { font-size: 17px; margin: 22px 0 10px; color: #7ee787; border-left: 3px solid #238636; padding-left: 10px; }
+  .subtitle { color: #8b949e; font-size: 13px; margin-bottom: 18px; }
+  .panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+  button {
+    background: #238636; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 16px; font-size: 14px; cursor: pointer; transition: .2s;
+  }
+  button:hover { background: #2ea043; }
+  button.danger { background: #da3633; }
+  button.danger:hover { background: #f85149; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  label { font-size: 13px; color: #8b949e; }
+  select, input[type=range] {
+    background: #0d1117; color: #e6edf3; border: 1px solid #30363d;
+    border-radius: 6px; padding: 5px 8px; font-size: 13px;
+  }
+
+  /* 核心网格 */
+  .core-grid {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .core {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .core .fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    transition: height .08s linear;
+  }
+  .core .idx {
+    position: absolute; top: 2px; left: 3px;
+    font-size: 8px; color: #6e7681; z-index: 2;
+  }
+  .core .pcount {
+    position: absolute; bottom: 2px; right: 3px;
+    font-size: 8px; color: #e6edf3; z-index: 2; font-weight: bold;
+    text-shadow: 0 0 3px #000;
+  }
+  .core.hot { box-shadow: 0 0 8px 2px rgba(248,81,73,.7); }
+
+  /* 图例 */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: #8b949e; margin-top: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+  /* 统计卡片 */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 8px; }
+  .stat {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px;
+  }
+  .stat .label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: .5px; }
+  .stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat .value.good { color: #7ee787; }
+  .stat .value.warn { color: #d29922; }
+  .stat .value.bad { color: #f85149; }
+
+  /* 进度条 */
+  .bar-wrap { background: #21262d; border-radius: 6px; height: 22px; overflow: hidden; position: relative; margin-top: 6px; }
+  .bar { height: 100%; transition: width .2s linear; }
+  .bar-label {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; text-shadow: 0 0 4px #000;
+  }
+
+  /* 日志 */
+  #log {
+    background: #010409; border: 1px solid #30363d; border-radius: 8px;
+    padding: 12px; height: 180px; overflow-y: auto;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 12px; line-height: 1.7;
+  }
+  #log .ts { color: #6e7681; }
+  #log .warn { color: #d29922; }
+  #log .err { color: #f85149; }
+  #log .ok { color: #7ee787; }
+  #log .info { color: #58a6ff; }
+
+  /* 对比 */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } .core-grid { grid-template-columns: repeat(8, 1fr); } }
+  .compare .col { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .compare h3 { font-size: 14px; margin-bottom: 8px; }
+  .compare .col.good h3 { color: #7ee787; }
+  .compare .col.bad h3 { color: #f85149; }
+  .compare ul { margin-left: 18px; font-size: 13px; color: #c9d1d9; }
+  .compare li { margin-bottom: 4px; }
+
+  code {
+    background: #21262d; padding: 2px 6px; border-radius: 4px;
+    font-family: Consolas, monospace; font-size: 12px; color: #ffa657;
+  }
+  pre {
+    background: #010409; border: 1px solid #30363d; border-radius: 8px;
+    padding: 12px; overflow-x: auto; font-size: 12px; line-height: 1.6;
+    font-family: Consolas, monospace; color: #c9d1d9;
+  }
+  pre .cmt { color: #6e7681; }
+  pre .arg { color: #ffa657; }
+  .note { font-size: 12px; color: #8b949e; margin-top: 8px; }
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    font-weight: 600; vertical-align: middle;
+  }
+  .badge.red { background: #3d1416; color: #f85149; }
+  .badge.green { background: #12261e; color: #7ee787; }
+</style>
+</head>
+<body>
+
+<h1>mpirun --oversubscribe -np 256 在 64 物理核上执行模拟</h1>
+<p class="subtitle">模拟 256 个 MPI 进程争抢 64 个物理核心时，操作系统调度器、缓存、内存带宽发生了什么</p>
+
+<!-- ============ 控制面板 ============ -->
+<div class="panel">
+  <div class="controls">
+    <button id="btnStart">▶ 启动 256 进程</button>
+    <button id="btnStop" class="danger" disabled>■ 停止</button>
+    <button id="btnReset">↺ 重置</button>
+    <label>进程数
+      <select id="nproc">
+        <option value="64">64（=物理核，正常）</option>
+        <option value="128">128（2×超订）</option>
+        <option value="256" selected>256（4×超订）</option>
+        <option value="512">512（8×超订）</option>
+      </select>
+    </label>
+    <label>调度策略
+      <select id="policy">
+        <option value="cfs" selected>Linux CFS（默认，随机抢核）</option>
+        <option value="pin">--bind-to core（绑定）</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="core-grid" id="coreGrid"></div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:#21262d"></i> 空闲</span>
+    <span><i class="dot" style="background:#1f6feb"></i> 1 进程</span>
+    <span><i class="dot" style="background:#d29922"></i> 2–3 进程</span>
+    <span><i class="dot" style="background:#f85149"></i> 4+ 进程（严重争抢）</span>
+    <span><i class="dot" style="background:#a371f7"></i> 上下文切换中</span>
+  </div>
+</div>
+
+<!-- ============ 实时统计 ============ -->
+<div class="panel">
+  <h2>实时状态</h2>
+  <div class="stats">
+    <div class="stat"><div class="label">已启动进程</div><div class="value" id="stProcs">0</div></div>
+    <div class="stat"><div class="label">每核平均进程</div><div class="value" id="stPerCore">0.0</div></div>
+    <div class="stat"><div class="label">上下文切换 / 秒</div><div class="value" id="stCtx">0</div></div>
+    <div class="stat"><div class="label">有效并行度</div><div class="value" id="stEff">—</div></div>
+  </div>
+
+  <h2>整体计算进度</h2>
+  <div class="bar-wrap">
+    <div class="bar" id="barActual" style="width:0%;background:linear-gradient(90deg,#da3633,#f85149)"></div>
+    <div class="bar-label" id="barActualLabel">实际进度 0%</div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar" id="barIdeal" style="width:0%;background:linear-gradient(90deg,#238636,#7ee787);opacity:.55"></div>
+    <div class="bar-label" id="barIdealLabel">理想进度（64 进程正常跑）0%</div>
+  </div>
+  <p class="note">理想进度 = 假设 64 进程无争抢时的线性完成度；实际进度 = 超订后真实推进速度。</p>
+</div>
+
+<!-- ============ 日志 ============ -->
+<div class="panel">
+  <h2>mpirun 输出日志（模拟）</h2>
+  <div id="log"></div>
+</div>
+
+<!-- ============ 结论对比 ============ -->
+<div class="panel">
+  <h2>会发生什么</h2>
+  <div class="compare">
+    <div class="col good">
+      <h3>✅ 好消息：能跑起来</h3>
+      <ul>
+        <li>MPI 不会拒绝启动 256 个进程</li>
+        <li>OpenFOAM 能读到 256 个分解块，不会报错退出</li>
+        <li>结果在数学上通常是对的（除非有竞态）</li>
+        <li>适合“我只想验证案例能不能跑通”</li>
+      </ul>
+    </div>
+    <div class="col bad">
+      <h3>❌ 坏消息：性能崩了</h3>
+      <ul>
+        <li><b>上下文切换暴增</b>：每个核上 4 个进程轮流上 CPU，切换开销吃掉大量时间</li>
+        <li><b>缓存全部失效</b>：进程被换出后 L1/L2/L3 数据被冲掉，回来时全是 cache miss</li>
+        <li><b>内存带宽打满</b>：256 个进程同时抢内存总线，带宽成为瓶颈</li>
+        <li><b>MPI 通信拥塞</b>：256 个进程在同一台机器上走共享内存/网络，消息排队</li>
+        <li><b>可能比 64 核正常跑还慢</b>，极端情况慢 2–5 倍</li>
+        <li><b>内存可能爆</b>：256 个进程各占一份内存，物理内存不够时触发 swap 或 OOM Killer</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 正确做法 ============ -->
+<div class="panel">
+  <h2>正确做法：重新分解为 64 核</h2>
+<pre><span class="cmt"># 1. 编辑 system/decomposeParDict，把 numberOfSubdomains 从 256 改成 64</span>
+numberOfSubdomains 64;
+
+method scotch;   <span class="cmt"># 或 hierarchical / simple</span>
+
+<span class="cmt"># 2. 重新分解</span>
+decomposePar -force
+
+<span class="cmt"># 3. 正常并行运行（不再需要 --oversubscribe）</span>
+mpirun -np 64 <span class="arg">yourSolver</span> -parallel</pre>
+
+  <p class="note">
+    <span class="badge green">推荐</span>
+    重新分解后，每个进程独占一个物理核，缓存命中率高、无上下文切换、内存和 MPI 压力都正常，
+    这才是 64 核服务器应有的跑法。
+  </p>
+</div>
+
+<script>
+/* ================= 配置 ================= */
+const CORES = 64;
+const COLORS = {
+  idle: '#21262d',
+  one: '#1f6feb',
+  few: '#d29922',
+  many: '#f85149',
+  ctx: '#a371f7'
+};
+
+/* ================= 状态 ================= */
+let state = {
+  running: false,
+  nproc: 256,
+  policy: 'cfs',
+  coreLoad: new Array(CORES).fill(0),   // 每个核上的进程数
+  coreFlash: new Array(CORES).fill(0),  // 上下文切换闪烁
+  procsSpawned: 0,
+  ctxSwitches: 0,
+  actualProgress: 0,
+  idealProgress: 0,
+  tick: 0,
+  timer: null,
+  spawnTimer: null
+};
+
+/* ================= DOM ================= */
+const grid = document.getElementById('coreGrid');
+const logEl = document.getElementById('log');
+const btnStart = document.getElementById('btnStart');
+const btnStop = document.getElementById('btnStop');
+const btnReset = document.getElementById('btnReset');
+
+/* ================= 构建核心网格 ================= */
+const coreEls = [];
+for (let i = 0; i < CORES; i++) {
+  const d = document.createElement('div');
+  d.className = 'core';
+  d.innerHTML = `<div class="idx">${i}</div><div class="fill"></div><div class="pcount"></div>`;
+  d.title = `物理核 ${i}`;
+  grid.appendChild(d);
+  coreEls.push({
+    root: d,
+    fill: d.querySelector('.fill'),
+    pcount: d.querySelector('.pcount')
+  });
+}
+
+/* ================= 日志 ================= */
+function log(msg, cls = '') {
+  const now = new Date();
+  const ts = now.toTimeString().slice(0, 8);
+  const line = document.createElement('div');
+  line.innerHTML = `<span class="ts">[${ts}]</span> <span class="${cls}">${msg}</span>`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+  // 限制日志条数
+  while (logEl.childElementCount > 300) logEl.removeChild(logEl.firstChild);
+}
+function clearLog() { logEl.innerHTML = ''; }
+
+/* ================= 渲染 ================= */
+function renderCores() {
+  for (let i = 0; i < CORES; i++) {
+    const n = state.coreLoad[i];
+    const el = coreEls[i];
+    let color = COLORS.idle, h = 0;
+    if (n === 1) { color = COLORS.one; h = 100; }
+    else if (n >= 2 && n <= 3) { color = COLORS.few; h = 100; }
+    else if (n >= 4) { color = COLORS.many; h = 100; }
+
+    // 上下文切换闪烁
+    if (state.coreFlash[i] > 0) {
+      color = COLORS.ctx;
+      state.coreFlash[i]--;
+    }
+
+    el.fill.style.background = color;
+    el.fill.style.height = h + '%';
+    el.pcount.textContent = n > 0 ? n : '';
+
+    // 过载发光
+    el.root.classList.toggle('hot', n >= 4);
+  }
+}
+
+function renderStats() {
+  const totalLoad = state.coreLoad.reduce((a, b) => a + b, 0);
+  const perCore = (totalLoad / CORES).toFixed(1);
+
+  document.getElementById('stProcs').textContent = totalLoad;
+  document.getElementById('stPerCore').textContent = perCore;
+  document.getElementById('stCtx').textContent = state.ctxSwitches.toLocaleString();
+
+  // 有效并行度：越多进程抢核，效率越低
+  let eff = '—';
+  let cls = '';
+  if (totalLoad > 0) {
+    // 简化模型：有效并行度 ≈ 物理核数 / 超订倍数^0.7
+    const oversub = totalLoad / CORES;
+    const effVal = CORES / Math.pow(oversub, 0.7);
+    eff = effVal.toFixed(1) + ' / ' + CORES + ' 核';
+    cls = oversub <= 1.1 ? 'good' : (oversub <= 2.5 ? 'warn' : 'bad');
+  }
+  const effEl = document.getElementById('stEff');
+  effEl.textContent = eff;
+  effEl.className = 'value ' + cls;
+
+  // 进度条
+  const a = Math.min(100, state.actualProgress);
+  const ideal = Math.min(100, state.idealProgress);
+  document.getElementById('barActual').style.width = a + '%';
+  document.getElementById('barActualLabel').textContent = '实际进度 ' + a.toFixed(1) + '%';
+  document.getElementById('barIdeal').style.width = ideal + '%';
+  document.getElementById('barIdealLabel').textContent = '理想进度（64 进程正常跑）' + ideal.toFixed(1) + '%';
+}
+
+/* ================= 调度模拟 ================= */
+function scheduleTick() {
+  if (!state.running) return;
+  state.tick++;
+
+  // --- 进程启动阶段 ---
+  if (state.procsSpawned < state.nproc) {
+    // 每次 tick 启动一批
+    const batch = Math.max(1, Math.ceil(state.nproc / 40));
+    for (let k = 0; k < batch && state.procsSpawned < state.nproc; k++) {
+      state.procsSpawned++;
+      // 随机分配到某个核
+      const c = Math.floor(Math.random() * CORES);
+      state.coreLoad[c]++;
+
+      if (state.procsSpawned % 32 === 0 || state.procsSpawned === state.nproc) {
+        log(`mpirun: 已启动 ${state.procsSpawned}/${state.nproc} 个进程`, 'info');
+      }
+    }
+    if (state.procsSpawned >= state.nproc) {
+      log(`mpirun: 全部 ${state.nproc} 个进程已就绪，开始计算`, 'ok');
+      const oversub = (state.nproc / CORES).toFixed(1);
+      log(`警告: 超订倍数 = ${oversub}×（${state.nproc} 进程 / ${CORES} 物理核）`, 'warn');
+      if (state.policy === 'cfs') {
+        log('调度策略: Linux CFS 默认调度，进程将随机抢核', 'warn');
+      } else {
+        log('调度策略: --bind-to core 绑定，进程被固定到核心', 'info');
+      }
+    }
+  }
+
+  // --- 计算阶段：上下文切换与进度 ---
+  if (state.procsSpawned >= state.nproc) {
+    const oversub = state.nproc / CORES;
+
+    // 上下文切换次数：超订越严重，切换越频繁
+    let switchesThisTick = 0;
+    if (state.policy === 'cfs') {
+      // CFS 下，每核每 tick 约 oversub 次切换
+      switchesThisTick = Math.floor(oversub * CORES * (0.8 + Math.random() * 0.4));
+      // 随机让若干核闪一下紫色
+      const flashCount = Math.min(CORES, Math.floor(oversub * 6));
+      for (let i = 0; i < flashCount; i++) {
+        state.coreFlash[Math.floor(Math.random() * CORES)] = 2;
+      }
+    } else {
+      // 绑定模式下切换少，但因为多个进程绑到同一核，仍会有切换
+      switchesThisTick = Math.floor(oversub * CORES * 0.15);
+    }
+    state.ctxSwitches += switchesThisTick;
+
+    // --- 进度推进模型 ---
+    // 理想：64 进程 1 tick 推进 1 单位
+    const idealRate = 1.0;
+    // 实际：受超订拖累
+    // 效率因子：oversub^0.7 惩罚
+    const effFactor = 1 / Math.pow(oversub, 0.7);
+    // 绑定策略略好一点
+    const policyBonus = state.policy === 'pin' ? 1.15 : 1.0;
+    const actualRate = idealRate * effFactor * policyBonus * (0.9 + Math.random() * 0.2);
+
+    state.idealProgress += idealRate * 0.35;   // 加速演示
+    state.actualProgress += actualRate * 0.35;
+
+    // --- 周期性告警 ---
+    if (state.tick % 25 === 0) {
+      const load = state.coreLoad.reduce((a, b) => a + b, 0);
+      const avgLoad = (load / CORES).toFixed(1);
+      log(`[监测] 平均每核负载 ${avgLoad}，上下文切换累计 ${state.ctxSwitches.toLocaleString()} 次`, 'warn');
+    }
+    if (state.tick % 40 === 0 && oversub >= 3) {
+      const msgs = [
+        'cache miss 率飙升：L2/L3 频繁被换出进程污染',
+        '内存带宽接近饱和：多个进程同时读写主存',
+        'MPI 共享内存通道拥塞：消息排队延迟增加',
+        '调度器 load average 远高于物理核数，系统响应变慢',
+        '存在 OOM 风险：256 进程内存占用是 64 进程的 4 倍'
+      ];
+      log('[性能] ' + msgs[Math.floor(Math.random() * msgs.length)], 'err');
+    }
+
+    if (state.actualProgress >= 100 || state.idealProgress >= 100) {
+      stopSim();
+      const ratio = (state.idealProgress / state.actualProgress).toFixed(2);
+      log(`模拟结束：理想进度 ${state.idealProgress.toFixed(0)}% vs 实际进度 ${state.actualProgress.toFixed(0)}%`, 'ok');
+      log(`实际比 64 核正常跑慢约 ${ratio}×`, 'err');
+    }
+  }
+
+  renderCores();
+  renderStats();
+}
+
+/* ================= 控制 ================= */
+function startSim() {
+  if (state.running) return;
+  resetSim(true);
+
+  state.running = true;
+  state.nproc = parseInt(document.getElementById('nproc').value);
+  state.policy = document.getElementById('policy').value;
+  state.procsSpawned = 0;
+  state.ctxSwitches = 0;
+  state.actualProgress = 0;
+  state.idealProgress = 0;
+  state.tick = 0;
+  state.coreLoad.fill(0);
+  state.coreFlash.fill(0);
+
+  btnStart.disabled = true;
+  btnStop.disabled = false;
+
+  log(`$ mpirun --oversubscribe -np ${state.nproc} yourSolver -parallel`, 'info');
+  log(`检测到 ${CORES} 个物理核心`, 'info');
+  if (state.nproc > CORES) {
+    log(`超订警告: ${state.nproc} 进程 > ${CORES} 物理核，将强制超订运行`, 'warn');
+  }
+
+  clearInterval(state.timer);
+  state.timer = setInterval(scheduleTick, 120);
+}
+
+function stopSim() {
+  state.running = false;
+  clearInterval(state.timer);
+  btnStart.disabled = false;
+  btnStop.disabled = true;
+  renderCores();
+  renderStats();
+}
+
+function resetSim(silent) {
+  stopSim();
+  state.coreLoad.fill(0);
+  state.coreFlash.fill(0);
+  state.procsSpawned = 0;
+  state.ctxSwitches = 0;
+  state.actualProgress = 0;
+  state.idealProgress = 0;
+  state.tick = 0;
+  if (!silent) clearLog();
+  renderCores();
+  renderStats();
+  document.getElementById('stCtx').textContent = '0';
+}
+
+btnStart.addEventListener('click', startSim);
+btnStop.addEventListener('click', stopSim);
+btnReset.addEventListener('click', () => { resetSim(false); log('已重置', 'info'); });
+
+/* 初始渲染 */
+renderCores();
+renderStats();
+log('就绪。点击「启动 256 进程」开始模拟。', 'ok');
+log('提示：观察核心网格的颜色变化和上下文切换计数。', 'info');
+</script>
+
+</body>
+</html>

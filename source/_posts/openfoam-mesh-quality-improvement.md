@@ -12,6 +12,9 @@ tags:
 description: 从 checkMesh 指标到优化工具链:smooth、refine、reposition 与遗传算法优化的思路汇总。
 mathjax: true
 ---
+
+> 配套工具： [边界层网格计算器](/tools/bc-layer-calculator/) 可根据首层高度、伸展比、层数和总厚度做几何估算。
+
 从网格质量提升的层面，了解到了:
 
 - genetic and evolutionary algorithm genetic_evolutionary_algo

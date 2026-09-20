@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KV Cache 交互实验室</title>
+  <style>
+    :root{--bg:#f4f7fb;--panel:#fff;--ink:#172033;--muted:#68748a;--line:#dce3ee;--q:#7c3aed;--k:#0e7490;--v:#d97706;--active:#2563eb;--soft:#edf4ff;--ok:#15803d;--warn:#b45309;--shadow:0 14px 40px rgba(30,50,80,.08)}
+    *{box-sizing:border-box} body{margin:0;font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#eef4ff 0,#f8fafc 42%,#f3f0ff 100%);color:var(--ink)}
+    button,input{font:inherit}.app{max-width:1220px;margin:auto;padding:28px 20px 48px}.hero{display:flex;justify-content:space-between;gap:28px;align-items:flex-end;margin-bottom:20px}.eyebrow{color:var(--active);font-weight:700;letter-spacing:.08em}.hero h1{font-size:clamp(28px,4vw,46px);line-height:1.08;margin:6px 0 10px}.hero p{margin:0;color:var(--muted);max-width:760px}.formula{background:#172033;color:#e8efff;border-radius:14px;padding:14px 18px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:nowrap;box-shadow:var(--shadow)}
+    .toolbar,.panel{background:rgba(255,255,255,.92);border:1px solid rgba(220,227,238,.9);border-radius:18px;box-shadow:var(--shadow)}.toolbar{display:grid;grid-template-columns:1fr 1fr auto;gap:18px;padding:16px 18px;align-items:end;margin-bottom:18px}.field label,.label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:7px}.field input{width:100%;accent-color:var(--active)}.actions{display:flex;gap:8px}.btn{border:1px solid var(--line);background:#fff;padding:9px 14px;border-radius:10px;cursor:pointer;color:var(--ink)}.btn.primary{background:var(--active);border-color:var(--active);color:#fff}.btn:hover{filter:brightness(.97)}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.metric{background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:14px;padding:13px 15px}.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{font-size:22px}.metric small{color:var(--muted)}
+    .stage{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.8fr);gap:18px}.panel{padding:18px}.panel h2{font-size:17px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin-bottom:16px}.mode-switch{display:flex;gap:6px;margin:10px 0 18px}.mode{flex:1;border:1px solid var(--line);background:#fff;padding:9px;border-radius:9px;cursor:pointer}.mode.on{color:var(--active);border-color:var(--active);background:var(--soft);font-weight:700}
+    .tokens{display:flex;gap:8px;flex-wrap:wrap;min-height:42px}.token{padding:7px 10px;border-radius:9px;background:#eef2f7;border:1px solid var(--line);transition:.25s}.token.current{background:#dbeafe;border-color:#60a5fa;transform:translateY(-2px)}.token.future{opacity:.27}.block{margin-top:16px}.block-title{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:7px}.matrix{display:grid;gap:5px;overflow:hidden}.cell{min-height:31px;border-radius:6px;display:grid;place-items:center;font-size:11px;background:#eff3f8;color:#738099;transition:.25s}.cell.compute{background:#dbeafe;color:#1d4ed8;animation:pulse .7s ease}.cell.cache-k{background:#cffafe;color:#155e75}.cell.cache-v{background:#ffedd5;color:#9a3412}.cell.dim{opacity:.25}.cell.empty{background:repeating-linear-gradient(135deg,#f1f4f8,#f1f4f8 4px,#e7ebf1 4px,#e7ebf1 8px);color:transparent}@keyframes pulse{50%{transform:scale(.94)}}
+    .kv-row{display:grid;grid-template-columns:28px 1fr;gap:9px;align-items:center;margin:8px 0}.kv-tag{font:700 14px ui-monospace;text-align:center}.kv-tag.k{color:var(--k)}.kv-tag.v{color:var(--v)}.cache-cells{display:grid;gap:5px}.explain{margin-top:16px;border-left:4px solid var(--active);background:var(--soft);padding:12px 14px;border-radius:0 10px 10px 0}.explain strong{display:block;margin-bottom:4px}.explain p{margin:0;color:#45536a}.code{font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;background:#172033;color:#dce7ff;border-radius:12px;padding:13px;overflow:auto;margin-top:14px}.code .hot{color:#7dd3fc}.code .keep{color:#fdba74}
+    .compare{margin-top:18px}.bar-row{display:grid;grid-template-columns:110px 1fr 76px;align-items:center;gap:10px;margin:12px 0}.track{height:12px;border-radius:99px;background:#e8edf4;overflow:hidden}.fill{height:100%;border-radius:99px;transition:.35s}.fill.no{background:#94a3b8}.fill.yes{background:var(--active)}.note{font-size:13px;color:var(--muted);margin-top:12px}.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}.dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px}.footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+    @media(max-width:820px){.hero{display:block}.formula{display:inline-block;margin-top:14px;white-space:normal}.toolbar{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.stage{grid-template-columns:1fr}.bar-row{grid-template-columns:90px 1fr 64px}}@media(max-width:440px){.metrics{grid-template-columns:1fr}.actions{display:grid}.hero h1{font-size:30px}.app{padding:18px 12px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="hero"><div><div class="eyebrow">TRANSFORMER · INTERACTIVE LAB</div><h1>KV Cache 到底缓存了什么？</h1><p>把自回归生成看成一次不断变长的离散计算：每生成一个新 token，旧 token 的 Key / Value 不会改变。KV Cache 用显存保存它们，从而避免重复投影。</p></div><div class="formula">Attention(Q,K,V) = softmax(QKᵀ/√d) V</div></header>
+  <section class="toolbar">
+    <div class="field"><label><span>当前生成步</span><b id="stepValue">4 / 8</b></label><input id="step" type="range" min="1" max="8" value="4"></div>
+    <div class="field"><label><span>模型层数（显存估算）</span><b id="layersValue">32</b></label><input id="layers" type="range" min="4" max="80" step="4" value="32"></div>
+    <div class="actions"><button class="btn primary" id="next">生成下一个 token</button><button class="btn" id="play">自动播放</button><button class="btn" id="reset">重置</button></div>
+  </section>
+  <section class="metrics" aria-live="polite">
+    <div class="metric"><span>本步 QKV 投影次数</span><strong id="projection">1</strong><small id="projectionHint">仅新 token</small></div>
+    <div class="metric"><span>累计投影工作量</span><strong id="work">4 vs 10</strong><small>有缓存 vs 无缓存</small></div>
+    <div class="metric"><span>单请求 KV 显存</span><strong id="memory">2.0 MiB</strong><small>FP16，示例维度 4096</small></div>
+    <div class="metric"><span>缓存换来的代价</span><strong>空间换时间</strong><small>上下文越长，占用越大</small></div>
+  </section>
+  <section class="stage">
+    <article class="panel">
+      <h2>一次解码步里发生了什么</h2><div class="sub">切换模式，观察同一个生成步骤中哪些旧 token 被重新计算。</div>
+      <div class="mode-switch"><button class="mode on" data-mode="cache">使用 KV Cache</button><button class="mode" data-mode="nocache">不使用 Cache</button></div>
+      <div class="label"><span>token 序列</span><span id="phase">正在生成 token 4</span></div><div class="tokens" id="tokens"></div>
+      <div class="block"><div class="block-title"><span>Q / K / V 线性投影</span><span>蓝色 = 本步真正执行</span></div><div class="matrix" id="projectionGrid"></div></div>
+      <div class="block"><div class="block-title"><span>因果注意力 QKᵀ（第 i 行只能看 0…i）</span><span id="attentionLabel"></span></div><div class="matrix" id="attentionGrid"></div></div>
+      <div class="legend"><span><i class="dot" style="background:#dbeafe"></i>本步计算</span><span><i class="dot" style="background:#cffafe"></i>已缓存 K</span><span><i class="dot" style="background:#ffedd5"></i>已缓存 V</span></div>
+    </article>
+    <aside class="panel">
+      <h2>GPU 中的 KV 缓冲区</h2><div class="sub">每一层、每个历史 token 都保留一份 K 和 V。</div>
+      <div id="cacheRows"></div>
+      <div class="explain" aria-live="polite"><strong id="explainTitle"></strong><p id="explainText"></p></div>
+      <pre class="code" id="pseudo"></pre>
+      <div class="compare"><h2>累计 QKV 投影工作量</h2><div class="bar-row"><span>无 Cache</span><div class="track"><div class="fill no" id="barNo"></div></div><b id="barNoValue"></b></div><div class="bar-row"><span>有 Cache</span><div class="track"><div class="fill yes" id="barYes"></div></div><b id="barYesValue"></b></div></div>
+      <p class="note">注意：KV Cache 没有消除新 token 对全部历史 K 做注意力的成本；它主要省掉的是旧 token 的 K/V 重算。因此 prefill 与 decode 的性能瓶颈不同。</p>
+    </aside>
+  </section>
+  <div class="footer">示意模型：hidden size = 4096，FP16，每层每 token 保存 K 和 V；未考虑 GQA/MQA、分页和量化。</div>
+</main>
+<script>
+const words=['OpenFOAM','用','有限体积法','求解','流体','控制方程','并','输出'];
+const $=id=>document.getElementById(id); let mode='cache',timer=null;
+function render(){
+ const n=+$('step').value,L=+$('layers').value,N=words.length;
+ $('stepValue').textContent=`${n} / ${N}`;$('layersValue').textContent=L;$('phase').textContent=`正在生成 token ${n}`;
+ $('projection').textContent=mode==='cache'?'1':n;$('projectionHint').textContent=mode==='cache'?'仅新 token':`重算前 ${n} 个 token`;
+ const cachedWork=n,noWork=n*(n+1)/2;$('work').textContent=`${cachedWork} vs ${noWork}`;
+ const mib=L*n*2*4096*2/1048576;$('memory').textContent=`${mib.toFixed(1)} MiB`;
+ $('tokens').innerHTML=words.map((w,i)=>`<span class="token ${i===n-1?'current':i>=n?'future':''}">${w}</span>`).join('');
+ const cols=`repeat(${N},minmax(28px,1fr))`;
+ $('projectionGrid').style.gridTemplateColumns=cols;
+ $('projectionGrid').innerHTML=words.map((_,i)=>{let c=i<n?(mode==='nocache'||i===n-1?'compute':'dim'):'empty';return `<div class="cell ${c}">${i<n?'QKV':''}</div>`}).join('');
+ $('attentionGrid').style.gridTemplateColumns=cols;
+ $('attentionGrid').innerHTML=words.map((_,i)=>{let c=i<n?(i===n-1?'compute':mode==='cache'?'cache-k':'dim'):'empty';return `<div class="cell ${c}">${i<n?`q${n-1}·k${i}`:''}</div>`}).join('');
+ $('attentionLabel').textContent=`新 Q 与 ${n} 个 K 点积`;
+ const cacheClass=mode==='cache'?'':'dim';
+ $('cacheRows').innerHTML=`<div class="kv-row"><span class="kv-tag k">K</span><div class="cache-cells" style="grid-template-columns:${cols}">${words.map((_,i)=>`<div class="cell ${i<n?'cache-k '+cacheClass:'empty'}">${i<n?'K'+i:''}</div>`).join('')}</div></div><div class="kv-row"><span class="kv-tag v">V</span><div class="cache-cells" style="grid-template-columns:${cols}">${words.map((_,i)=>`<div class="cell ${i<n?'cache-v '+cacheClass:'empty'}">${i<n?'V'+i:''}</div>`).join('')}</div></div>`;
+ if(mode==='cache'){$('explainTitle').textContent='本步只投影新 token';$('explainText').textContent=`从显存读出 K₀…K${n-2}、V₀…V${n-2}，只为 token ${n-1} 计算新的 Q/K/V，再把 K/V 追加进缓存。`; $('pseudo').innerHTML=`<span class="hot">q, k_new, v_new</span> = project(x_new)\n<span class="keep">K = append(K_cache, k_new)\nV = append(V_cache, v_new)</span>\ny = attention(q, K, V)`}
+ else{$('explainTitle').textContent='旧 token 被重复投影';$('explainText').textContent=`为了得到完整 K/V，token 0…${n-1} 全部再次经过线性层；前面的结果和上一步完全相同，却又算了一遍。`; $('pseudo').innerHTML=`<span class="hot">Q, K, V = project(x[0:${n}])</span>\ny = attention(Q[-1], K, V)\n# 下一步再次从 x[0] 开始`}
+ const max=N*(N+1)/2;$('barNo').style.width=`${noWork/max*100}%`;$('barYes').style.width=`${cachedWork/max*100}%`;$('barNoValue').textContent=noWork;$('barYesValue').textContent=cachedWork;
+ document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+}
+$('step').oninput=render;$('layers').oninput=render;document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;render()});
+$('next').onclick=()=>{$('step').value=+$('step').value>=8?1:+$('step').value+1;render()};
+$('reset').onclick=()=>{clearInterval(timer);timer=null;$('play').textContent='自动播放';$('step').value=1;mode='cache';render()};
+$('play').onclick=()=>{if(timer){clearInterval(timer);timer=null;$('play').textContent='自动播放'}else{$('play').textContent='暂停';timer=setInterval(()=>$('next').click(),1100)}};
+render();
+</script>
+</body></html>

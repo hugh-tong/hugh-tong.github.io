@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABI 绑定 · 交互可视化教程</title>
+    <!-- 使用 Mermaid 绘制图表（在线加载） -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f8f9fc;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            padding: 2rem 1rem;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem 2rem;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2.4rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+
+        .subhead {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            border-left: 4px solid #818cf8;
+            padding-left: 1rem;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid #eef2f6;
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-title .badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.7rem;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+        }
+
+        .card-desc {
+            color: #475569;
+            margin-bottom: 1.5rem;
+            font-size: 0.98rem;
+            line-height: 1.6;
+        }
+
+        /* ---------- 宏观图 (Mermaid) ---------- */
+        .mermaid-wrapper {
+            background: #fafbff;
+            border-radius: 1rem;
+            padding: 1.5rem 0.5rem;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        /* ---------- 内存布局 (自定义 SVG ) ---------- */
+        .memory-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1.2rem 0;
+        }
+
+        .mem-row {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .mem-addr {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            width: 70px;
+            text-align: right;
+            padding-right: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .mem-byte {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #f1f5f9;
+            color: #1e293b;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .mem-byte.data {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .mem-byte.padding {
+            background: #fef9c3;
+            border-color: #fde047;
+            color: #854d0e;
+            font-size: 0.65rem;
+        }
+
+        .mem-byte.label {
+            background: transparent;
+            border: none;
+            width: auto;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .mem-byte .offset-label {
+            position: absolute;
+            bottom: -1.6rem;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+
+        .mem-legend {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .mem-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .color-swatch.data {
+            background: #dbeafe;
+        }
+        .color-swatch.padding {
+            background: #fef9c3;
+        }
+
+        /* ---------- 名称修饰 ---------- */
+        .name-mangling {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            background: #f1f5f9;
+            padding: 1.2rem 1.5rem;
+            border-radius: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+        }
+
+        .name-mangling .arrow {
+            color: #94a3b8;
+            font-size: 1.4rem;
+            align-self: center;
+        }
+
+        .name-mangling .highlight-c {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .name-mangling .highlight-cpp {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        /* ---------- 交互模拟器 ---------- */
+        .simulator {
+            background: #f8fafc;
+            border-radius: 1.2rem;
+            padding: 1.5rem 1.8rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .sim-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+        }
+
+        .sim-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .sim-input-group label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .sim-input-group input {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.8rem;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            width: 100%;
+            background: white;
+            transition: border 0.2s;
+        }
+
+        .sim-input-group input:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+
+        .sim-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.8rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+            white-space: nowrap;
+            height: fit-content;
+        }
+
+        .sim-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .sim-btn:active {
+            transform: translateY(0);
+        }
+
+        .sim-output {
+            margin-top: 1.2rem;
+            background: white;
+            border-radius: 1rem;
+            padding: 1.2rem 1.5rem;
+            border: 1px solid #e2e8f0;
+            min-height: 60px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .sim-output .step {
+            color: #475569;
+        }
+
+        .sim-output .highlight {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .sim-output .result {
+            color: #16a34a;
+            font-weight: 700;
+        }
+
+        /* 栈动画模拟 */
+        .stack-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin-top: 1rem;
+            background: #0f172a;
+            border-radius: 1rem;
+            padding: 1rem 1.2rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            min-height: 120px;
+            border: 1px solid #1e293b;
+        }
+
+        .stack-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #1e293b;
+            padding: 0.3rem 0;
+        }
+
+        .stack-row:last-child {
+            border-bottom: none;
+        }
+
+        .stack-addr {
+            color: #64748b;
+            width: 70px;
+        }
+
+        .stack-value {
+            color: #a5b4fc;
+            font-weight: 500;
+        }
+
+        .stack-comment {
+            color: #94a3b8;
+            font-size: 0.7rem;
+        }
+
+        .stack-highlight {
+            background: #1e293b;
+            border-radius: 4px;
+            padding: 0 0.3rem;
+            color: #facc15;
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 700px) {
+            .container {
+                padding: 1.2rem;
+            }
+            .card {
+                padding: 1.2rem;
+            }
+            .mem-byte {
+                width: 34px;
+                height: 34px;
+                font-size: 0.65rem;
+            }
+            .mem-addr {
+                width: 50px;
+                font-size: 0.65rem;
+            }
+            .sim-grid {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ ABI 绑定 · 完全可视化</h1>
+        <div class="subhead">
+            从高层调用到底层内存 — 带你亲眼看见“二进制接口”如何连接不同语言
+        </div>
+
+        <!-- ==================== 宏观视角 ==================== -->
+        <div class="card">
+            <div class="card-title">
+                🌐 宏观视角 · ABI 在架构中的位置
+                <span class="badge">翻译官</span>
+            </div>
+            <div class="card-desc">
+                高级语言（Python / Java）不能直接执行机器码，必须通过 <strong>ABI 绑定层</strong> 将数据类型、调用方式翻译成目标库能理解的二进制格式。
+            </div>
+            <div class="mermaid-wrapper">
+                <div class="mermaid">
+                    graph TD
+                        A["你的高级语言代码<br>（Python / JavaScript / Java）"] 
+                        --> B{"ABI 绑定层<br>（胶水代码 / FFI）"}
+                        B --> C["外部编译库<br>（.so / .dll / .a）"]
+                        C --> B
+                        B --> A
+                        style B fill:#e0e7ff,stroke:#6366f1,stroke-width:3px,color:#1e293b
+                        style A fill:#f1f5f9,stroke:#94a3b8
+                        style C fill:#f1f5f9,stroke:#94a3b8
+                </div>
+            </div>
+            <div style="margin-top:0.8rem; display:flex; flex-wrap:wrap; gap:1rem; justify-content:center; font-size:0.9rem; color:#475569;">
+                <span>🔹 调用方（高级）</span>
+                <span>🔸 绑定层（翻译 + 压栈）</span>
+                <span>🔹 被调用方（机器码）</span>
+            </div>
+        </div>
+
+        <!-- ==================== 微观视角：调用栈握手 ==================== -->
+        <div class="card">
+            <div class="card-title">
+                🧬 微观视角 · 调用约定与栈帧
+                <span class="badge">握手协议</span>
+            </div>
+            <div class="card-desc">
+                ABI 规定了参数放在哪里（寄存器或栈）、谁来清理栈。下图展示了 <strong>Python 调用 C 函数 <code>add(a, b)</code></strong> 时，数据如何一步步转换并压入内存。
+            </div>
+            <div class="mermaid-wrapper">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant Python as Python 解释器
+                        participant Binding as ABI 绑定适配器<br>(ctypes)
+                        participant Stack as 运行时栈<br>(内存)
+                        participant C as C 编译库
+
+                        Note over Python,C: 调用 C 函数 int add(int a, int b)
+
+                        Python->>Binding: 1. 传入 PyLong(5) 和 PyLong(3)
+                        activate Binding
+                        Binding->>Binding: 2. 类型检查 & 拆箱<br>（提取底层 C 的 int 值）
+                        
+                        Binding->>Stack: 3. 压栈（或存入寄存器）<br>将 5 放入 RDI (或栈顶)
+                        Binding->>Stack: 将 3 放入 RSI (或栈顶+8)
+                        Note right of Stack: ⚡ ABI 规定：<br>前6个参数走寄存器
+
+                        Binding->>C: 4. 执行 CALL 跳转
+                        activate C
+                        C->>Stack: 5. 从 RDI/RSI 读取 5 和 3
+                        C->>C: 6. CPU 执行 ADD 指令
+                        C-->>Binding: 7. EAX 寄存器返回 8
+                        deactivate C
+                        
+                        Binding->>Binding: 8. 将 C 的 int (8)<br>包装成 Python 的 PyLong
+                        Binding-->>Python: 9. 返回计算结果
+                        deactivate Binding
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 致命陷阱：内存布局 ==================== -->
+        <div class="card">
+            <div class="card-title">
+                💥 致命陷阱 · 结构体内存对齐
+                <span class="badge">段错误根源</span>
+            </div>
+            <div class="card-desc">
+                C 编译器会对结构体进行 <strong>内存对齐</strong>（Padding），不同 ABI 的对齐规则不同。如果绑定器按“字段大小之和”去读取，数据会完全错位。
+            </div>
+            <div style="background:#fafbff; border-radius:1rem; padding:1.2rem 0.5rem;">
+                <div style="font-family: 'JetBrains Mono', monospace; background:#1e293b; color:#e2e8f0; padding:0.6rem 1rem; border-radius:0.8rem; display:inline-block; margin-bottom:1rem;">
+                    struct Example { char a; int b; short c; };
+                </div>
+                <div class="memory-layout">
+                    <!-- 地址行 -->
+                    <div class="mem-row">
+                        <span class="mem-addr">偏移</span>
+                        <span class="mem-byte label">0</span>
+                        <span class="mem-byte label">1</span>
+                        <span class="mem-byte label">2</span>
+                        <span class="mem-byte label">3</span>
+                        <span class="mem-byte label">4</span>
+                        <span class="mem-byte label">5</span>
+                        <span class="mem-byte label">6</span>
+                        <span class="mem-byte label">7</span>
+                        <span class="mem-byte label">8</span>
+                        <span class="mem-byte label">9</span>
+                        <span class="mem-byte label">10</span>
+                        <span class="mem-byte label">11</span>
+                    </div>
+                    <!-- 实际布局 -->
+                    <div class="mem-row">
+                        <span class="mem-addr">内容</span>
+                        <span class="mem-byte data" style="background:#bfdbfe;">a</span>
+                        <span class="mem-byte padding">P</span>
+                        <span class="mem-byte padding">P</span>
+                        <span class="mem-byte padding">P</span>
+                        <span class="mem-byte data" style="background:#a5b4fc;">b</span>
+                        <span class="mem-byte data" style="background:#a5b4fc;">b</span>
+                        <span class="mem-byte data" style="background:#a5b4fc;">b</span>
+                        <span class="mem-byte data" style="background:#a5b4fc;">b</span>
+                        <span class="mem-byte data" style="background:#93c5fd;">c</span>
+                        <span class="mem-byte data" style="background:#93c5fd;">c</span>
+                        <span class="mem-byte padding">P</span>
+                        <span class="mem-byte padding">P</span>
+                    </div>
+                    <!-- 字段标注 -->
+                    <div class="mem-row">
+                        <span class="mem-addr">字段</span>
+                        <span class="mem-byte label" style="color:#1e40af;">char a</span>
+                        <span class="mem-byte label" style="color:#854d0e;">填充</span>
+                        <span class="mem-byte label" style="color:#854d0e;">填充</span>
+                        <span class="mem-byte label" style="color:#854d0e;">填充</span>
+                        <span class="mem-byte label" style="color:#3730a3;" colspan="4">int b</span>
+                        <span class="mem-byte label" style="color:#1e40af;">short c</span>
+                        <span class="mem-byte label" style="color:#854d0e;">填充</span>
+                        <span class="mem-byte label" style="color:#854d0e;">填充</span>
+                    </div>
+                </div>
+                <div class="mem-legend">
+                    <span><span class="color-swatch data"></span> 有效数据</span>
+                    <span><span class="color-swatch padding"></span> 填充字节 (Padding)</span>
+                    <span style="font-weight:500;">实际大小 = 12 字节（而非 1+4+2=7）</span>
+                </div>
+                <div style="margin-top:1rem; background:#fef2f2; border-left:4px solid #ef4444; padding:0.8rem 1.2rem; border-radius:0.8rem; font-size:0.9rem;">
+                    ⚠️ 若绑定器按 7 字节读取，<strong>b</strong> 会读到填充字节，<strong>c</strong> 会读到 b 的一部分 → 数据错乱 → 崩溃。
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 名称修饰 ==================== -->
+        <div class="card">
+            <div class="card-title">
+                🏷️ 名称修饰 (Name Mangling)
+                <span class="badge">C++ 的“真名”</span>
+            </div>
+            <div class="card-desc">
+                C++ 支持函数重载，编译器会将函数名改成包含参数类型信息的“修饰名”。绑定器必须知道这个修饰名，否则找不到函数。
+            </div>
+            <div class="name-mangling">
+                <div>
+                    <span class="highlight-c">C 语言</span> &nbsp; <code>void foo(int)</code> &nbsp; → &nbsp; 符号名 <code>foo</code> （直接）
+                </div>
+                <div class="arrow">⬇️ 编译后 (C++)</div>
+                <div>
+                    <span class="highlight-cpp">C++ 编译器</span> &nbsp; <code>void foo(int)</code> &nbsp; → &nbsp; 符号名 <code>_Z3fooi</code> （含类型信息）
+                </div>
+                <div class="arrow">⬇️ 重载版本</div>
+                <div>
+                    <span class="highlight-cpp">C++ 编译器</span> &nbsp; <code>void foo(float)</code> &nbsp; → &nbsp; 符号名 <code>_Z3foof</code>
+                </div>
+                <div style="margin-top:0.5rem; background:#dbeafe; padding:0.6rem 1rem; border-radius:0.8rem; font-family:system-ui;">
+                    ✅ 解决方案：用 <code>extern "C" { ... }</code> 包裹，告诉编译器“别修饰”，保持 C 风格符号。
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 交互模拟器 ==================== -->
+        <div class="card">
+            <div class="card-title">
+                🎮 交互模拟 · 亲手调用 C 函数
+                <span class="badge">装箱 · 拆箱 · 压栈</span>
+            </div>
+            <div class="card-desc">
+                输入两个整数，模拟 Python 通过 ABI 绑定调用 C 函数 <code>int add(int a, int b)</code>。观察数据如何被“拆箱”、压入栈，再“装箱”返回。
+            </div>
+            <div class="simulator">
+                <div class="sim-grid">
+                    <div class="sim-input-group">
+                        <label for="simA">参数 a (int)</label>
+                        <input type="number" id="simA" value="5" step="1">
+                    </div>
+                    <div class="sim-input-group">
+                        <label for="simB">参数 b (int)</label>
+                        <input type="number" id="simB" value="3" step="1">
+                    </div>
+                    <button class="sim-btn" id="simBtn">▶ 执行调用</button>
+                </div>
+
+                <!-- 栈动画 -->
+                <div class="stack-visual" id="stackVisual">
+                    <div class="stack-row"><span class="stack-addr">RDI</span><span class="stack-value" id="regRDI">—</span><span class="stack-comment">参数 a</span></div>
+                    <div class="stack-row"><span class="stack-addr">RSI</span><span class="stack-value" id="regRSI">—</span><span class="stack-comment">参数 b</span></div>
+                    <div class="stack-row"><span class="stack-addr">RAX</span><span class="stack-value" id="regRAX">—</span><span class="stack-comment">返回值</span></div>
+                    <div class="stack-row" style="border-bottom: none;"><span class="stack-addr">栈帧</span><span class="stack-value" style="color:#94a3b8;" id="stackFrame">等待调用…</span><span class="stack-comment"></span></div>
+                </div>
+
+                <div class="sim-output" id="simOutput">
+                    <div class="step">🟦 就绪，点击按钮模拟 ABI 调用过程</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:1.5rem; border-top:1px solid #eef2f6; padding-top:1.5rem;">
+            ABI 绑定可视化教程 · 交互式学习
+        </div>
+    </div>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({
+            theme: 'base',
+            themeVariables: {
+                background: '#fafbff',
+                primaryColor: '#6366f1',
+                primaryTextColor: '#1e293b',
+                primaryBorderColor: '#818cf8',
+                lineColor: '#94a3b8',
+                secondaryColor: '#e0e7ff',
+                tertiaryColor: '#f1f5f9',
+                fontFamily: 'Segoe UI, sans-serif',
+                fontSize: '14px',
+            },
+            flowchart: { useMaxWidth: true, htmlLabels: true },
+            sequence: { useMaxWidth: true, mirrorActors: false, diagramMarginX: 20 },
+        });
+
+        // ---------- 交互模拟器 ----------
+        const simBtn = document.getElementById('simBtn');
+        const simA = document.getElementById('simA');
+        const simB = document.getElementById('simB');
+        const regRDI = document.getElementById('regRDI');
+        const regRSI = document.getElementById('regRSI');
+        const regRAX = document.getElementById('regRAX');
+        const stackFrame = document.getElementById('stackFrame');
+        const simOutput = document.getElementById('simOutput');
+
+        function simulateCall(a, b) {
+            // 清空旧输出
+            simOutput.innerHTML = '';
+            stackFrame.textContent = '⏳ 压栈中…';
+
+            // 步骤1: 拆箱 (Python 对象 → C 原始值)
+            addLog('📦 步骤 1: 拆箱（Unbox）', `将 Python 的 PyLong(${a}) 和 PyLong(${b}) 提取为 C 的 int 值。`);
+            regRDI.textContent = '—';
+            regRSI.textContent = '—';
+            regRAX.textContent = '—';
+
+            // 步骤2: 压参 (存入寄存器)
+            setTimeout(() => {
+                addLog('📥 步骤 2: 压参', `按 ABI 约定，将 a=${a} 存入 RDI，b=${b} 存入 RSI。`);
+                regRDI.textContent = `${a}`;
+                regRSI.textContent = `${b}`;
+                stackFrame.textContent = `RDI=${a}, RSI=${b} 已设置`;
+            }, 400);
+
+            // 步骤3: 调用 C 函数 (执行 ADD)
+            setTimeout(() => {
+                addLog('⚡ 步骤 3: 执行 CALL', `CPU 跳转到 add 函数入口，执行 ADD 指令。`);
+                stackFrame.textContent = `CALL add (地址 0x1000)`;
+            }, 800);
+
+            // 步骤4: 返回 (EAX)
+            setTimeout(() => {
+                const result = a + b;
+                addLog('📤 步骤 4: 返回值', `C 函数将结果 ${result} 存入 EAX 寄存器并返回。`);
+                regRAX.textContent = `${result}`;
+                stackFrame.textContent = `返回 EAX=${result}`;
+            }, 1200);
+
+            // 步骤5: 装箱 (C int → Python PyLong)
+            setTimeout(() => {
+                const result = a + b;
+                addLog('📦 步骤 5: 装箱（Box）', `绑定层将 C 的 int(${result}) 包装成 Python 的 PyLong 对象。`);
+                stackFrame.textContent = `✅ 调用完成，返回 PyLong(${result})`;
+                // 高亮结果
+                const lastEntry = simOutput.lastElementChild;
+                if (lastEntry) {
+                    const resultSpan = document.createElement('span');
+                    resultSpan.className = 'result';
+                    resultSpan.textContent = ` → 最终结果: ${result}`;
+                    lastEntry.appendChild(resultSpan);
+                }
+            }, 1600);
+        }
+
+        function addLog(title, detail) {
+            const div = document.createElement('div');
+            div.className = 'step';
+            div.innerHTML = `<strong>${title}</strong><br><span style="color:#475569;">${detail}</span>`;
+            simOutput.appendChild(div);
+            // 自动滚动到底部
+            simOutput.scrollTop = simOutput.scrollHeight;
+        }
+
+        simBtn.addEventListener('click', () => {
+            const a = parseInt(simA.value, 10);
+            const b = parseInt(simB.value, 10);
+            if (isNaN(a) || isNaN(b)) {
+                simOutput.innerHTML = '<div class="step" style="color:#dc2626;">⚠️ 请输入有效整数</div>';
+                return;
+            }
+            // 重置寄存器显示
+            regRDI.textContent = '—';
+            regRSI.textContent = '—';
+            regRAX.textContent = '—';
+            stackFrame.textContent = '🔄 开始模拟…';
+            simOutput.innerHTML = '';
+            simulateCall(a, b);
+        });
+
+        // 页面加载后自动执行一次演示
+        window.addEventListener('load', () => {
+            // 延迟以确保 Mermaid 渲染完成
+            setTimeout(() => {
+                simBtn.click();
+            }, 600);
+        });
+    </script>
+</body>
+</html>

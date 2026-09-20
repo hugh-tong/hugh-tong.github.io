@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="tttt 博客的交互式 CFD、数值方法与计算机系统工具。">
+  <title>交互工具箱 | tttt</title>
+  <style>
+    :root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#607086;--line:#dbe4ef;--blue:#1769aa}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#edf5fc,#f8fafc);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{width:min(980px,calc(100% - 28px));margin:42px auto 60px}.hero,.tool{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px rgba(35,63,91,.08)}.hero{padding:28px;margin-bottom:18px}.eyebrow{color:var(--blue);font-size:.78rem;font-weight:700;letter-spacing:.08em}.hero h1{margin:4px 0 8px;font-size:clamp(1.8rem,4vw,2.6rem)}.hero p{margin:0;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.tool{display:block;padding:18px;color:inherit;text-decoration:none;transition:transform .18s,box-shadow .18s}.tool:hover{transform:translateY(-2px);box-shadow:0 16px 35px rgba(35,63,91,.14)}.tool h2{margin:0 0 5px;color:var(--blue);font-size:1.05rem}.tool p{margin:0;color:var(--muted);font-size:.88rem}.tag{display:inline-block;margin-top:11px;padding:3px 8px;border-radius:99px;background:#eaf4fc;color:var(--blue);font-size:.75rem}.back{display:inline-block;margin-top:20px;color:var(--blue)}@media(max-width:620px){.grid{grid-template-columns:1fr}.wrap{margin-top:18px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero"><div class="eyebrow">TTTT · INTERACTIVE TOOLS</div><h1>交互工具箱</h1><p>把文章中的公式、算法和工程经验做成可操作的小实验。工具页独立运行，不需要登录或上传数据。</p></header>
+    <section class="grid">
+      <a class="tool" href="/tools/bc-layer-calculator/"><h2>边界层网格计算器</h2><p>估算首层高度、伸展比、层数和边界层总厚度，并查看层厚增长曲线。</p><span class="tag">CFD / 网格</span></a>
+      <a class="tool" href="/tools/abi-binding-visualizer/"><h2>ABI 绑定可视化</h2><p>通过交互图理解 ABI、符号名、调用约定和二进制兼容边界。</p><span class="tag">C++ / 系统</span></a>
+      <a class="tool" href="/tools/kv-cache-lab/"><h2>KV Cache 交互实验室</h2><p>观察自回归生成时 Query、Key、Value 和缓存复用的关系。</p><span class="tag">LLM / 系统</span></a>
+      <a class="tool" href="/tools/cache-hit-rate-lab/"><h2>缓存命中率实验室</h2><p>用提示词块和命中/未命中状态理解前缀缓存的收益。</p><span class="tag">LLM / 性能</span></a>
+      <a class="tool" href="/tools/dg-fr-jacobian-demo/"><h2>DG / FR Jacobian 可视化</h2><p>交互观察映射、节点分布和 Jacobian 变化对高阶离散的影响。</p><span class="tag">数值方法</span></a>
+      <a class="tool" href="/tools/matrix-conditioning-visualizer/"><h2>矩阵良态与病态可视化</h2><p>用几何图像理解条件数、扰动放大和线性系统敏感性。</p><span class="tag">线性代数</span></a>
+      <a class="tool" href="/tools/mpirun-oversubscribe/"><h2>MPI oversubscribe 实验</h2><p>展示进程数超过物理核心数时的调度、竞争和性能影响。</p><span class="tag">MPI / HPC</span></a>
+      <a class="tool" href="/tools/mcp-development-map/"><h2>MCP 开发全景图</h2><p>从协议、能力、传输、安全、测试到工程落地的交互式地图。</p><span class="tag">协议 / 工程</span></a>
+    </section>
+    <a class="back" href="/">← 返回博客首页</a>
+  </main>
+</body>
+</html>

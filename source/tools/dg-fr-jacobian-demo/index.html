@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DG / FR Jacobian 为什么会变大？</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a31; --panel2:#0f1730; --text:#e9eefb;
+    --muted:#9ca9c7; --line:#283557; --accent:#7dd3fc; --accent2:#a78bfa;
+    --good:#86efac; --warn:#fbbf24; --danger:#fb7185;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",
+    "Microsoft YaHei",sans-serif; color:var(--text);
+    background:
+      radial-gradient(circle at 10% 0%, rgba(125,211,252,.10), transparent 28%),
+      radial-gradient(circle at 90% 0%, rgba(167,139,250,.10), transparent 30%),
+      var(--bg);
+  }
+  .wrap{max-width:1240px;margin:auto;padding:28px 22px 50px}
+  h1{font-size:clamp(28px,4vw,46px);margin:0 0 8px;letter-spacing:-.03em}
+  h2{font-size:20px;margin:0 0 14px}
+  p{line-height:1.72}
+  .lead{color:var(--muted);max-width:900px;margin:0 0 24px}
+  .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
+  .panel{
+    background:linear-gradient(180deg,rgba(18,26,49,.96),rgba(15,23,48,.96));
+    border:1px solid var(--line); border-radius:18px; padding:18px;
+    box-shadow:0 18px 45px rgba(0,0,0,.20);
+  }
+  .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .control{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:14px;padding:13px}
+  label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px;margin-bottom:8px}
+  input[type=range]{width:100%}
+  select{
+    width:100%; background:#0d1530;color:var(--text);border:1px solid var(--line);
+    border-radius:10px;padding:9px 10px
+  }
+  .value{color:var(--accent);font-variant-numeric:tabular-nums}
+  .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+  .card{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:15px;padding:14px}
+  .k{font-size:12px;color:var(--muted);margin-bottom:5px}
+  .v{font-size:clamp(20px,3vw,30px);font-weight:760;letter-spacing:-.03em}
+  .s{font-size:12px;color:var(--muted);margin-top:5px}
+  .formula{
+    font-family:"SFMono-Regular",Consolas,monospace;background:#0a1127;border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;color:#d9e6ff;overflow:auto
+  }
+  canvas{width:100%;height:360px;border-radius:14px;background:#090f22;border:1px solid var(--line)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:12px;margin-top:9px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .barrow{display:grid;grid-template-columns:150px 1fr 105px;align-items:center;gap:10px;margin:10px 0}
+  .bar{height:12px;background:#0a1127;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .fill{height:100%;border-radius:999px}
+  .note{
+    margin-top:14px;padding:12px 14px;border-left:3px solid var(--accent);
+    background:rgba(125,211,252,.06);color:#cdd9f3;border-radius:8px
+  }
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:center}
+  .step{
+    min-height:94px;border:1px solid var(--line);background:#0b132b;border-radius:13px;padding:12px;
+    display:flex;align-items:center;justify-content:center;text-align:center;color:#dbe5fa;font-size:13px;line-height:1.5
+  }
+  .arrow{text-align:center;color:var(--muted)}
+  .footer{margin-top:18px;color:var(--muted);font-size:12px}
+  @media(max-width:900px){
+    .grid,.two{grid-template-columns:1fr}
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .controls{grid-template-columns:1fr}
+    .flow{grid-template-columns:1fr}
+    .arrow{transform:rotate(90deg)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>为什么 DG / FR 的 Jacobian 会迅速变大？</h1>
+  <p class="lead">
+    这个页面用一个简化的非结构高阶 CFD 模型演示：当每个单元从 FVM 的“1 个空间自由度”
+    变成 DG / FR 的“多个高阶求解点”后，未知量维数、单元块大小以及隐式 Jacobian 的存储量如何增长。
+    数值是教学估算，用于观察数量级和趋势。
+  </p>
+
+  <div class="panel">
+    <h2>1. 调参数：看看自由度怎样增长</h2>
+    <div class="controls">
+      <div class="control">
+        <label><span>单元数量</span><span class="value" id="cellsV"></span></label>
+        <input id="cells" type="range" min="100" max="50000" step="100" value="5000">
+      </div>
+      <div class="control">
+        <label><span>多项式阶次 p</span><span class="value" id="pV"></span></label>
+        <input id="p" type="range" min="0" max="6" step="1" value="3">
+      </div>
+      <div class="control">
+        <label><span>守恒变量数量</span><span class="value" id="eqV"></span></label>
+        <input id="eq" type="range" min="1" max="8" step="1" value="5">
+      </div>
+      <div class="control">
+        <label><span>单元类型</span></label>
+        <select id="dim">
+          <option value="2">二维三角形</option>
+          <option value="3">三维四面体</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="k">每单元空间自由度</div><div class="v" id="basis"></div><div class="s">Np</div></div>
+      <div class="card"><div class="k">全局未知量</div><div class="v" id="unknowns"></div><div class="s">cells × Np × equations</div></div>
+      <div class="card"><div class="k">单元 Jacobian block</div><div class="v" id="block"></div><div class="s">(Np × equations)²</div></div>
+      <div class="card"><div class="k">估算稀疏 Jacobian 存储</div><div class="v" id="jacmem"></div><div class="s">仅数值项，double</div></div>
+    </div>
+
+    <div class="formula" id="formula"></div>
+  </div>
+
+  <div class="grid" style="margin-top:18px">
+    <div class="panel">
+      <h2>2. Jacobian 稀疏块结构</h2>
+      <canvas id="matrix" width="720" height="420"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#7dd3fc"></span>本单元 block</span>
+        <span><span class="dot" style="background:#a78bfa"></span>邻居耦合 block</span>
+        <span><span class="dot" style="background:#263252"></span>零区域</span>
+      </div>
+      <p class="note">
+        FVM 中一个单元的 block 通常接近 “方程数 × 方程数”；DG/FR 中 block 变成
+        “(求解点数 × 方程数) × (求解点数 × 方程数)”。高阶最先把 block 本身放大。
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2>3. 同一网格：FVM vs DG/FR</h2>
+      <div class="barrow"><span>FVM 未知量</span><div class="bar"><div class="fill" id="b1" style="background:#86efac"></div></div><span id="t1"></span></div>
+      <div class="barrow"><span>DG/FR 未知量</span><div class="bar"><div class="fill" id="b2" style="background:#7dd3fc"></div></div><span id="t2"></span></div>
+      <div class="barrow"><span>FVM Jacobian</span><div class="bar"><div class="fill" id="b3" style="background:#fbbf24"></div></div><span id="t3"></span></div>
+      <div class="barrow"><span>DG/FR Jacobian</span><div class="bar"><div class="fill" id="b4" style="background:#fb7185"></div></div><span id="t4"></span></div>
+
+      <p class="note" id="compare"></p>
+
+      <h2 style="margin-top:22px">4. 为什么 Matrix-Free 有吸引力？</h2>
+      <div class="flow">
+        <div class="step">构造残差<br>R(U)</div><div class="arrow">→</div>
+        <div class="step">传统隐式法<br>显式形成 J</div><div class="arrow">→</div>
+        <div class="step">GMRES / ILU<br>需要存大量块</div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="flow">
+        <div class="step">构造残差<br>R(U)</div><div class="arrow">→</div>
+        <div class="step">Matrix-Free<br>只实现 J·v</div><div class="arrow">→</div>
+        <div class="step">Krylov 迭代<br>避免完整存 J</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <h2>5. 阶次 p 对每单元自由度的影响</h2>
+      <canvas id="curve" width="720" height="330"></canvas>
+      <p class="note">
+        三角形：Np=(p+1)(p+2)/2；四面体：Np=(p+1)(p+2)(p+3)/6。
+        Jacobian block 的元素数近似与 Np² 成正比，所以增长比自由度本身更快。
+      </p>
+    </div>
+    <div class="panel">
+      <h2>6. 你可以怎样理解论文里的“Jacobian 太大”</h2>
+      <p>
+        不是简单指矩阵行数多，而是三件事叠加：第一，高阶单元内部有很多解自由度；第二，
+        Navier–Stokes 每个求解点还有多个守恒变量；第三，隐式线性化后，一个单元与自己及邻居形成大块耦合。
+      </p>
+      <div class="formula">
+FVM:
+cell -> [rho, rho*u, rho*v, rho*w, rho*E]
+
+DG/FR:
+cell -> solutionPoint[0..Np-1]
+     -> each point has 5 conservative variables
+
+implicit:
+J = dR/dU
+
+blockSize = Np * N_equations
+blockEntries ≈ blockSize²
+      </div>
+      <p>
+        所以高阶方法很自然地把研究推向 Block LU-SGS、GMRES、预处理、Matrix-Free 和 p-Multigrid。
+        这正是卢义博士论文后半部分数值求解器研究的逻辑。
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">
+    教学模型假设：二维三角形平均 3 个邻居，三维四面体平均 4 个邻居；每个非零单元耦合块按完整 dense block 估算；
+    未计 CSR/索引、预处理器、临时向量和通信缓存，因此不是实际代码内存预测。
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const cells=$("cells"), p=$("p"), eq=$("eq"), dim=$("dim");
+const fmt = n => {
+  if(n>=1e9) return (n/1e9).toFixed(2)+"B";
+  if(n>=1e6) return (n/1e6).toFixed(2)+"M";
+  if(n>=1e3) return (n/1e3).toFixed(1)+"k";
+  return Math.round(n).toString();
+};
+const bytes = n => {
+  const u=["B","KB","MB","GB","TB","PB"]; let i=0;
+  while(n>=1024 && i<u.length-1){n/=1024;i++}
+  return (n>=100? n.toFixed(0): n>=10? n.toFixed(1):n.toFixed(2))+" "+u[i];
+};
+function basisCount(pp,d){
+  return d===2 ? (pp+1)*(pp+2)/2 : (pp+1)*(pp+2)*(pp+3)/6;
+}
+function metrics(pp,d,nc,neq){
+  const np=basisCount(pp,d), bs=np*neq, nei=d===2?3:4;
+  const unk=nc*bs;
+  const blocks=nc*(1+nei);
+  const entries=blocks*bs*bs;
+  return {np,bs,unk,nei,entries,mem:entries*8};
+}
+function drawMatrix(m){
+  const c=$("matrix"), ctx=c.getContext("2d"), W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#090f22";ctx.fillRect(0,0,W,H);
+  const N=13, pad=28, s=Math.min((W-2*pad)/N,(H-2*pad)/N);
+  const band=Math.max(1,Math.min(3,Math.round(m.np/8)+1));
+  for(let i=0;i<N;i++){
+    for(let j=0;j<N;j++){
+      let type=0;
+      if(i===j) type=2;
+      else if(Math.abs(i-j)<=band || (i%4===0 && j===Math.min(N-1,i+4))) type=1;
+      ctx.fillStyle=type===2?"#7dd3fc":type===1?"#a78bfa":"#263252";
+      ctx.globalAlpha=type?0.88:0.32;
+      ctx.fillRect(pad+j*s+1,pad+i*s+1,s-2,s-2);
+    }
+  }
+  ctx.globalAlpha=1;
+  ctx.fillStyle="#9ca9c7";ctx.font="14px system-ui";
+  ctx.fillText("每个小方块代表一个 cell-to-cell block",pad,H-7);
+}
+function drawCurve(d,neq){
+  const c=$("curve"),ctx=c.getContext("2d"),W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle="#090f22";ctx.fillRect(0,0,W,H);
+  const padL=58,padR=20,padT=24,padB=48;
+  const pts=[];
+  for(let pp=0;pp<=6;pp++){
+    const np=basisCount(pp,d), block=(np*neq)*(np*neq);
+    pts.push({p:pp,np,block});
+  }
+  const max=Math.max(...pts.map(x=>x.block));
+  ctx.strokeStyle="#283557";ctx.lineWidth=1;
+  for(let k=0;k<=4;k++){
+    const y=padT+(H-padT-padB)*k/4;
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+  }
+  ctx.strokeStyle="#7dd3fc";ctx.lineWidth=3;ctx.beginPath();
+  pts.forEach((q,i)=>{
+    const x=padL+(W-padL-padR)*i/6;
+    const y=H-padB-(H-padT-padB)*q.block/max;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  });ctx.stroke();
+  pts.forEach((q,i)=>{
+    const x=padL+(W-padL-padR)*i/6;
+    const y=H-padB-(H-padT-padB)*q.block/max;
+    ctx.fillStyle="#7dd3fc";ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#9ca9c7";ctx.font="12px system-ui";ctx.fillText("p="+q.p,x-10,H-20);
+  });
+  ctx.save();ctx.translate(18,H/2);ctx.rotate(-Math.PI/2);ctx.fillStyle="#9ca9c7";
+  ctx.font="12px system-ui";ctx.fillText("block entries ∝ (Np × equations)²",-66,0);ctx.restore();
+}
+function update(){
+  const nc=+cells.value, pp=+p.value, neq=+eq.value, d=+dim.value;
+  const m=metrics(pp,d,nc,neq);
+  const f=metrics(0,d,nc,neq);
+  $("cellsV").textContent=fmt(nc);$("pV").textContent=pp;$("eqV").textContent=neq;
+  $("basis").textContent=fmt(m.np);$("unknowns").textContent=fmt(m.unk);
+  $("block").textContent=fmt(m.bs)+" × "+fmt(m.bs);$("jacmem").textContent=bytes(m.mem);
+  const npFormula=d===2?"(p+1)(p+2)/2":"(p+1)(p+2)(p+3)/6";
+  $("formula").textContent =
+`Np = ${npFormula} = ${m.np}
+blockSize = Np × N_equations = ${m.np} × ${neq} = ${m.bs}
+globalUnknowns = N_cells × blockSize = ${nc.toLocaleString()} × ${m.bs} = ${m.unk.toLocaleString()}
+estimated Jacobian values ≈ N_cells × (1 + neighbors) × blockSize²
+≈ ${m.entries.toLocaleString()} double values ≈ ${bytes(m.mem)}`;
+  const vals=[f.unk,m.unk,f.mem,m.mem], mx=Math.max(...vals);
+  [["b1",f.unk],["b2",m.unk],["b3",f.mem],["b4",m.mem]].forEach(([id,v])=>{
+    $(id).style.width=(6+94*Math.log10(v+1)/Math.log10(mx+1))+"%";
+  });
+  $("t1").textContent=fmt(f.unk);$("t2").textContent=fmt(m.unk);
+  $("t3").textContent=bytes(f.mem);$("t4").textContent=bytes(m.mem);
+  const ratioUnknown=m.unk/f.unk, ratioMem=m.mem/f.mem;
+  $("compare").textContent=
+    `在当前参数下，DG/FR 的全局未知量约为同网格 FVM 的 ${ratioUnknown.toFixed(1)} 倍，`+
+    `而按完整块估算的 Jacobian 数值存储量约为 ${ratioMem.toFixed(1)} 倍。`+
+    `这就是高阶隐式方法很快需要 Matrix-Free 和专门预处理器的原因。`;
+  drawMatrix(m); drawCurve(d,neq);
+}
+[cells,p,eq,dim].forEach(x=>x.addEventListener("input",update));
+update();
+</script>
+</body>
+</html>
