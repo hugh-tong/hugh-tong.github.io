@@ -9,6 +9,14 @@
     --bg:#0b1020; --panel:#121a31; --panel2:#0f1730; --text:#e9eefb;
     --muted:#9ca9c7; --line:#283557; --accent:#7dd3fc; --accent2:#a78bfa;
     --good:#86efac; --warn:#fbbf24; --danger:#fb7185;
+    --subtle:rgba(255,255,255,.025); --code-bg:#0a1127; --canvas-bg:#090f22;
+    --canvas-zero:#263252; --note-text:#cdd9f3;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f7fb; --panel:#ffffff; --panel2:#f8fbff; --text:#172033;
+    --muted:#607086; --line:#dbe4ef; --accent:#1769aa; --accent2:#6d4bd2;
+    --subtle:#f8fbff; --code-bg:#f5f8fc; --canvas-bg:#ffffff; --canvas-zero:#dce7f3;
+    --note-text:#324864;
   }
   *{box-sizing:border-box}
   body{
@@ -26,46 +34,50 @@
   .lead{color:var(--muted);max-width:900px;margin:0 0 24px}
   .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
   .panel{
-    background:linear-gradient(180deg,rgba(18,26,49,.96),rgba(15,23,48,.96));
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
     border:1px solid var(--line); border-radius:18px; padding:18px;
     box-shadow:0 18px 45px rgba(0,0,0,.20);
   }
   .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-  .control{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .control{background:var(--subtle);border:1px solid var(--line);border-radius:14px;padding:13px}
   label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px;margin-bottom:8px}
   input[type=range]{width:100%}
   select{
-    width:100%; background:#0d1530;color:var(--text);border:1px solid var(--line);
+    width:100%; background:var(--code-bg);color:var(--text);border:1px solid var(--line);
     border-radius:10px;padding:9px 10px
   }
   .value{color:var(--accent);font-variant-numeric:tabular-nums}
   .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
-  .card{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:15px;padding:14px}
+  .card{background:var(--subtle);border:1px solid var(--line);border-radius:15px;padding:14px}
   .k{font-size:12px;color:var(--muted);margin-bottom:5px}
   .v{font-size:clamp(20px,3vw,30px);font-weight:760;letter-spacing:-.03em}
   .s{font-size:12px;color:var(--muted);margin-top:5px}
   .formula{
-    font-family:"SFMono-Regular",Consolas,monospace;background:#0a1127;border:1px solid var(--line);
+    font-family:"SFMono-Regular",Consolas,monospace;background:var(--code-bg);border:1px solid var(--line);
     border-radius:12px;padding:12px 14px;color:#d9e6ff;overflow:auto
   }
-  canvas{width:100%;height:360px;border-radius:14px;background:#090f22;border:1px solid var(--line)}
+  canvas{width:100%;height:360px;border-radius:14px;background:var(--canvas-bg);border:1px solid var(--line)}
   .legend{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:12px;margin-top:9px}
   .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
   .barrow{display:grid;grid-template-columns:150px 1fr 105px;align-items:center;gap:10px;margin:10px 0}
-  .bar{height:12px;background:#0a1127;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .bar{height:12px;background:var(--code-bg);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
   .fill{height:100%;border-radius:999px}
   .note{
     margin-top:14px;padding:12px 14px;border-left:3px solid var(--accent);
-    background:rgba(125,211,252,.06);color:#cdd9f3;border-radius:8px
+    background:rgba(125,211,252,.06);color:var(--note-text);border-radius:8px
   }
   .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:center}
   .step{
-    min-height:94px;border:1px solid var(--line);background:#0b132b;border-radius:13px;padding:12px;
-    display:flex;align-items:center;justify-content:center;text-align:center;color:#dbe5fa;font-size:13px;line-height:1.5
+    min-height:94px;border:1px solid var(--line);background:var(--panel2);border-radius:13px;padding:12px;
+    display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text);font-size:13px;line-height:1.5
   }
   .arrow{text-align:center;color:var(--muted)}
   .footer{margin-top:18px;color:var(--muted);font-size:12px}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .toolbar button{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:var(--panel);color:var(--text);cursor:pointer;font:inherit}
+  .status{font-size:12px;color:var(--muted)}
+  .runtime-error{margin:12px 0;padding:12px 14px;border:1px solid #fb7185;border-radius:10px;background:rgba(251,113,133,.12);color:var(--text)}
   @media(max-width:900px){
     .grid,.two{grid-template-columns:1fr}
     .cards{grid-template-columns:repeat(2,1fr)}
@@ -77,6 +89,10 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="toolbar">
+    <span class="status" id="runtimeStatus" role="status">正在初始化交互图…</span>
+    <button id="themeToggle" type="button" aria-pressed="false">切换为浅色</button>
+  </div>
   <h1>为什么 DG / FR 的 Jacobian 会迅速变大？</h1>
   <p class="lead">
     这个页面用一个简化的非结构高阶 CFD 模型演示：当每个单元从 FVM 的“1 个空间自由度”
@@ -201,6 +217,17 @@ blockEntries ≈ blockSize²
 
 <script>
 const $ = id => document.getElementById(id);
+const root = document.documentElement;
+const themeToggle = $("themeToggle");
+const runtimeStatus = $("runtimeStatus");
+function setTheme(theme){
+  root.dataset.theme = theme;
+  const light = theme === "light";
+  themeToggle.textContent = light ? "切换为深色" : "切换为浅色";
+  themeToggle.setAttribute("aria-pressed", String(light));
+  if (typeof update === "function") update();
+}
+themeToggle.addEventListener("click", () => setTheme(root.dataset.theme === "light" ? "dark" : "light"));
 const cells=$("cells"), p=$("p"), eq=$("eq"), dim=$("dim");
 const fmt = n => {
   if(n>=1e9) return (n/1e9).toFixed(2)+"B";
@@ -225,8 +252,11 @@ function metrics(pp,d,nc,neq){
 }
 function drawMatrix(m){
   const c=$("matrix"), ctx=c.getContext("2d"), W=c.width,H=c.height;
+  const style=getComputedStyle(root), canvasBg=style.getPropertyValue("--canvas-bg").trim();
+  const canvasZero=style.getPropertyValue("--canvas-zero").trim();
+  const muted=style.getPropertyValue("--muted").trim();
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle="#090f22";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=canvasBg;ctx.fillRect(0,0,W,H);
   const N=13, pad=28, s=Math.min((W-2*pad)/N,(H-2*pad)/N);
   const band=Math.max(1,Math.min(3,Math.round(m.np/8)+1));
   for(let i=0;i<N;i++){
@@ -234,18 +264,21 @@ function drawMatrix(m){
       let type=0;
       if(i===j) type=2;
       else if(Math.abs(i-j)<=band || (i%4===0 && j===Math.min(N-1,i+4))) type=1;
-      ctx.fillStyle=type===2?"#7dd3fc":type===1?"#a78bfa":"#263252";
+      ctx.fillStyle=type===2?"#7dd3fc":type===1?"#a78bfa":canvasZero;
       ctx.globalAlpha=type?0.88:0.32;
       ctx.fillRect(pad+j*s+1,pad+i*s+1,s-2,s-2);
     }
   }
   ctx.globalAlpha=1;
-  ctx.fillStyle="#9ca9c7";ctx.font="14px system-ui";
+  ctx.fillStyle=muted;ctx.font="14px system-ui";
   ctx.fillText("每个小方块代表一个 cell-to-cell block",pad,H-7);
 }
 function drawCurve(d,neq){
   const c=$("curve"),ctx=c.getContext("2d"),W=c.width,H=c.height;
-  ctx.clearRect(0,0,W,H);ctx.fillStyle="#090f22";ctx.fillRect(0,0,W,H);
+  const style=getComputedStyle(root), canvasBg=style.getPropertyValue("--canvas-bg").trim();
+  const muted=style.getPropertyValue("--muted").trim();
+  const line=style.getPropertyValue("--line").trim();
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=canvasBg;ctx.fillRect(0,0,W,H);
   const padL=58,padR=20,padT=24,padB=48;
   const pts=[];
   for(let pp=0;pp<=6;pp++){
@@ -253,7 +286,7 @@ function drawCurve(d,neq){
     pts.push({p:pp,np,block});
   }
   const max=Math.max(...pts.map(x=>x.block));
-  ctx.strokeStyle="#283557";ctx.lineWidth=1;
+  ctx.strokeStyle=line;ctx.lineWidth=1;
   for(let k=0;k<=4;k++){
     const y=padT+(H-padT-padB)*k/4;
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
@@ -268,9 +301,9 @@ function drawCurve(d,neq){
     const x=padL+(W-padL-padR)*i/6;
     const y=H-padB-(H-padT-padB)*q.block/max;
     ctx.fillStyle="#7dd3fc";ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#9ca9c7";ctx.font="12px system-ui";ctx.fillText("p="+q.p,x-10,H-20);
+    ctx.fillStyle=muted;ctx.font="12px system-ui";ctx.fillText("p="+q.p,x-10,H-20);
   });
-  ctx.save();ctx.translate(18,H/2);ctx.rotate(-Math.PI/2);ctx.fillStyle="#9ca9c7";
+  ctx.save();ctx.translate(18,H/2);ctx.rotate(-Math.PI/2);ctx.fillStyle=muted;
   ctx.font="12px system-ui";ctx.fillText("block entries ∝ (Np × equations)²",-66,0);ctx.restore();
 }
 function update(){
@@ -301,7 +334,17 @@ estimated Jacobian values ≈ N_cells × (1 + neighbors) × blockSize²
   drawMatrix(m); drawCurve(d,neq);
 }
 [cells,p,eq,dim].forEach(x=>x.addEventListener("input",update));
-update();
+try {
+  update();
+  runtimeStatus.textContent = "交互图已就绪 · 参数可直接调整";
+} catch (error) {
+  runtimeStatus.textContent = "交互图初始化失败";
+  const banner = document.createElement("div");
+  banner.className = "runtime-error";
+  banner.textContent = "页面结构已加载，但可视化脚本初始化失败。请刷新页面或检查浏览器控制台。";
+  document.querySelector(".wrap").prepend(banner);
+  console.error("DG/FR Jacobian demo initialization failed", error);
+}
 </script>
 </body>
 </html>
