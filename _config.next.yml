@@ -10,6 +10,7 @@ avatar:
 
 menu:
   about: /about/ || fa fa-user
+  工具箱: /tools/ || fa fa-wrench
 
 custom_file_path:
   bodyEnd: source/_data/body-end.njk

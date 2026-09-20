@@ -28,6 +28,7 @@ highlight_height_limit: 200
 # ---------- 站点信息 ----------
 menu:
   关于我: /about/ || fas fa-user
+  工具箱: /tools/ || fas fa-toolbox
 
 avatar:
   img: /img/tttt.png
@@ -56,7 +57,7 @@ aside:
     last_push_date: false
   card_announcement:
     enable: true
-    content: 博客已恢复维护,欢迎常来 🎉
+    content: 博客已恢复维护,欢迎常来 🎉<br><a href="/tools/">打开交互工具箱 →</a>
   card_recent_post:
     enable: true
     limit: 5
