@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tttt个人运行100次数据分析报告 | tttt</title>
+<link rel="icon" href="/img/favicon-32.png">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-hover: #273548;
+    --border: #334155;
+    --text: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --orange: #f97316;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+/* Quick nav */
+.quick-nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 20px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; white-space: nowrap;
+    scrollbar-width: none;
+}
+.quick-nav::-webkit-scrollbar { display: none; }
+.quick-nav a {
+    flex: 0 0 auto;
+    font-size: 12px; color: var(--text-secondary);
+    text-decoration: none;
+    padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--border);
+    transition: color 0.15s, border-color 0.15s;
+}
+.quick-nav a:hover { color: var(--accent); border-color: var(--accent); }
+.section { scroll-margin-top: 64px; }
+
+/* Back to top */
+#back-top {
+    position: fixed; right: 22px; bottom: 26px; z-index: 60;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+    background: var(--card); border: 1px solid var(--accent);
+    color: var(--accent); font-size: 18px; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+#back-top.show { display: flex; }
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 30px;
+}
+.header h1 {
+    font-size: 2.2em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+}
+.header .subtitle { color: var(--text-secondary); font-size: 1.1em; }
+.header .date-range { color: var(--accent); font-size: 0.95em; margin-top: 4px; }
+/* 头像:与博客主页同款旋转图(tttt.png + avatar_turn_around) */
+.header-avatar {
+    width: 96px; height: 96px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    box-shadow: 0 0 24px rgba(56, 189, 248, .35);
+}
+.header-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    animation: avatar_turn_around 2s linear infinite;
+}
+.header-avatar:hover img { animation-play-state: paused; }
+.header .back-links { margin-top: 14px; }
+.header .back-links a {
+    color: var(--text-secondary); font-size: 0.85em; text-decoration: none;
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px;
+}
+.header .back-links a:hover { color: var(--accent); border-color: var(--accent); }
+@keyframes avatar_turn_around {
+    from { transform: rotate(0); }
+    to { transform: rotate(360deg); }
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+.stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.stat-label { color: var(--text-secondary); font-size: 0.85em; margin-top: 4px; }
+
+/* Grade Circle */
+.grade-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+.grade-circle {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 4px solid #3b82f6;
+    background: rgba(0,0,0,0.3);
+}
+.grade-letter { font-size: 3em; font-weight: 800; color: #3b82f6; }
+.grade-score { font-size: 1em; color: var(--text-secondary); }
+.grade-message { max-width: 500px; font-size: 1.05em; color: var(--text-secondary); }
+
+/* Section */
+.section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+.section-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-title .icon { font-size: 1.2em; }
+
+/* Charts */
+.chart-container { width: 100%; height: 400px; }
+.chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+@media (max-width: 900px) {
+    .chart-row { grid-template-columns: 1fr; }
+}
+.chart-half { height: 350px; }
+
+/* Exercise trend small multiples */
+.trends-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.trend-chart {
+    height: 300px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+}
+@media (max-width: 900px) {
+    .trends-grid { grid-template-columns: 1fr; }
+}
+
+/* Assessment Cards */
+.assessments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 16px;
+}
+.assessment-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    border-left: 4px solid var(--border);
+}
+.assessment-excellent { border-left-color: var(--green); }
+.assessment-good { border-left-color: var(--accent); }
+.assessment-adequate { border-left-color: var(--yellow); }
+.assessment-needs_attention { border-left-color: var(--red); }
+.assessment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.assessment-category { font-weight: 600; font-size: 1.05em; }
+.assessment-badge {
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--border);
+    color: var(--text-secondary);
+}
+.badge-excellent { background: rgba(34,197,94,0.2); color: var(--green); }
+.badge-optimal { background: rgba(34,197,94,0.25); color: var(--green); }
+.badge-good { background: rgba(56,189,248,0.2); color: var(--accent); }
+.badge-adequate { background: rgba(234,179,8,0.2); color: var(--yellow); }
+.badge-needs_attention { background: rgba(239,68,68,0.2); color: var(--red); }
+.assessment-message { color: var(--text-secondary); font-size: 0.92em; margin-bottom: 6px; }
+.assessment-ref { color: #64748b; font-size: 0.8em; font-style: italic; }
+
+/* Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+.table-scroll {
+    max-height: 620px;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+.table-scroll .data-table thead th {
+    position: sticky;
+    top: 0;
+    background: #16202f;
+    z-index: 1;
+}
+.data-table th {
+    background: rgba(0,0,0,0.3);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    color: var(--accent);
+}
+.data-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.data-table tr:hover td { background: rgba(56,189,248,0.05); color: var(--text); }
+
+/* References */
+.references {
+    margin-top: 12px;
+    padding: 16px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+.references h4 { color: var(--accent); margin-bottom: 8px; }
+.references li { color: var(--text-secondary); font-size: 0.85em; margin-bottom: 4px; list-style: none; }
+.references li::before { content: "📄 "; }
+
+/* Formulas */
+.formulas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 16px;
+}
+.formula-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    border-top: 3px solid var(--accent2);
+}
+.formula-name { font-weight: 600; color: var(--text); margin-bottom: 8px; font-size: 1.0em; }
+.formula-expr {
+    font-family: 'Cambria Math', 'STIX Two Math', Consolas, monospace;
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--accent);
+    font-size: 1.05em;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+.formula-desc { color: var(--text-secondary); font-size: 0.85em; margin-bottom: 6px; }
+.formula-src { color: #64748b; font-size: 0.78em; font-style: italic; }
+.formula-src::before { content: "📖 "; }
+
+/* Chart caption */
+.chart-caption {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.2);
+    border-left: 3px solid var(--accent2);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 0.83em;
+    line-height: 1.5;
+}
+
+/* Health & fat-loss section */
+.health-h3 {
+    font-size: 1.05em;
+    color: var(--text);
+    margin: 22px 0 12px;
+    padding-left: 10px;
+    border-left: 3px solid var(--accent);
+}
+.health-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+}
+@media (max-width: 900px) {
+    .health-cols { grid-template-columns: 1fr; }
+}
+.health-block {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+.health-good { border-left: 4px solid var(--green); }
+.health-warn { border-left: 4px solid var(--yellow); }
+.health-block-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+.health-block ul {
+    list-style: none;
+}
+.health-block li {
+    color: var(--text-secondary);
+    font-size: 0.86em;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    padding-left: 14px;
+    position: relative;
+}
+.health-block li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 30px;
+    color: #475569;
+    font-size: 0.85em;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+}
+
+/* Print */
+@media print {
+    body { background: white; color: #1a1a1a; }
+    .section { break-inside: avoid; border: 1px solid #ddd; }
+    .header h1 { -webkit-text-fill-color: #1e40af; }
+    .stat-value { -webkit-text-fill-color: #1e40af; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-avatar"><img src="/img/tttt.png" alt="tttt 头像"></div>
+    <h1>tttt个人运行100次数据分析报告</h1>
+    <div class="subtitle">基于运动科学的全面训练评估</div>
+    <div class="date-range">📅 2026-01-08 ~ 2026-09-30 | 共 266 天</div>
+    <div class="back-links"><a href="/">← 博客首页</a></div>
+</div>
+
+<nav class="quick-nav">
+    <a href="#sec-overview">概览</a>
+    <a href="#sec-assess">科学评估</a>
+    <a href="#sec-formulas">公式来源</a>
+    <a href="#sec-calendar">训练日历</a>
+    <a href="#sec-weekly">周趋势</a>
+    <a href="#sec-monthly">月度</a>
+    <a href="#sec-muscle">肌群平衡</a>
+    <a href="#sec-weekly-muscle">肌群容量</a>
+    <a href="#sec-dist">训练分布</a>
+    <a href="#sec-intensity">强度</a>
+    <a href="#sec-wearable">生理数据</a>
+    <a href="#sec-health">健康减脂</a>
+    <a href="#sec-top">动作排行</a>
+    <a href="#sec-progressive">超负荷</a>
+    <a href="#sec-e1rm">1RM</a>
+    <a href="#sec-trends">动作趋势</a>
+    <a href="#sec-recovery">恢复</a>
+    <a href="#sec-structure">组数结构</a>
+    <a href="#sec-log">训练明细</a>
+</nav>
+
+<div class="container">
+
+<!-- Overview Stats -->
+<div class="stats-grid" id="sec-overview">
+    <div class="stat-card">
+        <div class="stat-value">100</div>
+        <div class="stat-label">训练次数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">517</div>
+        <div class="stat-label">训练动作</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">1763</div>
+        <div class="stat-label">总组数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">21,337</div>
+        <div class="stat-label">总次数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">750,513</div>
+        <div class="stat-label">总容量 (kg)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">2.63</div>
+        <div class="stat-label">周均训练次数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">17.6</div>
+        <div class="stat-label">场均组数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">89.7%</div>
+        <div class="stat-label">训练一致性</div>
+    </div>
+</div>
+
+<!-- Overall Grade -->
+<div class="grade-section">
+    <div class="grade-circle">
+        <div class="grade-letter">B</div>
+        <div class="grade-score">70.0 分</div>
+    </div>
+    <div class="grade-message">
+        <h3 style="color: #3b82f6; margin-bottom: 8px;">综合训练评估</h3>
+        <p>训练计划执行良好，大部分指标符合科学推荐，有少量改进空间。</p>
+        <p style="margin-top: 8px; font-size: 0.9em; color: #64748b;">
+            评估基于 ACSM 2026 抗阻训练指南、Schoenfeld 训练量剂量-反应研究等科学文献
+        </p>
+    </div>
+</div>
+
+<!-- Scientific Assessment -->
+<div class="section" id="sec-assess">
+    <div class="section-title"><span class="icon">🔬</span> 科学评估详情</div>
+    <div class="assessments-grid">
+        
+        <div class="assessment-card assessment-adequate">
+            <div class="assessment-header">
+                <span class="assessment-icon">🟡</span>
+                <span class="assessment-category">训练频率</span>
+                <span class="assessment-badge badge-adequate">达标</span>
+            </div>
+            <div class="assessment-message">平均每周训练 2.63 次，达到ACSM最低推荐标准。</div>
+            <div class="assessment-ref">📖 ACSM 2026: ≥2 sessions/week per major muscle group</div>
+        </div>
+        <div class="assessment-card assessment-good">
+            <div class="assessment-header">
+                <span class="assessment-icon">🔵</span>
+                <span class="assessment-category">训练量</span>
+                <span class="assessment-badge badge-good">良好</span>
+            </div>
+            <div class="assessment-message">达到最佳训练量(≥10组/周)的肌群: 3个，适宜(5-9组/周): 4个，未训练: 2个</div>
+            <div class="assessment-ref">📖 Schoenfeld et al. (2017): ≥10 sets/muscle/week for hypertrophy</div>
+        </div>
+        <div class="assessment-card assessment-good">
+            <div class="assessment-header">
+                <span class="assessment-icon">🔵</span>
+                <span class="assessment-category">训练强度</span>
+                <span class="assessment-badge badge-good">良好</span>
+            </div>
+            <div class="assessment-message">肌肥大区间(6-12次): 79.1%，力量区间(1-5次): 8.2%，耐力区间(15+次): 12.7%。训练以肌肥大为主，符合增肌目标。</div>
+            <div class="assessment-ref">📖 ACSM: Hypertrophy across 30-100% 1RM with high effort; 6-12 reps optimal</div>
+        </div>
+        <div class="assessment-card assessment-good">
+            <div class="assessment-header">
+                <span class="assessment-icon">🔵</span>
+                <span class="assessment-category">恢复</span>
+                <span class="assessment-badge badge-good">良好</span>
+            </div>
+            <div class="assessment-message">平均休息 1.7 天，恢复时间充足(推荐48-72小时)。</div>
+            <div class="assessment-ref">📖 ACSM: 48-72 hours recovery between sessions for same muscle group</div>
+        </div>
+        <div class="assessment-card assessment-excellent">
+            <div class="assessment-header">
+                <span class="assessment-icon">🟢</span>
+                <span class="assessment-category">训练一致性</span>
+                <span class="assessment-badge badge-excellent">优秀</span>
+            </div>
+            <div class="assessment-message">训练一致性 89.7%，35/39 周有训练记录。</div>
+            <div class="assessment-ref">📖 Consistency is the strongest predictor of long-term training adaptations</div>
+        </div>
+        <div class="assessment-card assessment-needs_attention">
+            <div class="assessment-header">
+                <span class="assessment-icon">🔴</span>
+                <span class="assessment-category">渐进超负荷</span>
+                <span class="assessment-badge badge-needs_attention">需关注</span>
+            </div>
+            <div class="assessment-message">追踪的 15 个动作中，4 个(27%)实现了重量增长。建议系统性地增加训练负荷。</div>
+            <div class="assessment-ref">📖 Progressive overload is fundamental to continued adaptation (ACSM 2026)</div>
+        </div>
+        <div class="assessment-card assessment-adequate">
+            <div class="assessment-header">
+                <span class="assessment-icon">🟡</span>
+                <span class="assessment-category">肌群平衡</span>
+                <span class="assessment-badge badge-adequate">达标</span>
+            </div>
+            <div class="assessment-message">肌群平衡比 0.46，存在一定的训练不均衡。</div>
+            <div class="assessment-ref">📖 Balanced muscle group training prevents imbalances and injury</div>
+        </div>
+    </div>
+    <div class="references">
+        <h4>参考文献</h4>
+        <ul>
+            <li>ACSM (2026). Resistance Training Guidelines.</li><li>Schoenfeld, B.J. et al. (2017). Dose-response relationship between weekly resistance training volume and increases in muscle mass. J Sports Sci.</li><li>Epley, B. (1985). Poundage chart. Epley Workout.</li><li>Haff, G.G. & Triplett, N.T. (2016). Program Design for Resistance Training. Essentials of Strength Training and Conditioning.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Formulas & Sources -->
+<div class="section" id="sec-formulas">
+    <div class="section-title"><span class="icon">🧮</span> 计算公式与科学来源</div>
+    <div class="formulas-grid">
+        <div class="formula-card">
+            <div class="formula-name">训练容量 (Volume Load)</div>
+            <div class="formula-expr">V = Σ ( W × R × S × N )</div>
+            <div class="formula-desc">W=负重(kg)，R=每组次数，S=组数，N=侧数(单边动作×2)。衡量单次/单周总机械负荷。</div>
+            <div class="formula-src">NSCA《Essentials of Strength Training and Conditioning》; Schoenfeld et al. (2017)</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">估算 1RM (Epley 公式)</div>
+            <div class="formula-expr">e1RM = W × ( 1 + R / 30 )</div>
+            <div class="formula-desc">由次最大重量 W 与完成次数 R 估算一次最大重量。适用于 R ≤ 10。</div>
+            <div class="formula-src">Epley, B. (1985). Poundage Chart. Epley Workout.</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">相对强度 (%1RM)</div>
+            <div class="formula-expr">%1RM ≈ 1 / ( 1 + R / 30 ) × 100%</div>
+            <div class="formula-desc">Epley 公式的反函数，用完成次数反推该组负荷占 1RM 的百分比，用于划分强度区间。</div>
+            <div class="formula-src">Epley (1985) 反推; 次数-负荷换算表见 Haff &amp; Triplett (2016)</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">肌群周训练量</div>
+            <div class="formula-expr">sets/muscle/week = 肌群总组数 ÷ 总周数</div>
+            <div class="formula-desc">评估每个肌群每周受到的刺激量。肌肥大推荐阈值 ≥10 组/肌群/周。</div>
+            <div class="formula-src">Schoenfeld et al. (2017) 剂量-反应 meta 分析; ACSM (2026)</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">复合动作有效组数 (加权贡献)</div>
+            <div class="formula-expr">eff_sets(m) = Σ<sub>动作</sub> ( 组数 × w<sub>m</sub> )，w=该动作对肌群 m 的贡献权重</div>
+            <div class="formula-desc">复合动作(硬拉/深蹲/划船/推举)会同时刺激多个肌群。每个 w 表示"该复合组对肌群 m 的刺激 ≈ 多少个该肌群的独立训练组"，是相对各自独立组的激活比例（<strong>重叠模型</strong>），而非把一个固定总量切分（分配模型），因此权重之和可以 &gt;1。例：硬拉 = 腿1.0 + 臀0.8 + 背0.7 + 臂0.4 + 核心0.4，即一次硬拉同时给腿接近满额、给背约7成、给臂约4成的独立组刺激。</div>
+            <div class="formula-src">复合动作多肌群激活共识 (EMG 研究); 本项目贡献权重为经验设定</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">训练一致性</div>
+            <div class="formula-expr">一致性 = 有训练的周数 ÷ 总周数 × 100%</div>
+            <div class="formula-desc">衡量训练规律性，是长期适应最强的预测因子之一。</div>
+            <div class="formula-src">训练依从性研究共识 (ACSM 2026)</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">肌群平衡比</div>
+            <div class="formula-expr">平衡比 = min(周均组数) ÷ max(周均组数)</div>
+            <div class="formula-desc">越接近 1 表示各肌群发展越均衡；过低提示存在薄弱肌群与失衡风险。</div>
+            <div class="formula-src">肌力平衡与损伤预防研究共识</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">恢复间隔</div>
+            <div class="formula-expr">gap = 同肌群相邻两次训练的天数差</div>
+            <div class="formula-desc">同一肌群两次训练之间应间隔 48-72 小时以保证恢复与超量补偿。</div>
+            <div class="formula-src">ACSM (2026) Resistance Training Guidelines</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">强度区间划分</div>
+            <div class="formula-expr">力量 1-5 次 | 肌肥大 6-12 次 | 耐力 13-20 次 | 高耐力 20+ 次</div>
+            <div class="formula-desc">按每组次数划分训练目标区间，对应不同 %1RM 负荷与适应方向。</div>
+            <div class="formula-src">ACSM (2026); Haff &amp; Triplett (2016) 次数-%1RM 对照</div>
+        </div>
+    </div>
+</div>
+
+<!-- Training Calendar -->
+<div class="section" id="sec-calendar">
+    <div class="section-title"><span class="icon">📅</span> 训练日历</div>
+    <div id="calendar-chart" class="chart-container" style="height: 220px;"></div>
+</div>
+
+<!-- Weekly Frequency & Volume -->
+<div class="section" id="sec-weekly">
+    <div class="section-title"><span class="icon">📈</span> 周训练趋势</div>
+    <div class="chart-row">
+        <div id="weekly-freq-chart" class="chart-half"></div>
+        <div id="weekly-volume-chart" class="chart-half"></div>
+    </div>
+</div>
+
+<!-- Monthly Overview -->
+<div class="section" id="sec-monthly">
+    <div class="section-title"><span class="icon">📊</span> 月度训练概览</div>
+    <div id="monthly-chart" class="chart-container"></div>
+</div>
+
+<!-- Muscle Group Balance -->
+<div class="section" id="sec-muscle">
+    <div class="section-title"><span class="icon">💪</span> 肌群训练平衡分析</div>
+    <div class="chart-row">
+        <div id="muscle-radar-chart" class="chart-half"></div>
+        <div id="muscle-bar-chart" class="chart-half"></div>
+    </div>
+    <div style="margin-top: 16px; overflow-x: auto;">
+        <div class="chart-caption" style="margin-bottom: 10px;">
+            <strong>复合动作说明：</strong>硬拉、深蹲、划船、推举等复合动作会同时刺激多个肌群。下表"有效组数/周"已将复合动作按贡献权重折算计入次要肌群
+            （例：硬拉计入 腿1.0 + 臀0.8 + 背0.7 + 臂0.4 + 核心0.4），因此即使你很少"单独练"某个肌群，它从复合动作获得的间接刺激也会被统计。"直接组数/周"仅统计以该肌群为主训的动作。
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>肌群</th>
+                    <th>直接组数/周</th>
+                    <th>有效组数/周<br>(含复合贡献)</th>
+                    <th>总有效组数</th>
+                    <th>总容量(kg)</th>
+                    <th>训练周数</th>
+                    <th>状态</th>
+                    <th>科学参考</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color: var(--text); font-weight: 500;">背部</td>
+                    <td>11.4</td>
+                    <td style="color: var(--accent); font-weight: 600;">15.5</td>
+                    <td>604.1</td>
+                    <td>291,718</td>
+                    <td>34/39</td>
+                    <td><span class="assessment-badge badge-optimal">最佳</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">胸部</td>
+                    <td>6.8</td>
+                    <td style="color: var(--accent); font-weight: 600;">7.2</td>
+                    <td>282.4</td>
+                    <td>85,428</td>
+                    <td>24/39</td>
+                    <td><span class="assessment-badge badge-adequate">达标</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">肩部</td>
+                    <td>6.2</td>
+                    <td style="color: var(--accent); font-weight: 600;">9.2</td>
+                    <td>358.4</td>
+                    <td>83,291</td>
+                    <td>28/39</td>
+                    <td><span class="assessment-badge badge-adequate">达标</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">腿部</td>
+                    <td>8.8</td>
+                    <td style="color: var(--accent); font-weight: 600;">8.8</td>
+                    <td>342.0</td>
+                    <td>202,849</td>
+                    <td>30/39</td>
+                    <td><span class="assessment-badge badge-adequate">达标</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">臀部</td>
+                    <td>4.7</td>
+                    <td style="color: var(--accent); font-weight: 600;">10.4</td>
+                    <td>406.6</td>
+                    <td>215,215</td>
+                    <td>34/39</td>
+                    <td><span class="assessment-badge badge-optimal">最佳</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">手臂</td>
+                    <td>0.3</td>
+                    <td style="color: var(--accent); font-weight: 600;">12.6</td>
+                    <td>492.8</td>
+                    <td>203,955</td>
+                    <td>35/39</td>
+                    <td><span class="assessment-badge badge-optimal">最佳</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">核心</td>
+                    <td>0.6</td>
+                    <td style="color: var(--accent); font-weight: 600;">7.8</td>
+                    <td>304.8</td>
+                    <td>116,562</td>
+                    <td>33/39</td>
+                    <td><span class="assessment-badge badge-adequate">达标</span></td>
+                    <td style="font-size: 0.8em; color: #64748b;">≥10组/周(最佳)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Weekly Volume by Muscle -->
+<div class="section" id="sec-weekly-muscle">
+    <div class="section-title"><span class="icon">📉</span> 各肌群周训练容量变化</div>
+    <div id="weekly-muscle-chart" class="chart-container" style="height: 450px;"></div>
+</div>
+
+<!-- Body Part & Time Distribution -->
+<div class="section" id="sec-dist">
+    <div class="section-title"><span class="icon">🎯</span> 训练分布</div>
+    <div class="chart-row">
+        <div id="bodypart-chart" class="chart-half"></div>
+        <div id="timeperiod-chart" class="chart-half"></div>
+    </div>
+    <div style="margin-top: 24px;">
+        <div id="weekday-chart" class="chart-container" style="height: 340px;"></div>
+        <div class="chart-caption"><strong>星期分布：</strong>柱为各星期的累计课次，线为该星期的累计训练容量（吨，右轴）。反映训练安排的周期节律——哪些天是你的固定训练日、周末与工作日的投入是否有系统性差异。</div>
+    </div>
+</div>
+
+<!-- Intensity Analysis -->
+<div class="section" id="sec-intensity">
+    <div class="section-title"><span class="icon">⚡</span> 训练强度分析</div>
+    <div class="chart-row">
+        <div id="zone-chart" class="chart-half"></div>
+        <div id="rep-dist-chart" class="chart-half"></div>
+    </div>
+    <div class="chart-row">
+        <div id="weight-dist-chart" class="chart-half"></div>
+        <div id="load-mode-chart" class="chart-half"></div>
+    </div>
+    <div style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; font-size: 0.9em; color: var(--text-secondary);">
+        <strong style="color: var(--accent);">强度指标：</strong>
+        平均训练强度 75.1% 1RM |
+        重量范围 2.5-135.0kg |
+        平均重量 36.2kg |
+        中位重量 30.0kg
+    </div>
+</div>
+
+
+<!-- Wearable Physiology -->
+<div class="section" id="sec-wearable">
+    <div class="section-title"><span class="icon">❤️</span> 运动生理与穿戴设备数据 <span style="font-size:0.6em;color:var(--text-secondary);font-weight:400;">· 用户：我</span></div>
+    <div class="chart-caption" style="margin-bottom:16px;">
+        数据来源：训练日记 Word 内嵌的华为运动健康截图，经 Qwen-VL 识别并<strong>人工校正</strong>后按文件名并入。
+        覆盖：卡路里 100/100、时长 100/100、心率 97/100 次（3 次无心率数据，已排除）。
+        最大心率按 Tanaka 公式估算：<strong style="color:var(--accent);">HRmax = 208 − 0.7×28 ≈ 188.4 bpm</strong>。
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">34,057</div><div class="stat-label">总消耗 (kcal)</div></div>
+        <div class="stat-card"><div class="stat-value">340.6</div><div class="stat-label">场均消耗 (kcal)</div></div>
+        <div class="stat-card"><div class="stat-value">90.8</div><div class="stat-label">总时长 (小时)</div></div>
+        <div class="stat-card"><div class="stat-value">54.5</div><div class="stat-label">场均时长 (分钟)</div></div>
+        <div class="stat-card"><div class="stat-value">136.9</div><div class="stat-label">平均心率 (bpm)</div></div>
+        <div class="stat-card"><div class="stat-value">14,757</div><div class="stat-label">总训练冲量 TRIMP</div></div>
+        <div class="stat-card"><div class="stat-value">-3.50 kg (-3.7%)</div><div class="stat-label">体重变化 (起始→当前)</div></div>
+        <div class="stat-card"><div class="stat-value">6.25</div><div class="stat-label">每分钟消耗 (kcal)</div></div>
+        <div class="stat-card"><div class="stat-value">621</div><div class="stat-label">累计爬楼 (层)</div></div>
+    </div>
+
+    <div class="chart-row">
+        <div>
+            <div id="wear-weekly-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>周能量与时长趋势：</strong>柱为每周总卡路里，线为每周训练小时数。用于观察能量消耗的周期波动与训练投入是否稳定。</div>
+        </div>
+        <div>
+            <div id="wear-cal-dist-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>单次消耗分布：</strong>横轴为单次训练卡路里区间，纵轴为课次。峰值 340.6 kcal 附近即你的典型单次消耗。</div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div>
+            <div id="wear-monthly-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>月度消耗与平均心率：</strong>柱为每月总卡路里，线为当月各次训练平均心率的均值（游泳课无心率会出现断点）。用于观察能量消耗与强度水平的长期走势。</div>
+        </div>
+        <div>
+            <div id="wear-monthly-dur-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>月度训练时长（小时）：</strong>每月总训练小时数。与月度课次数对照可区分"课多而短"与"课少而长"两种投入模式。</div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div>
+            <div id="wear-hr-dist-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>平均心率分布：</strong>各次训练的平均心率(bpm)直方图。均值 136.9、范围 111–156 bpm。力量训练平均心率通常落在中低强度区。</div>
+        </div>
+        <div>
+            <div id="wear-hr-zone-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>心率区间停留时长：</strong>按 %HRmax 五区累计的训练分钟数。你绝大多数时间处于 Z3 节奏区(70-80% HRmax)，符合力量/肌肥大训练的间歇特征。</div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div>
+            <div id="wear-type-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>按运动类型消耗：</strong>按训练分类（爬楼/游泳/网球计入有氧）统计。力量训练为绝对主体；有氧·游泳(3 次)、有氧·网球(2 次)、有氧·爬楼(2 次、累计 621.0 层)为小样本补充（样本过少，仅作说明不作趋势分析）。</div>
+        </div>
+        <div>
+            <div id="wear-scatter-chart" class="chart-half"></div>
+            <div class="chart-caption"><strong>训练容量 vs 卡路里：</strong>每点为一次力量课（横轴总容量 kg，纵轴卡路里）。整体正相关较弱——说明你的能量消耗更多由<strong>时长与心率</strong>驱动，而非单纯举起的总重量。</div>
+        </div>
+    </div>
+
+    <div class="formulas-grid" style="margin-top:16px;">
+        <div class="formula-card">
+            <div class="formula-name">最大心率 HRmax (Tanaka)</div>
+            <div class="formula-expr">HRmax = 208 − 0.7 × 年龄</div>
+            <div class="formula-desc">比传统 220−年龄 更准的年龄预测公式。当前年龄 28 → HRmax ≈ 188.4 bpm，作为心率区间与 TRIMP 的基准。</div>
+            <div class="formula-src">Tanaka, Monahan &amp; Seals (2001). J Am Coll Cardiol.</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">心率区间 (%HRmax 五区)</div>
+            <div class="formula-expr">Z1&lt;60% | Z2 60-70% | Z3 70-80% | Z4 80-90% | Z5≥90%</div>
+            <div class="formula-desc">按平均心率占 HRmax 的百分比划分强度区间。因未提供静息心率，采用 %HRmax 法；若补充静息心率可改用更精确的 Karvonen 储备心率(HRR)法。</div>
+            <div class="formula-src">ACSM (2026) Guidelines for Exercise Testing and Prescription.</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">训练冲量 TRIMP (Edwards)</div>
+            <div class="formula-expr">TRIMP ≈ Σ ( 各区分钟数 × 区权重 )，权重 Z1..Z5 = 1..5</div>
+            <div class="formula-desc">量化单次训练的心血管总负荷。<strong>近似说明：</strong>设备仅提供场均心率，故将整节课时长按其场均心率所在区计权，非逐分钟分区累加，会略有偏差。</div>
+            <div class="formula-src">Edwards, T. (1993). The Heart Rate Monitor Book.</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Health & Fat-loss Perspective -->
+<div class="section" id="sec-health">
+    <div class="section-title"><span class="icon">🫀</span> 健康与减脂视角：百次总结与展望</div>
+    <div class="chart-caption" style="margin-bottom: 16px;">
+        <strong>本节立场：</strong>以<strong>健康与减脂刷脂</strong>（保肌肉、降体脂）为目标重新解读这 100 次训练，而非单纯的力量/肌肥大视角。
+        力量训练在此视角下不是目的而是<strong>保肌工具</strong>；评估重心从"举得多重"转向"能量收支、心肺健康、身体成分与可持续性"。
+    </div>
+
+    <h3 class="health-h3">一、当前 100 次训练总结（2026-01-08 ~ 2026-09-30）</h3>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">-3.5 kg</div><div class="stat-label">体重变化（93.75→90.25 kg）</div></div>
+        <div class="stat-card"><div class="stat-value">-0.40 kg/月</div><div class="stat-label">减重速率（健康区间 0.3-0.8）</div></div>
+        <div class="stat-card"><div class="stat-value">4.4 kg</div><div class="stat-label">运动消耗脂肪当量*</div></div>
+        <div class="stat-card"><div class="stat-value">896 kcal</div><div class="stat-label">周均运动消耗</div></div>
+        <div class="stat-card"><div class="stat-value">7 次 (7%)</div><div class="stat-label">独立有氧课占比</div></div>
+        <div class="stat-card"><div class="stat-value">143 min</div><div class="stat-label">周均运动时长（ACSM 底线 150）</div></div>
+        <div class="stat-card"><div class="stat-value">0%</div><div class="stat-label">心率时间在 Z2-Z3 占比</div></div>
+        <div class="stat-card"><div class="stat-value">89.7%</div><div class="stat-label">训练一致性（行为已成型）</div></div>
+    </div>
+
+    <div class="health-cols">
+        <div class="health-block health-good">
+            <div class="health-block-title">✅ 做得好的（减脂视角）</div>
+            <ul>
+                <li><strong>保肌条件扎实</strong>：场均 17.6 组、平均强度 75.1% 1RM、肌肥大区间占 79%——减脂期维持力量训练强度是保留肌肉、守住基础代谢的第一要素，这一基础你已经具备。</li>
+                <li><strong>减重速率健康且可持续</strong>：约 -0.40 kg/月，远低于激进节食区间，掉肌肉与反弹风险低；运动消耗当量（4.4 kg）与实际减重（3.5 kg）同一量级，说明<strong>运动是本次减重的主要引擎</strong>，而非极端饮食。</li>
+                <li><strong>习惯已养成</strong>：一致性 89.7%、周均 2.63 次、周一/三/五固定节律——规律性是长期健康与体重管理最强的行为预测因子。</li>
+                <li><strong>力量课本身提供了基础心肺活动</strong>：周均 143 分钟、力量课均心率 136.5 bpm（≈72% HRmax），已接近 ACSM 每周 150 分钟中等强度的底线量。</li>
+            </ul>
+        </div>
+        <div class="health-block health-warn">
+            <div class="health-block-title">⚠️ 短板与风险（下个百次的改进空间）</div>
+            <ul>
+                <li><strong>独立有氧严重不足</strong>：100 课中仅 7 次独立有氧（游泳 3 + 网球 2 + 爬楼 2，占 7%）。力量课的间歇式心率不足以替代稳态有氧对心肺健康（血压、血脂、VO2max）的刺激。</li>
+                <li><strong>心率刺激结构单一</strong>：0% 的监测时间在 Z2-Z3 节奏区，Z4 阈值区仅 0 次、Z5 为零——缺乏对最大摄氧量的高强度刺激，也缺乏长时间低强度(Z2)的恢复性有氧。</li>
+                <li><strong>训练量趋势下滑</strong>：月容量从前 3 个月均值 95.8t 降至后 3 个月 61.4t（-36%）。减脂期降容量本身可接受（保强度即可），但需与有氧补位衔接，否则总消耗下降。</li>
+                <li><strong>长假是反弹窗口</strong>：6 段 ≥6 天的间歇（最长春节 13 天）——假期流失的不只是训练，还有行为惯性。</li>
+                <li><strong>"减重"≠"刷脂"尚未验证</strong>：无体成分/腰围数据，无法确认减掉的 3.5kg 里肌肉占比；饮食（蛋白质摄入）与睡眠也未记录。</li>
+            </ul>
+        </div>
+    </div>
+
+    <h3 class="health-h3">二、下个 100 次训练展望（目标：保肌刷脂）</h3>
+    <div class="chart-caption" style="margin-bottom: 12px;">
+        核心思路：<strong>力量训练维持强度、有氧补位心肺、能量缺口小而稳、监测从体重升级到身体成分</strong>。
+        按当前节奏（周均 2.63 次）下个百次约需 9-10 个月。
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr><th>指标</th><th>当前百次</th><th>下个百次目标</th><th>说明</th></tr>
+            </thead>
+            <tbody>
+                <tr><td style="color:var(--text);">独立有氧课次</td><td>7 次（7%）</td><td style="color: var(--accent); font-weight: 600;">15-20 次（15-20%）</td><td>每周 1-2 次：Z2 稳态 30-45min 或爬楼（已验证：100 层 ≈ 347 kcal/47min，效率高于力量课）</td></tr>
+                <tr><td style="color:var(--text);">周均课次</td><td>2.63</td><td style="color: var(--accent); font-weight: 600;">3-4 次</td><td>力量 2-3 + 有氧 1-2，含一次周末"主动恢复"</td></tr>
+                <tr><td style="color:var(--text);">周均运动时长</td><td>143 min</td><td style="color: var(--accent); font-weight: 600;">≥180 min</td><td>稳超 ACSM 150min 底线，向 200min 健康优化量靠近</td></tr>
+                <tr><td style="color:var(--text);">Z4/Z5 高强度课</td><td>0 次</td><td style="color: var(--accent); font-weight: 600;">每 2-3 周 1 次 HIIT</td><td>刺激 VO2max；爬楼机/划船机间歇均可，无需冲刺跑</td></tr>
+                <tr><td style="color:var(--text);">体重路径</td><td>90.25 kg</td><td style="color: var(--accent); font-weight: 600;">87-88 kg（再减 2.5-3.5）</td><td>维持 0.4±0.1 kg/月；速率上限 0.5-1% 体重/周，不追求快</td></tr>
+                <tr><td style="color:var(--text);">力量强度</td><td>75.1% 1RM</td><td style="color: var(--accent); font-weight: 600;">维持，e1RM 下滑 ≤5%</td><td>减脂期力量"维持或缓增"即合格，这是保肌的验收指标</td></tr>
+                <tr><td style="color:var(--text);">训练一致性</td><td>89.7%</td><td style="color: var(--accent); font-weight: 600;">≥90%</td><td>重点：长假（≥7 天）安排维持量（爬楼/哑铃 2 次/周），最长连休从 13 天压到 ≤7 天</td></tr>
+                <tr><td style="color:var(--text);">身体成分监测</td><td>仅体重（起止两点）</td><td style="color: var(--accent); font-weight: 600;">每月 1 次体脂%+腰围</td><td>把目标从"体重↓"升级为"体脂%↓+腰围↓+力量维持"三指标</td></tr>
+                <tr><td style="color:var(--text);">饮食/睡眠记录</td><td>未记录</td><td style="color: var(--accent); font-weight: 600;">蛋白质 1.6-2.2g/kg/天；睡眠 ≥7h</td><td>按 ~90kg 体重即每天 145-200g 蛋白质；这两项是保肌减脂的另一半，建议开始记录（哪怕粗粒度）</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="chart-caption" style="margin-top: 10px;">
+        <strong>*口径与免责：</strong>脂肪当量按 7,700 kcal/kg 换算，是量级估算（运动消耗含糖原供能部分，非纯脂肪供能）；蛋白质与睡眠建议参考 ACSM/Drewnowski 等共识；
+        本节为训练数据分析与生活方式建议，<strong>不构成医疗建议</strong>。饮食与睡眠数据本项目未采集，对应条目为建议开始记录项。
+    </div>
+</div>
+
+<!-- Top Exercises -->
+<div class="section" id="sec-top">
+    <div class="section-title"><span class="icon">🏆</span> 训练量排行 (Top 15)</div>
+    <div id="top-exercises-chart" class="chart-container" style="height: 500px;"></div>
+</div>
+
+<!-- Progressive Overload -->
+<div class="section" id="sec-progressive">
+    <div class="section-title"><span class="icon">🆙</span> 渐进超负荷追踪</div>
+    <div id="progressive-chart" class="chart-container" style="height: 450px;"></div>
+    <div style="margin-top: 16px; overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr><th>动作</th><th>起始重量</th><th>最新重量</th><th>最大重量</th><th>增长率</th><th>追踪次数</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color: var(--text); font-weight: 500;">单臂哑铃划船</td>
+                    <td>60.0kg</td>
+                    <td>60.0kg</td>
+                    <td>80.0kg</td>
+                    <td style="color: var(--red)">0.0%</td>
+                    <td>18</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">器械推胸</td>
+                    <td>60.0kg</td>
+                    <td>60.0kg</td>
+                    <td>110.0kg</td>
+                    <td style="color: var(--red)">0.0%</td>
+                    <td>15</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">上斜卧推</td>
+                    <td>60.0kg</td>
+                    <td>40.0kg</td>
+                    <td>70.0kg</td>
+                    <td style="color: var(--red)">-33.3%</td>
+                    <td>14</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">器械推肩</td>
+                    <td>40.0kg</td>
+                    <td>20.0kg</td>
+                    <td>45.0kg</td>
+                    <td style="color: var(--red)">-50.0%</td>
+                    <td>14</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">实力推</td>
+                    <td>20.0kg</td>
+                    <td>20.0kg</td>
+                    <td>40.0kg</td>
+                    <td style="color: var(--red)">0.0%</td>
+                    <td>14</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">器械大剪刀</td>
+                    <td>50.0kg</td>
+                    <td>50.0kg</td>
+                    <td>70.0kg</td>
+                    <td style="color: var(--red)">0.0%</td>
+                    <td>13</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">悍马机正手下拉</td>
+                    <td>105.0kg</td>
+                    <td>80.0kg</td>
+                    <td>135.0kg</td>
+                    <td style="color: var(--red)">-23.8%</td>
+                    <td>12</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">竖脊肌俯身</td>
+                    <td>20.0kg</td>
+                    <td>30.0kg</td>
+                    <td>50.0kg</td>
+                    <td style="color: var(--green)">+50.0%</td>
+                    <td>10</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">器械腿屈伸</td>
+                    <td>80.0kg</td>
+                    <td>50.0kg</td>
+                    <td>80.0kg</td>
+                    <td style="color: var(--red)">-37.5%</td>
+                    <td>9</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">器械内收</td>
+                    <td>50.0kg</td>
+                    <td>50.0kg</td>
+                    <td>63.0kg</td>
+                    <td style="color: var(--red)">0.0%</td>
+                    <td>9</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">器械外展</td>
+                    <td>50.0kg</td>
+                    <td>50.0kg</td>
+                    <td>63.0kg</td>
+                    <td style="color: var(--red)">0.0%</td>
+                    <td>9</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">硬拉</td>
+                    <td>50.0kg</td>
+                    <td>120.0kg</td>
+                    <td>130.0kg</td>
+                    <td style="color: var(--green)">+140.0%</td>
+                    <td>9</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">宽握高位下拉</td>
+                    <td>60.0kg</td>
+                    <td>50.0kg</td>
+                    <td>65.0kg</td>
+                    <td style="color: var(--red)">-16.7%</td>
+                    <td>8</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">哑铃侧平举</td>
+                    <td>5.0kg</td>
+                    <td>12.0kg</td>
+                    <td>12.0kg</td>
+                    <td style="color: var(--green)">+140.0%</td>
+                    <td>7</td>
+                </tr><tr>
+                    <td style="color: var(--text); font-weight: 500;">哑铃飞鸟</td>
+                    <td>12.0kg</td>
+                    <td>28.0kg</td>
+                    <td>28.0kg</td>
+                    <td style="color: var(--green)">+133.3%</td>
+                    <td>7</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- e1RM Trends -->
+<div class="section" id="sec-e1rm">
+    <div class="section-title"><span class="icon">💥</span> 估算1RM趋势 (Epley公式)</div>
+    <div id="e1rm-chart" class="chart-container" style="height: 450px;"></div>
+    <div style="margin-top: 8px; font-size: 0.85em; color: #64748b;">
+        Epley公式: e1RM = W × (1 + R/30)，其中W为重量，R为次数。仅适用于≤10次的估算。
+    </div>
+</div>
+
+<!-- Exercise Trend Small Multiples -->
+<div class="section" id="sec-trends">
+    <div class="section-title"><span class="icon">🔎</span> 重点动作训练趋势</div>
+    <div class="chart-caption" style="margin-bottom: 16px;">
+        按课次频率挑选你最常练习的 12 个动作，逐一展示<strong>当日最大重量</strong>（折线，左轴 kg，单边动作已按双侧合计折算）与<strong>当日总容量</strong>（柱形，右轴 kg）。
+        折线上扬是渐进超负荷的直接证据；柱形的波动反映当日该动作的总做功量（课内组数多、次数高则柱高）。
+    </div>
+    <div class="trends-grid">
+        <div id="trend-chart-0" class="trend-chart"></div><div id="trend-chart-1" class="trend-chart"></div><div id="trend-chart-2" class="trend-chart"></div><div id="trend-chart-3" class="trend-chart"></div><div id="trend-chart-4" class="trend-chart"></div><div id="trend-chart-5" class="trend-chart"></div><div id="trend-chart-6" class="trend-chart"></div><div id="trend-chart-7" class="trend-chart"></div><div id="trend-chart-8" class="trend-chart"></div><div id="trend-chart-9" class="trend-chart"></div><div id="trend-chart-10" class="trend-chart"></div><div id="trend-chart-11" class="trend-chart"></div>
+    </div>
+</div>
+
+<!-- Recovery Analysis -->
+<div class="section" id="sec-recovery">
+    <div class="section-title"><span class="icon">😴</span> 恢复分析</div>
+    <div class="chart-row">
+        <div id="rest-dist-chart" class="chart-half"></div>
+        <div id="muscle-recovery-chart" class="chart-half"></div>
+    </div>
+    <div style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; font-size: 0.9em; color: var(--text-secondary);">
+        <strong style="color: var(--accent);">恢复指标：</strong>
+        平均休息 1.7 天（中位 1 天，最长连休 13 天） |
+        最长连续训练 1 天 |
+        总训练日 100 天 |
+        ACSM推荐同肌群间隔 48-72 小时
+    </div>
+    <div class="chart-caption" style="margin-top: 8px;">
+        <strong>口径说明：</strong>休息日 = 相邻两次训练日之间的空档天数。均值会被少数长间歇（如春节 13 天、两次 11 天的休整期）拉高，
+        中位数（1 天）更代表你的典型节奏；两者差异大说明休息分布不对称——常态短间隔 + 少数长假。
+    </div>
+    
+</div>
+
+<!-- Training Structure Analysis -->
+<div class="section" id="sec-structure">
+    <div class="section-title"><span class="icon">🔢</span> 训练结构分析：组数安排</div>
+    <div style="margin-bottom: 16px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; color: var(--text-secondary); font-size: 0.9em; line-height: 1.6;">
+        本节回答"你的训练是如何安排组数的"。左图统计<strong style="color: var(--accent);">单个动作在一次课中做几组</strong>（反映单动作刺激深度），
+        右图统计<strong style="color: var(--accent);">一次训练课总共做几组</strong>（反映单课总工作量）。两者结合可判断训练安排是否符合"单动作 3-4 组、单课 15-25 组"的常见增肌结构。
+    </div>
+    <div class="chart-row">
+        <div>
+            <div id="sets-dist-chart" class="chart-half"></div>
+            <div class="chart-caption">
+                <strong>单动作组数：</strong>横轴为"一个动作做几组"，纵轴为出现次数。峰值所在即你的习惯组数。
+                当前平均 3.4 组/动作。增肌推荐单动作 3-5 组（Schoenfeld 2017）。
+            </div>
+        </div>
+        <div>
+            <div id="session-sets-chart" class="chart-half"></div>
+            <div class="chart-caption">
+                <strong>单课总组数：</strong>横轴为"一次课共做几组"（所有动作合计），纵轴为课次数。
+                当前平均 19.8 组/课。单次课 15-25 组为常见有效区间，过高易致恢复不足。
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Session Log -->
+<div class="section" id="sec-log">
+    <div class="section-title"><span class="icon">📋</span> 全部训练记录明细</div>
+    <div class="chart-caption" style="margin-bottom: 12px;">
+        共 100 次训练的逐课明细（按日期升序）。口径：日期以文件名为准（4 处正文笔误已自动校正）；
+        组数 = Σ(每组记录的组数)，单侧动作不按侧数翻倍；容量 = Σ(负重 × 次数 × 组数 × 侧数系数)；
+        爬楼/游泳/网球课按有氧分类，无力量组时容量显示"—"；消耗/时长/心率来自华为运动健康截图（覆盖率见"运动生理"一节）。
+    </div>
+    <div class="table-scroll">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th><th>日期</th><th>星期</th><th>部位</th><th>分类</th>
+                    <th>动作数</th><th>组数</th><th>容量 (kg)</th>
+                    <th>消耗 (kcal)</th><th>时长</th><th>心率 (bpm)</th><th>爬楼 (层)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>2026-01-08</td><td>周四</td><td style='color: var(--text);'>背</td><td>力量</td><td>5</td><td>24</td><td>10,980</td><td>359</td><td>51分</td><td>152</td><td>—</td></tr><tr><td>2</td><td>2026-01-12</td><td>周一</td><td style='color: var(--text);'>腿</td><td>力量</td><td>4</td><td>14</td><td>13,970</td><td>315</td><td>43分</td><td>156</td><td>—</td></tr><tr><td>3</td><td>2026-01-14</td><td>周三</td><td style='color: var(--text);'>肩</td><td>力量</td><td>7</td><td>28</td><td>6,996</td><td>322</td><td>49分</td><td>144</td><td>—</td></tr><tr><td>4</td><td>2026-01-16</td><td>周五</td><td style='color: var(--text);'>胸背</td><td>力量</td><td>7</td><td>26</td><td>8,560</td><td>311</td><td>50分</td><td>140</td><td>—</td></tr><tr><td>5</td><td>2026-01-19</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>18</td><td>6,786</td><td>356</td><td>49分</td><td>153</td><td>—</td></tr><tr><td>6</td><td>2026-01-21</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>7</td><td>30</td><td>10,805</td><td>366</td><td>57分</td><td>143</td><td>—</td></tr><tr><td>7</td><td>2026-01-23</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>7</td><td>25</td><td>4,942</td><td>318</td><td>52分</td><td>139</td><td>—</td></tr><tr><td>8</td><td>2026-01-26</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>6</td><td>20</td><td>9,645</td><td>219</td><td>42分</td><td>126</td><td>—</td></tr><tr><td>9</td><td>2026-01-28</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>22</td><td>11,888</td><td>264</td><td>46分</td><td>133</td><td>—</td></tr><tr><td>10</td><td>2026-01-30</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>22</td><td>4,257</td><td>303</td><td>53分</td><td>133</td><td>—</td></tr><tr><td>11</td><td>2026-02-02</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>6</td><td>25</td><td>13,565</td><td>346</td><td>53分</td><td>145</td><td>—</td></tr><tr><td>12</td><td>2026-02-04</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>20</td><td>11,575</td><td>343</td><td>59分</td><td>136</td><td>—</td></tr><tr><td>13</td><td>2026-02-05</td><td>周四</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>8</td><td>36</td><td>5,710</td><td>317</td><td>55分</td><td>135</td><td>—</td></tr><tr><td>14</td><td>2026-02-09</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>25</td><td>6,924</td><td>310</td><td>51分</td><td>139</td><td>—</td></tr><tr><td>15</td><td>2026-02-10</td><td>周二</td><td style='color: var(--text);'>背</td><td>力量</td><td>5</td><td>21</td><td>11,239</td><td>293</td><td>53分</td><td>131</td><td>—</td></tr><tr><td>16</td><td>2026-02-24</td><td>周二</td><td style='color: var(--text);'>综合恢复训练</td><td>力量</td><td>7</td><td>23</td><td>10,730</td><td>526</td><td>1小时25分</td><td>140</td><td>—</td></tr><tr><td>17</td><td>2026-02-27</td><td>周五</td><td style='color: var(--text);'>背</td><td>力量</td><td>5</td><td>19</td><td>9,140</td><td>315</td><td>52分</td><td>138</td><td>—</td></tr><tr><td>18</td><td>2026-02-28</td><td>周六</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>7</td><td>26</td><td>5,442</td><td>313</td><td>57分</td><td>130</td><td>—</td></tr><tr><td>19</td><td>2026-03-02</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>8</td><td>21</td><td>11,930</td><td>364</td><td>55分</td><td>145</td><td>—</td></tr><tr><td>20</td><td>2026-03-04</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>21</td><td>13,020</td><td>298</td><td>49分</td><td>139</td><td>—</td></tr><tr><td>21</td><td>2026-03-06</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>22</td><td>6,898</td><td>280</td><td>50分</td><td>131</td><td>—</td></tr><tr><td>22</td><td>2026-03-09</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>6</td><td>20</td><td>8,820</td><td>353</td><td>50分</td><td>148</td><td>—</td></tr><tr><td>23</td><td>2026-03-11</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>20</td><td>7,492</td><td>295</td><td>47分</td><td>137</td><td>—</td></tr><tr><td>24</td><td>2026-03-13</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>7</td><td>24</td><td>6,280</td><td>284</td><td>53分</td><td>125</td><td>—</td></tr><tr><td>25</td><td>2026-03-16</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>6</td><td>20</td><td>11,190</td><td>346</td><td>50分</td><td>146</td><td>—</td></tr><tr><td>26</td><td>2026-03-18</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>20</td><td>8,000</td><td>317</td><td>50分</td><td>137</td><td>—</td></tr><tr><td>27</td><td>2026-03-20</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>21</td><td>5,794</td><td>316</td><td>52分</td><td>134</td><td>—</td></tr><tr><td>28</td><td>2026-03-21</td><td>周六</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>18</td><td>13,720</td><td>572</td><td>1小时31分</td><td>137</td><td>—</td></tr><tr><td>29</td><td>2026-03-23</td><td>周一</td><td style='color: var(--text);'>弱项➕康复</td><td>力量</td><td>7</td><td>26</td><td>4,475</td><td>297</td><td>50分</td><td>133</td><td>—</td></tr><tr><td>30</td><td>2026-03-25</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>21</td><td>9,590</td><td>302</td><td>50分</td><td>134</td><td>—</td></tr><tr><td>31</td><td>2026-03-27</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>5</td><td>17</td><td>3,882</td><td>206</td><td>35分</td><td>132</td><td>—</td></tr><tr><td>32</td><td>2026-03-30</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>8</td><td>22</td><td>13,100</td><td>345</td><td>50分</td><td>145</td><td>—</td></tr><tr><td>33</td><td>2026-04-01</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>18</td><td>10,320</td><td>312</td><td>53分</td><td>133</td><td>—</td></tr><tr><td>34</td><td>2026-04-03</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>8</td><td>27</td><td>6,380</td><td>275</td><td>55分</td><td>121</td><td>—</td></tr><tr><td>35</td><td>2026-04-08</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>7</td><td>22</td><td>14,440</td><td>308</td><td>49分</td><td>137</td><td>—</td></tr><tr><td>36</td><td>2026-04-10</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>8</td><td>26</td><td>7,580</td><td>316</td><td>56分</td><td>129</td><td>—</td></tr><tr><td>37</td><td>2026-04-13</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>6</td><td>18</td><td>14,600</td><td>320</td><td>55分</td><td>132</td><td>—</td></tr><tr><td>38</td><td>2026-04-15</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>15</td><td>8,180</td><td>220</td><td>37分</td><td>134</td><td>—</td></tr><tr><td>39</td><td>2026-04-17</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>8</td><td>28</td><td>7,670</td><td>325</td><td>52分</td><td>137</td><td>—</td></tr><tr><td>40</td><td>2026-04-27</td><td>周一</td><td style='color: var(--text);'>恢复训练</td><td>力量</td><td>6</td><td>24</td><td>6,190</td><td>433</td><td>1小时04分</td><td>143</td><td>—</td></tr><tr><td>41</td><td>2026-04-29</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>5</td><td>18</td><td>8,100</td><td>253</td><td>47分</td><td>126</td><td>—</td></tr><tr><td>42</td><td>2026-05-06</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>20</td><td>10,070</td><td>313</td><td>47分</td><td>143</td><td>—</td></tr><tr><td>43</td><td>2026-05-08</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>20</td><td>5,150</td><td>303</td><td>51分</td><td>133</td><td>—</td></tr><tr><td>44</td><td>2026-05-10</td><td>周日</td><td style='color: var(--text);'>—</td><td>力量</td><td>0</td><td>0</td><td>—</td><td>565</td><td>1小时50分</td><td>122</td><td>—</td></tr><tr><td>45</td><td>2026-05-11</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>6</td><td>18</td><td>9,580</td><td>319</td><td>48分</td><td>141</td><td>—</td></tr><tr><td>46</td><td>2026-05-13</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>7</td><td>22</td><td>9,378</td><td>347</td><td>57分</td><td>134</td><td>—</td></tr><tr><td>47</td><td>2026-05-15</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>5</td><td>20</td><td>6,088</td><td>212</td><td>39分</td><td>127</td><td>—</td></tr><tr><td>48</td><td>2026-05-17</td><td>周日</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>0</td><td>0</td><td>—</td><td>324</td><td>1小时17分</td><td>111</td><td>—</td></tr><tr><td>49</td><td>2026-05-18</td><td>周一</td><td style='color: var(--text);'>—</td><td>力量</td><td>7</td><td>25</td><td>10,745</td><td>309</td><td>56分</td><td>127</td><td>—</td></tr><tr><td>50</td><td>2026-05-20</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>8</td><td>28</td><td>9,725</td><td>361</td><td>56分</td><td>139</td><td>—</td></tr><tr><td>51</td><td>2026-05-21</td><td>周四</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>7</td><td>23</td><td>6,266</td><td>300</td><td>53分</td><td>129</td><td>—</td></tr><tr><td>52</td><td>2026-05-25</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>4</td><td>12</td><td>4,520</td><td>323</td><td>47分</td><td>145</td><td>—</td></tr><tr><td>53</td><td>2026-05-27</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>9</td><td>25</td><td>15,990</td><td>349</td><td>59分</td><td>133</td><td>—</td></tr><tr><td>54</td><td>2026-05-29</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>21</td><td>8,270</td><td>311</td><td>1小时00分</td><td>123</td><td>—</td></tr><tr><td>55</td><td>2026-05-31</td><td>周日</td><td style='color: var(--text);'>—</td><td>力量</td><td>7</td><td>18</td><td>9,460</td><td>433</td><td>1小时10分</td><td>136</td><td>—</td></tr><tr><td>56</td><td>2026-06-01</td><td>周一</td><td style='color: var(--text);'>不常练项补充</td><td>力量</td><td>5</td><td>21</td><td>3,729</td><td>237</td><td>39分</td><td>134</td><td>—</td></tr><tr><td>57</td><td>2026-06-05</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>25</td><td>7,075</td><td>309</td><td>53分</td><td>131</td><td>—</td></tr><tr><td>58</td><td>2026-06-06</td><td>周六</td><td style='color: var(--text);'>—</td><td>力量</td><td>1</td><td>0</td><td>—</td><td>372</td><td>1小时25分</td><td>113</td><td>—</td></tr><tr><td>59</td><td>2026-06-08</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>16</td><td>11,040</td><td>372</td><td>1小时25分</td><td>113</td><td>—</td></tr><tr><td>60</td><td>2026-06-10</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>7</td><td>25</td><td>13,840</td><td>387</td><td>57分</td><td>143</td><td>—</td></tr><tr><td>61</td><td>2026-06-12</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>5</td><td>20</td><td>8,010</td><td>256</td><td>54分</td><td>118</td><td>—</td></tr><tr><td>62</td><td>2026-06-15</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>18</td><td>11,920</td><td>337</td><td>51分</td><td>142</td><td>—</td></tr><tr><td>63</td><td>2026-06-17</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>7</td><td>21</td><td>15,480</td><td>345</td><td>53分</td><td>140</td><td>—</td></tr><tr><td>64</td><td>2026-06-29</td><td>周一</td><td style='color: var(--text);'>全身恢复训练</td><td>力量</td><td>5</td><td>16</td><td>7,600</td><td>426</td><td>1小时00分</td><td>147</td><td>—</td></tr><tr><td>65</td><td>2026-06-30</td><td>周二</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>19</td><td>11,492</td><td>372</td><td>1小时00分</td><td>136</td><td>—</td></tr><tr><td>66</td><td>2026-07-03</td><td>周五</td><td style='color: var(--text);'>胸肩</td><td>力量</td><td>6</td><td>24</td><td>7,832</td><td>330</td><td>49分</td><td>143</td><td>—</td></tr><tr><td>67</td><td>2026-07-06</td><td>周一</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>16</td><td>8,910</td><td>358</td><td>52分</td><td>145</td><td>—</td></tr><tr><td>68</td><td>2026-07-10</td><td>周五</td><td style='color: var(--text);'>—</td><td>有氧·游泳</td><td>0</td><td>0</td><td>—</td><td>378</td><td>36分</td><td>—</td><td>—</td></tr><tr><td>69</td><td>2026-07-12</td><td>周日</td><td style='color: var(--text);'>腿</td><td>力量</td><td>0</td><td>0</td><td>—</td><td>453</td><td>1小时13分</td><td>136</td><td>—</td></tr><tr><td>70</td><td>2026-07-13</td><td>周一</td><td style='color: var(--text);'>练项补充</td><td>力量</td><td>5</td><td>20</td><td>6,140</td><td>298</td><td>58分</td><td>122</td><td>—</td></tr><tr><td>71</td><td>2026-07-15</td><td>周三</td><td style='color: var(--text);'>背</td><td>力量</td><td>8</td><td>22</td><td>10,960</td><td>322</td><td>52分</td><td>136</td><td>—</td></tr><tr><td>72</td><td>2026-07-18</td><td>周六</td><td style='color: var(--text);'>臀腿核心</td><td>力量</td><td>5</td><td>16</td><td>9,900</td><td>400</td><td>1小时06分</td><td>134</td><td>—</td></tr><tr><td>73</td><td>2026-07-21</td><td>周二</td><td style='color: var(--text);'>核心</td><td>力量</td><td>5</td><td>22</td><td>5,195</td><td>302</td><td>52分</td><td>130</td><td>—</td></tr><tr><td>74</td><td>2026-07-23</td><td>周四</td><td style='color: var(--text);'>背</td><td>力量</td><td>5</td><td>18</td><td>10,200</td><td>310</td><td>47分</td><td>142</td><td>—</td></tr><tr><td>75</td><td>2026-07-24</td><td>周五</td><td style='color: var(--text);'>—</td><td>有氧·游泳</td><td>0</td><td>0</td><td>—</td><td>430</td><td>40分</td><td>—</td><td>—</td></tr><tr><td>76</td><td>2026-07-28</td><td>周二</td><td style='color: var(--text);'>硬拉</td><td>力量</td><td>2</td><td>7</td><td>3,780</td><td>157</td><td>23分</td><td>144</td><td>—</td></tr><tr><td>77</td><td>2026-07-29</td><td>周三</td><td style='color: var(--text);'>肩</td><td>力量</td><td>5</td><td>22</td><td>4,640</td><td>286</td><td>52分</td><td>128</td><td>—</td></tr><tr><td>78</td><td>2026-08-10</td><td>周一</td><td style='color: var(--text);'>恢复训练</td><td>力量</td><td>7</td><td>20</td><td>14,250</td><td>384</td><td>56分</td><td>144</td><td>—</td></tr><tr><td>79</td><td>2026-08-13</td><td>周四</td><td style='color: var(--text);'>核心</td><td>力量</td><td>4</td><td>15</td><td>4,815</td><td>338</td><td>55分</td><td>135</td><td>—</td></tr><tr><td>80</td><td>2026-08-20</td><td>周四</td><td style='color: var(--text);'>核心</td><td>力量</td><td>5</td><td>15</td><td>8,940</td><td>369</td><td>53分</td><td>145</td><td>—</td></tr><tr><td>81</td><td>2026-08-22</td><td>周六</td><td style='color: var(--text);'>—</td><td>力量</td><td>0</td><td>0</td><td>—</td><td>317</td><td>1小时01分</td><td>122</td><td>—</td></tr><tr><td>82</td><td>2026-08-24</td><td>周一</td><td style='color: var(--text);'>核心</td><td>力量</td><td>4</td><td>15</td><td>4,800</td><td>380</td><td>51分</td><td>151</td><td>—</td></tr><tr><td>83</td><td>2026-08-25</td><td>周二</td><td style='color: var(--text);'>—</td><td>有氧·游泳</td><td>0</td><td>0</td><td>—</td><td>405</td><td>38分</td><td>—</td><td>—</td></tr><tr><td>84</td><td>2026-08-28</td><td>周五</td><td style='color: var(--text);'>背</td><td>力量</td><td>6</td><td>24</td><td>15,032</td><td>322</td><td>52分</td><td>135</td><td>—</td></tr><tr><td>85</td><td>2026-08-31</td><td>周一</td><td style='color: var(--text);'>核心</td><td>力量</td><td>4</td><td>15</td><td>5,248</td><td>325</td><td>43分</td><td>152</td><td>—</td></tr><tr><td>86</td><td>2026-09-01</td><td>周二</td><td style='color: var(--text);'>核心</td><td>力量</td><td>4</td><td>14</td><td>8,060</td><td>460</td><td>1小时04分</td><td>148</td><td>32.3</td></tr><tr><td>87</td><td>2026-09-03</td><td>周四</td><td style='color: var(--text);'>背➕有氧</td><td>力量</td><td>5</td><td>15</td><td>8,310</td><td>379</td><td>1小时01分</td><td>135</td><td>45</td></tr><tr><td>88</td><td>2026-09-04</td><td>周五</td><td style='color: var(--text);'>爬楼</td><td>有氧·爬楼</td><td>0</td><td>0</td><td>—</td><td>344</td><td>45分</td><td>152</td><td>100</td></tr><tr><td>89</td><td>2026-09-07</td><td>周一</td><td style='color: var(--text);'>核心</td><td>力量</td><td>6</td><td>19</td><td>9,250</td><td>302</td><td>46分</td><td>140</td><td>—</td></tr><tr><td>90</td><td>2026-09-08</td><td>周二</td><td style='color: var(--text);'>肩➕爬楼</td><td>力量</td><td>5</td><td>15</td><td>2,428</td><td>349</td><td>54分</td><td>139</td><td>41</td></tr><tr><td>91</td><td>2026-09-11</td><td>周五</td><td style='color: var(--text);'>补充训练</td><td>力量</td><td>5</td><td>16</td><td>5,860</td><td>364</td><td>1小时04分</td><td>129</td><td>47</td></tr><tr><td>92</td><td>2026-09-12</td><td>周六</td><td style='color: var(--text);'>—</td><td>有氧·网球</td><td>0</td><td>0</td><td>—</td><td>361</td><td>1小时00分</td><td>136</td><td>—</td></tr><tr><td>93</td><td>2026-09-14</td><td>周一</td><td style='color: var(--text);'>核心</td><td>力量</td><td>4</td><td>6</td><td>3,740</td><td>359</td><td>51分</td><td>146</td><td>38.3</td></tr><tr><td>94</td><td>2026-09-16</td><td>周三</td><td style='color: var(--text);'>背➕爬楼</td><td>力量</td><td>5</td><td>15</td><td>4,380</td><td>381</td><td>59分</td><td>138</td><td>53</td></tr><tr><td>95</td><td>2026-09-18</td><td>周五</td><td style='color: var(--text);'>核心</td><td>力量</td><td>6</td><td>21</td><td>9,462</td><td>295</td><td>51分</td><td>131</td><td>—</td></tr><tr><td>96</td><td>2026-09-19</td><td>周六</td><td style='color: var(--text);'>—</td><td>有氧·网球</td><td>0</td><td>0</td><td>—</td><td>787</td><td>1小时52分</td><td>149</td><td>—</td></tr><tr><td>97</td><td>2026-09-21</td><td>周一</td><td style='color: var(--text);'>背➕爬楼</td><td>力量</td><td>4</td><td>6</td><td>3,000</td><td>366</td><td>51分</td><td>148</td><td>65.1</td></tr><tr><td>98</td><td>2026-09-24</td><td>周四</td><td style='color: var(--text);'>背➕爬楼</td><td>力量</td><td>3</td><td>6</td><td>3,450</td><td>299</td><td>40分</td><td>152</td><td>51</td></tr><tr><td>99</td><td>2026-09-28</td><td>周一</td><td style='color: var(--text);'>核心➕爬楼</td><td>力量</td><td>3</td><td>5</td><td>3,920</td><td>385</td><td>51分</td><td>152</td><td>48.3</td></tr><tr><td>100</td><td>2026-09-30</td><td>周三</td><td style='color: var(--text);'>爬楼➕小项</td><td>有氧·爬楼</td><td>4</td><td>8</td><td>1,778</td><td>347</td><td>47分</td><td>151</td><td>100</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div><!-- container -->
+
+<div class="footer">
+    <p>报告生成时间: 2026-09-30 16:39 | 数据来源: 100 份训练日记</p>
+    <p>分析引擎: data_process-2 | 科学依据: ACSM 2026, Schoenfeld et al. (2017), Epley (1985)</p>
+</div>
+
+<button id="back-top" title="回到顶部">↑</button>
+
+<script>
+// --- Chart Theme ---
+const darkTheme = {
+    backgroundColor: 'transparent',
+    textStyle: { color: '#94a3b8' },
+    title: { textStyle: { color: '#e2e8f0' } },
+    legend: { textStyle: { color: '#94a3b8' } },
+    tooltip: {
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        textStyle: { color: '#e2e8f0' },
+    },
+};
+
+function initChart(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const chart = echarts.init(el, null, { renderer: 'canvas' });
+    window.addEventListener('resize', () => chart.resize());
+    return chart;
+}
+
+// --- Back to top ---
+(function() {
+    const btn = document.getElementById('back-top');
+    if (!btn) return;
+    window.addEventListener('scroll', () => {
+        btn.classList.toggle('show', window.scrollY > 1200);
+    }, { passive: true });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+})();
+
+// --- Calendar Heatmap ---
+(function() {
+    const chart = initChart('calendar-chart');
+    if (!chart) return;
+    const data = [["2026-01-08", 24], ["2026-01-12", 14], ["2026-01-14", 28], ["2026-01-16", 26], ["2026-01-19", 18], ["2026-01-21", 30], ["2026-01-23", 25], ["2026-01-26", 20], ["2026-01-28", 22], ["2026-01-30", 22], ["2026-02-02", 25], ["2026-02-04", 20], ["2026-02-05", 36], ["2026-02-09", 25], ["2026-02-10", 21], ["2026-02-24", 23], ["2026-02-27", 19], ["2026-02-28", 26], ["2026-03-02", 21], ["2026-03-04", 21], ["2026-03-06", 22], ["2026-03-09", 20], ["2026-03-11", 20], ["2026-03-13", 24], ["2026-03-16", 20], ["2026-03-18", 20], ["2026-03-20", 21], ["2026-03-21", 18], ["2026-03-23", 26], ["2026-03-25", 21], ["2026-03-27", 17], ["2026-03-30", 22], ["2026-04-01", 18], ["2026-04-03", 27], ["2026-04-08", 22], ["2026-04-10", 26], ["2026-04-13", 18], ["2026-04-15", 15], ["2026-04-17", 28], ["2026-04-27", 24], ["2026-04-29", 18], ["2026-05-06", 20], ["2026-05-08", 20], ["2026-05-10", 0], ["2026-05-11", 18], ["2026-05-13", 22], ["2026-05-15", 20], ["2026-05-17", 0], ["2026-05-18", 25], ["2026-05-20", 28], ["2026-05-21", 23], ["2026-05-25", 12], ["2026-05-27", 25], ["2026-05-29", 21], ["2026-05-31", 18], ["2026-06-01", 21], ["2026-06-05", 25], ["2026-06-06", 0], ["2026-06-08", 16], ["2026-06-10", 25], ["2026-06-12", 20], ["2026-06-15", 18], ["2026-06-17", 21], ["2026-06-29", 16], ["2026-06-30", 19], ["2026-07-03", 24], ["2026-07-06", 16], ["2026-07-10", 0], ["2026-07-12", 0], ["2026-07-13", 20], ["2026-07-15", 22], ["2026-07-18", 16], ["2026-07-21", 22], ["2026-07-23", 18], ["2026-07-24", 0], ["2026-07-28", 7], ["2026-07-29", 22], ["2026-08-10", 20], ["2026-08-13", 15], ["2026-08-20", 15], ["2026-08-22", 0], ["2026-08-24", 15], ["2026-08-25", 0], ["2026-08-28", 24], ["2026-08-31", 15], ["2026-09-01", 14], ["2026-09-03", 15], ["2026-09-04", 0], ["2026-09-07", 19], ["2026-09-08", 15], ["2026-09-11", 16], ["2026-09-12", 0], ["2026-09-14", 6], ["2026-09-16", 15], ["2026-09-18", 21], ["2026-09-19", 0], ["2026-09-21", 6], ["2026-09-24", 6], ["2026-09-28", 5], ["2026-09-30", 8]];
+    const dates = data.map(d => d[0]);
+    const values = data.map(d => d[1]);
+
+    // Build full date range
+    const startDate = dates.length > 0 ? dates[0] : '2026-01-01';
+    const endDate = dates.length > 0 ? dates[dates.length - 1] : '2026-12-31';
+
+    chart.setOption({
+        tooltip: {
+            position: 'top',
+            formatter: function(p) { return p.value[0] + ': ' + p.value[1] + ' 组'; },
+            ...darkTheme.tooltip,
+        },
+        visualMap: {
+            min: 0, max: Math.max(...values, 1),
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            top: 0,
+            inRange: {
+                color: ['#1e293b', '#164e63', '#0e7490', '#06b6d4', '#22d3ee', '#67e8f9']
+            },
+            textStyle: { color: '#94a3b8' },
+        },
+        calendar: {
+            top: 60, left: 50, right: 30,
+            cellSize: ['auto', 18],
+            range: [startDate, endDate],
+            itemStyle: { borderWidth: 2, borderColor: '#0f172a', color: '#1e293b' },
+            yearLabel: { show: true, color: '#94a3b8' },
+            monthLabel: { color: '#94a3b8', nameMap: 'ZH' },
+            dayLabel: { color: '#64748b', nameMap: 'ZH' },
+            splitLine: { lineStyle: { color: '#334155' } },
+        },
+        series: [{
+            type: 'heatmap',
+            coordinateSystem: 'calendar',
+            data: data,
+        }],
+    });
+})();
+
+// --- Weekly Frequency ---
+(function() {
+    const chart = initChart('weekly-freq-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '每周训练次数', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        xAxis: { type: 'category', data: ["2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01", "2026-06-08", "2026-06-15", "2026-06-29", "2026-07-06", "2026-07-13", "2026-07-20", "2026-07-27", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28"], axisLabel: { color: '#64748b', rotate: 45, fontSize: 10 } },
+        yAxis: { type: 'value', name: '次数', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'bar', data: [1, 3, 3, 3, 3, 2, 3, 3, 3, 4, 3, 3, 2, 3, 2, 3, 4, 3, 4, 3, 3, 2, 3, 3, 3, 3, 2, 2, 2, 3, 4, 4, 4, 2, 2],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#38bdf8' }, { offset: 1, color: '#0284c7' }
+            ]) },
+        }],
+        grid: { left: 50, right: 20, top: 50, bottom: 80 },
+    });
+})();
+
+// --- Weekly Volume ---
+(function() {
+    const chart = initChart('weekly-volume-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '每周训练容量 (kg)', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + '<br/>容量: ' + p[0].value.toLocaleString() + ' kg'; } },
+        xAxis: { type: 'category', data: ["2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01", "2026-06-08", "2026-06-15", "2026-06-29", "2026-07-06", "2026-07-13", "2026-07-20", "2026-07-27", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28"], axisLabel: { color: '#64748b', rotate: 45, fontSize: 10 } },
+        yAxis: { type: 'value', name: 'kg', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'line', data: [10980.0, 29526.0, 22533.0, 25789.5, 30850.0, 18163.0, 25312.0, 31848.0, 22592.5, 38704.0, 17947.0, 29800.0, 22020.0, 30450.0, 14290.0, 15220.0, 25046.0, 26736.0, 38240.0, 10804.0, 32890.0, 27400.0, 26924.0, 8910.0, 27000.0, 15395.0, 8420.0, 19065.0, 8940.0, 19832.0, 21618.0, 17538.0, 17582.0, 6450.0, 5698.0], smooth: true,
+            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(129,140,248,0.4)' }, { offset: 1, color: 'rgba(129,140,248,0.05)' }
+            ]) },
+            lineStyle: { color: '#818cf8', width: 2 },
+            itemStyle: { color: '#818cf8' },
+        }],
+        grid: { left: 70, right: 20, top: 50, bottom: 80 },
+    });
+})();
+
+// --- Monthly Overview ---
+(function() {
+    const chart = initChart('monthly-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { data: ['训练容量(kg)', '训练次数', '总组数'], top: 5, ...darkTheme.legend },
+        xAxis: { type: 'category', data: ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], axisLabel: { color: '#64748b' } },
+        yAxis: [
+            { type: 'value', name: '容量(kg)', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+            { type: 'value', name: '次数/组数', axisLabel: { color: '#64748b' }, splitLine: { show: false } },
+        ],
+        series: [
+            { name: '训练容量(kg)', type: 'bar', data: [88828.5, 74325.0, 124191.5, 83460.0, 105242.0, 90186.0, 67557.0, 53085.0, 63638.0],
+               itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                   { offset: 0, color: '#818cf8' }, { offset: 1, color: '#4f46e5' }
+               ]) } },
+            { name: '训练次数', type: 'line', yAxisIndex: 1, data: [10, 8, 14, 9, 14, 10, 12, 8, 15],
+               lineStyle: { color: '#38bdf8' }, itemStyle: { color: '#38bdf8' } },
+            { name: '总组数', type: 'line', yAxisIndex: 1, data: [229, 195, 293, 196, 252, 181, 167, 104, 146],
+               lineStyle: { color: '#22c55e' }, itemStyle: { color: '#22c55e' } },
+        ],
+        grid: { left: 70, right: 70, top: 50, bottom: 40 },
+    });
+})();
+
+// --- Muscle Radar ---
+(function() {
+    const chart = initChart('muscle-radar-chart');
+    if (!chart) return;
+    const names = ["背部", "胸部", "肩部", "腿部", "臀部", "手臂", "核心", "有氧", "全身"];
+    const values = [15.5, 7.2, 9.2, 8.8, 10.4, 12.6, 7.8, 0.0, 0.0];
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '肌群周均组数雷达图', left: 'center', ...darkTheme.title },
+        tooltip: { ...darkTheme.tooltip },
+        radar: {
+            indicator: names.map((n, i) => ({ name: n, max: Math.max(...values, 15) * 1.2 })),
+            shape: 'polygon',
+            axisName: { color: '#94a3b8' },
+            splitArea: { areaStyle: { color: ['rgba(56,189,248,0.05)', 'rgba(56,189,248,0.1)'] } },
+            splitLine: { lineStyle: { color: '#334155' } },
+            axisLine: { lineStyle: { color: '#334155' } },
+        },
+        series: [{
+            type: 'radar',
+            data: [{
+                value: values,
+                name: '周均组数',
+                areaStyle: { color: 'rgba(56,189,248,0.3)' },
+                lineStyle: { color: '#38bdf8', width: 2 },
+                itemStyle: { color: '#38bdf8' },
+            }, {
+                value: names.map(() => 10),
+                name: 'ACSM推荐(≥10组/周)',
+                lineStyle: { color: '#22c55e', type: 'dashed', width: 1 },
+                itemStyle: { color: '#22c55e' },
+                areaStyle: { color: 'rgba(34,197,94,0.05)' },
+            }],
+        }],
+        legend: { data: ['周均组数', 'ACSM推荐(≥10组/周)'], bottom: 5, ...darkTheme.legend },
+    });
+})();
+
+// --- Muscle Bar ---
+(function() {
+    const chart = initChart('muscle-bar-chart');
+    if (!chart) return;
+    const names = ["背部", "胸部", "肩部", "腿部", "臀部", "手臂", "核心", "有氧", "全身"];
+    const sets = [604.1, 282.4, 358.4, 342.0, 406.6, 492.8, 304.8, 0.0, 0.0];
+    const volumes = [291717.8, 85428.0, 83290.6, 202849.0, 215215.2, 203955.4, 116561.6, 0.0, 0.0];
+    const statuses = ["optimal", "adequate", "adequate", "adequate", "optimal", "optimal", "adequate", "none", "none"];
+    const colorMap = { optimal: '#22c55e', adequate: '#38bdf8', low: '#f59e0b', none: '#6b7280' };
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '各肌群总训练量', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { data: ['总组数', '总容量(kg)'], bottom: 5, ...darkTheme.legend },
+        xAxis: { type: 'category', data: names, axisLabel: { color: '#64748b', rotate: 30 } },
+        yAxis: [
+            { type: 'value', name: '组数', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+            { type: 'value', name: '容量(kg)', axisLabel: { color: '#64748b' }, splitLine: { show: false } },
+        ],
+        series: [
+            { name: '总组数', type: 'bar', data: sets.map((v, i) => ({ value: v, itemStyle: { color: colorMap[statuses[i]] || '#6b7280' } })) },
+            { name: '总容量(kg)', type: 'line', yAxisIndex: 1, data: volumes,
+               lineStyle: { color: '#818cf8' }, itemStyle: { color: '#818cf8' } },
+        ],
+        grid: { left: 60, right: 70, top: 50, bottom: 60 },
+    });
+})();
+
+// --- Weekly Volume by Muscle (Stacked Area) ---
+(function() {
+    const chart = initChart('weekly-muscle-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { top: 5, ...darkTheme.legend },
+        xAxis: { type: 'category', data: ["2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01", "2026-06-08", "2026-06-15", "2026-06-29", "2026-07-06", "2026-07-13", "2026-07-20", "2026-07-27", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28"], boundaryGap: false, axisLabel: { color: '#64748b', rotate: 45, fontSize: 10 } },
+        yAxis: { type: 'value', name: '容量(kg)', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{"name": "背部", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [10884.0, 4464.0, 9084.0, 10007.5, 10769.0, 10231.0, 13391.6, 11240.0, 7260.5, 6551.2, 6940.0, 7560.0, 13000.0, 5940.0, 8620.0, 8990.0, 9258.0, 7625.0, 19256.0, 2055.0, 13840.0, 16180.0, 13172.0, 1008.0, 11852.0, 10491.0, 3030.0, 6243.0, 2856.0, 10096.0, 10682.0, 1666.0, 2060.0, 5415.0, 0], "itemStyle": {"color": "#5470c6"}}, {"name": "胸部", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [0.0, 2490.0, 1635.0, 2811.0, 3292.0, 0, 7400.0, 4778.0, 4364.0, 1580.0, 4712.0, 3160.0, 5030.0, 3740.0, 1230.0, 2770.0, 2400.0, 6746.0, 5200.0, 4910.0, 5180.0, 0, 5480.0, 0, 0, 0, 0, 0, 0, 0, 0, 3480.0, 2000.0, 0, 1040.0], "itemStyle": {"color": "#91cc75"}}, {"name": "肩部", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [0.0, 4166.0, 3911.0, 2536.8, 2269.6, 0, 2960.0, 4031.2, 3661.6, 3412.0, 3831.6, 3616.0, 4562.0, 3266.0, 492.0, 3392.0, 3108.0, 5176.8, 3230.0, 4129.0, 4902.0, 0, 4416.0, 0, 2440.0, 2085.0, 1760.0, 900.0, 0, 0, 0, 3820.0, 800.0, 0, 416.0], "itemStyle": {"color": "#fac858"}}, {"name": "腿部", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [0, 13970.0, 4550.0, 4565.0, 7090.0, 5484.0, 5460.0, 8880.0, 8820.0, 15720.0, 0, 9360.0, 0, 11000.0, 0.0, 0, 6080.0, 0, 7680.0, 0, 7740.0, 8320.0, 6000.0, 5010.0, 8730.0, 2630.0, 3780.0, 8010.0, 8940.0, 4400.0, 9948.0, 7780.0, 5532.0, 3450.0, 3920.0], "itemStyle": {"color": "#ee6666"}}, {"name": "臀部", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [192.0, 9641.0, 3177.0, 4544.0, 11211.0, 3592.8, 4192.8, 7750.0, 2704.0, 19185.6, 4180.0, 9036.0, 1440.0, 10440.0, 3420.0, 0, 6012.0, 9755.0, 10844.0, 540.0, 6492.0, 8000.0, 4440.0, 7551.0, 9487.0, 2644.0, 3216.0, 8358.0, 3264.0, 7792.0, 8009.6, 8358.0, 10242.4, 2760.0, 2744.0], "itemStyle": {"color": "#73c0de"}}, {"name": "手臂", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [5250.0, 4373.0, 5670.3, 6579.6, 7065.5, 4539.5, 10250.0, 8617.0, 5660.2, 5082.0, 5344.0, 6016.0, 10035.0, 5548.0, 4565.0, 6352.0, 6545.0, 7571.5, 12878.0, 3808.5, 10642.0, 8260.0, 10086.0, 576.0, 10550.0, 5671.0, 2216.0, 3576.0, 1632.0, 5104.0, 4799.0, 3663.2, 2030.0, 2880.0, 520.0], "itemStyle": {"color": "#3ba272"}}, {"name": "核心", "type": "line", "stack": "total", "areaStyle": {}, "emphasis": {"focus": "series"}, "data": [1000.0, 3856.0, 3055.4, 3322.7, 2875.0, 3169.4, 4096.2, 4536.0, 3050.5, 5812.4, 2371.0, 3296.0, 3110.0, 1302.0, 2120.0, 2274.0, 3327.6, 1759.0, 6168.0, 1438.0, 4422.0, 4120.0, 5018.4, 2004.0, 5168.0, 5553.0, 2152.0, 4467.0, 1632.0, 4758.4, 4609.2, 2925.6, 4244.8, 1980.0, 1568.0], "itemStyle": {"color": "#fc8452"}}],
+        grid: { left: 70, right: 20, top: 50, bottom: 80 },
+    });
+})();
+
+// --- Body Part Distribution ---
+(function() {
+    const chart = initChart('bodypart-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '训练部位分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: '{b}: {c}次 ({d}%)' },
+        legend: { bottom: 0, type: 'scroll', ...darkTheme.legend },
+        series: [{
+            type: 'pie', radius: ['28%', '52%'], center: ['50%', '46%'],
+            avoidLabelOverlap: true,
+            data: ["背", "胸肩", "臀腿核心", "核心", "爬楼", "肩", "腿", "胸背", "全身恢复训练", "有氧"].map((name, i) => ({ name, value: [28, 18, 17, 10, 6, 3, 2, 1, 1, 1][i] })),
+            emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.5)' } },
+            label: { color: '#94a3b8', fontSize: 10, formatter: '{d}%' },
+            labelLine: { show: true, length: 6, length2: 6, lineStyle: { color: '#475569' } },
+        }],
+    });
+})();
+
+// --- Time Period Distribution ---
+(function() {
+    const chart = initChart('timeperiod-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '训练时段分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: '{b}: {c}次 ({d}%)' },
+        legend: { bottom: 0, ...darkTheme.legend },
+        series: [{
+            type: 'pie', radius: ['28%', '52%'], center: ['50%', '46%'],
+            avoidLabelOverlap: true,
+            data: ["午训", "晚训", "下午训"].map((name, i) => ({ name, value: [81, 3, 2][i] })),
+            label: { color: '#94a3b8', fontSize: 10, formatter: '{d}%' },
+            labelLine: { show: true, length: 6, length2: 6, lineStyle: { color: '#475569' } },
+            itemStyle: { borderRadius: 6, borderColor: '#1e293b', borderWidth: 2 },
+        }],
+    });
+})();
+
+// --- Intensity Zone ---
+(function() {
+    const chart = initChart('zone-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '训练强度区间分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: '{b}: {c}组 ({d}%)' },
+        legend: { bottom: 0, ...darkTheme.legend },
+        series: [{
+            type: 'pie', radius: ['28%', '52%'], center: ['50%', '48%'],
+            avoidLabelOverlap: true,
+            data: ["力量(1-5次)", "肌肥大(6-12次)", "耐力(13-20次)", "高耐力(20+次)"].map((name, i) => ({ name, value: [144, 1395, 212, 12][i] })),
+            label: { color: '#94a3b8', fontSize: 10, formatter: '{d}%' },
+            labelLine: { show: true, length: 6, length2: 6, lineStyle: { color: '#475569' } },
+            itemStyle: { borderRadius: 6, borderColor: '#1e293b', borderWidth: 2 },
+            color: ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'],
+        }],
+    });
+})();
+
+// --- Rep Distribution ---
+(function() {
+    const chart = initChart('rep-dist-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '次数分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        xAxis: { type: 'category', data: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "20", "22", "24", "25", "31", "55", "100"], axisLabel: { color: '#64748b' } },
+        yAxis: { type: 'value', name: '组数', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'bar', data: [7, 20, 22, 51, 44, 116, 25, 292, 23, 151, 9, 779, 1, 8, 173, 3, 27, 1, 2, 4, 1, 2, 2],
+            itemStyle: { color: function(p) {
+                const v = parseInt(p.name);
+                if (v <= 5) return '#ef4444';
+                if (v <= 12) return '#f59e0b';
+                if (v <= 20) return '#22c55e';
+                return '#3b82f6';
+            } },
+        }],
+        grid: { left: 50, right: 20, top: 50, bottom: 40 },
+    });
+})();
+
+// --- Weight Distribution ---
+(function() {
+    const chart = initChart('weight-dist-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '重量分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        xAxis: { type: 'category', data: ["0kg", "10kg", "20kg", "30kg", "40kg", "50kg", "60kg", "70kg", "80kg", "90kg", "100kg", "110kg", "120kg", "130kg"], axisLabel: { color: '#64748b', rotate: 45 } },
+        yAxis: { type: 'value', name: '组数', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'bar', data: [84, 206, 394, 262, 171, 184, 94, 50, 53, 21, 23, 7, 7, 2],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#818cf8' }, { offset: 1, color: '#4f46e5' }
+            ]) },
+        }],
+        grid: { left: 50, right: 20, top: 50, bottom: 60 },
+    });
+})();
+
+// --- Load Mode ---
+(function() {
+    const chart = initChart('load-mode-chart');
+    if (!chart) return;
+    const modeNames = { total: '总重量', per_side: '单边/双侧', bodyweight: '自重', unknown: '未知',
+                         machine_stack: '器械配重', bodyweight_plus: '自重+负重', bodyweight_assisted: '辅助自重' };
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '负荷模式分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: '{b}: {c}组 ({d}%)' },
+        legend: { bottom: 0, ...darkTheme.legend },
+        series: [{
+            type: 'pie', radius: ['28%', '52%'], center: ['50%', '46%'],
+            avoidLabelOverlap: true,
+            data: ["total", "per_side", "bodyweight", "unknown", "machine_stack", "bodyweight_assisted", "bodyweight_plus"].map((name, i) => ({ name: modeNames[name] || name, value: [1203, 391, 79, 44, 33, 11, 2][i] })),
+            label: { color: '#94a3b8', fontSize: 10, formatter: '{d}%' },
+            labelLine: { show: true, length: 6, length2: 6, lineStyle: { color: '#475569' } },
+            itemStyle: { borderRadius: 6, borderColor: '#1e293b', borderWidth: 2 },
+        }],
+    });
+})();
+
+// --- Weekday Distribution ---
+(function() {
+    const chart = initChart('weekday-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '星期分布：课次与容量', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { data: ['课次', '容量(t)'], top: 28, ...darkTheme.legend },
+        xAxis: { type: 'category', data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"], axisLabel: { color: '#94a3b8' } },
+        yAxis: [
+            { type: 'value', name: '课次', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+            { type: 'value', name: '容量(t)', axisLabel: { color: '#64748b', formatter: v => (v / 1000).toFixed(1) }, splitLine: { show: false } },
+        ],
+        series: [
+            { name: '课次', type: 'bar', data: [28, 8, 22, 8, 23, 7, 4], barMaxWidth: 42,
+               itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                   { offset: 0, color: '#38bdf8' }, { offset: 1, color: '#0284c7' } ]) } },
+            { name: '容量(t)', type: 'line', yAxisIndex: 1, data: [239587.0, 52924.0, 216647.0, 58671.0, 144162.0, 29062.0, 9460.0], smooth: true, symbol: 'circle', symbolSize: 6,
+               lineStyle: { color: '#818cf8', width: 2 }, itemStyle: { color: '#818cf8' } },
+        ],
+        grid: { left: 50, right: 55, top: 65, bottom: 35 },
+    });
+})();
+
+// --- Exercise Trend Small Multiples ---
+(function() {
+    const trends = [{"name": "单臂哑铃划船", "dates": ["2026-01-08", "2026-01-16", "2026-02-04", "2026-02-10", "2026-03-04", "2026-03-18", "2026-04-08", "2026-04-29", "2026-05-06", "2026-05-27", "2026-06-10", "2026-06-10", "2026-06-17", "2026-06-30", "2026-07-15", "2026-08-10", "2026-08-28", "2026-08-28"], "max_weights": [60.0, 32.0, 20.0, 32.0, 30.0, 25.0, 25.0, 20.0, 25.0, 70.0, 50.0, 20.0, 80.0, 32.0, 60.0, 80.0, 22.0, 60.0], "volumes": [3560.0, 2400.0, 1920.0, 1824.0, 2400.0, 1920.0, 1420.0, 1680.0, 1920.0, 4080.0, 3600.0, 2400.0, 6720.0, 2672.0, 4200.0, 4920.0, 2112.0, 5280.0]}, {"name": "器械推胸", "dates": ["2026-02-05", "2026-02-28", "2026-03-06", "2026-03-13", "2026-03-20", "2026-04-03", "2026-04-10", "2026-04-17", "2026-05-08", "2026-05-15", "2026-05-21", "2026-05-29", "2026-06-05", "2026-06-12", "2026-07-03"], "max_weights": [60.0, 40.0, 50.0, 60.0, 70.0, 40.0, 60.0, 60.0, 110.0, 40.0, 50.0, 50.0, 40.0, 70.0, 60.0], "volumes": [900.0, 1680.0, 2450.0, 2540.0, 1580.0, 1920.0, 2280.0, 1760.0, 270.0, 2400.0, 1410.0, 2700.0, 2520.0, 3140.0, 3180.0]}, {"name": "上斜卧推", "dates": ["2026-02-28", "2026-03-23", "2026-04-10", "2026-04-17", "2026-04-27", "2026-05-18", "2026-05-21", "2026-05-29", "2026-06-05", "2026-06-12", "2026-06-29", "2026-09-11", "2026-09-18", "2026-09-30"], "max_weights": [60.0, 50.0, 55.0, 60.0, 70.0, 70.0, 50.0, 50.0, 50.0, 40.0, 40.0, 40.0, 50.0, 40.0], "volumes": [1570.0, 1400.0, 1610.0, 960.0, 1230.0, 2190.0, 1350.0, 1300.0, 1950.0, 2040.0, 1600.0, 1680.0, 2000.0, 1040.0]}, {"name": "器械推肩", "dates": ["2026-03-06", "2026-03-20", "2026-04-03", "2026-04-17", "2026-05-08", "2026-05-15", "2026-05-21", "2026-05-29", "2026-06-05", "2026-06-12", "2026-07-03", "2026-07-13", "2026-08-10", "2026-09-08"], "max_weights": [40.0, 40.0, 45.0, 35.0, 30.0, 45.0, 30.0, 25.0, 30.0, 30.0, 40.0, 40.0, 25.0, 20.0], "volumes": [1400.0, 1920.0, 1500.0, 810.0, 1500.0, 1740.0, 1350.0, 1150.0, 1345.0, 2160.0, 1600.0, 1080.0, 900.0, 640.0]}, {"name": "实力推", "dates": ["2026-03-06", "2026-03-13", "2026-03-23", "2026-03-27", "2026-04-03", "2026-04-10", "2026-04-17", "2026-05-08", "2026-05-18", "2026-06-05", "2026-06-12", "2026-07-13", "2026-07-21", "2026-09-08"], "max_weights": [20.0, 20.0, 20.0, 30.0, 40.0, 20.0, 20.0, 35.0, 30.0, 20.0, 30.0, 30.0, 40.0, 20.0], "volumes": [720.0, 780.0, 1540.0, 570.0, 940.0, 440.0, 960.0, 880.0, 900.0, 820.0, 670.0, 1360.0, 1060.0, 800.0]}, {"name": "器械大剪刀", "dates": ["2026-01-16", "2026-01-21", "2026-03-04", "2026-03-18", "2026-03-25", "2026-04-01", "2026-04-08", "2026-04-15", "2026-04-29", "2026-07-15", "2026-08-28", "2026-09-03", "2026-09-16"], "max_weights": [50.0, 60.0, 70.0, 50.0, 70.0, 50.0, 60.0, 70.0, 70.0, 40.0, 70.0, 50.0, 50.0], "volumes": [1960.0, 2185.0, 1660.0, 2760.0, 3670.0, 2040.0, 1440.0, 2240.0, 3060.0, 1440.0, 4600.0, 3120.0, 2320.0]}, {"name": "悍马机正手下拉", "dates": ["2026-01-28", "2026-02-04", "2026-02-10", "2026-03-04", "2026-04-15", "2026-05-06", "2026-05-13", "2026-05-20", "2026-05-27", "2026-06-17", "2026-07-23", "2026-09-03"], "max_weights": [105.0, 115.0, 135.0, 80.0, 80.0, 90.0, 80.0, 45.0, 70.0, 70.0, 70.0, 80.0], "volumes": [5670.0, 3540.0, 5105.0, 2920.0, 2400.0, 4200.0, 3920.0, 2280.0, 3360.0, 3960.0, 3720.0, 4560.0]}, {"name": "竖脊肌俯身", "dates": ["2026-01-08", "2026-01-19", "2026-02-09", "2026-03-04", "2026-03-11", "2026-03-23", "2026-04-29", "2026-06-01", "2026-07-21", "2026-08-31"], "max_weights": [20.0, 20.0, 45.0, 10.0, 50.0, 30.0, 25.0, 40.0, 30.0, 30.0], "volumes": [480.0, 480.0, 1440.0, 600.0, 1160.0, 1275.0, 900.0, 1350.0, 1350.0, 1800.0]}, {"name": "器械腿屈伸", "dates": ["2026-03-16", "2026-03-30", "2026-04-13", "2026-05-11", "2026-06-08", "2026-06-15", "2026-08-10", "2026-08-20", "2026-09-07"], "max_weights": [80.0, 80.0, 50.0, 80.0, 60.0, 80.0, 75.0, 60.0, 50.0], "volumes": [2940.0, 3480.0, 1800.0, 3120.0, 3180.0, 4920.0, 2340.0, 3120.0, 1680.0]}, {"name": "硬拉", "dates": ["2026-06-29", "2026-07-18", "2026-07-23", "2026-07-28", "2026-08-10", "2026-08-20", "2026-08-28", "2026-09-01", "2026-09-11"], "max_weights": [50.0, 60.0, 110.0, 110.0, 90.0, 100.0, 70.0, 130.0, 120.0], "volumes": [2400.0, 2160.0, 2630.0, 3780.0, 1890.0, 4080.0, 1120.0, 3560.0, 2380.0]}, {"name": "器械外展", "dates": ["2026-03-16", "2026-03-21", "2026-03-30", "2026-04-13", "2026-05-11", "2026-05-18", "2026-06-15", "2026-08-10", "2026-09-18"], "max_weights": [50.0, 63.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0], "volumes": [1950.0, 2725.0, 1950.0, 1950.0, 1950.0, 1950.0, 1800.0, 2100.0, 2100.0]}, {"name": "器械内收", "dates": ["2026-03-16", "2026-03-21", "2026-03-30", "2026-04-13", "2026-05-11", "2026-05-18", "2026-06-15", "2026-08-10", "2026-09-18"], "max_weights": [50.0, 63.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0], "volumes": [1680.0, 2835.0, 1950.0, 1650.0, 1950.0, 1625.0, 1800.0, 2100.0, 1950.0]}];
+    const palette = ['#38bdf8', '#f87171', '#4ade80', '#fbbf24', '#a78bfa', '#fb923c',
+                     '#2dd4bf', '#f472b6', '#60a5fa', '#a3e635', '#c084fc', '#facc15'];
+    trends.forEach((te, i) => {
+        const chart = initChart('trend-chart-' + i);
+        if (!chart) return;
+        const c = palette[i % palette.length];
+        chart.setOption({
+            ...darkTheme,
+            title: { text: te.name, left: 'center', textStyle: { color: '#e2e8f0', fontSize: 13 } },
+            tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+            legend: { data: ['当日最大重量', '当日容量'], top: 24, itemWidth: 14,
+                       textStyle: { color: '#94a3b8', fontSize: 10 } },
+            xAxis: { type: 'category', data: te.dates,
+                      axisLabel: { color: '#64748b', fontSize: 9, rotate: 30, formatter: v => v.slice(5) } },
+            yAxis: [
+                { type: 'value', name: 'kg', scale: true, axisLabel: { color: '#64748b' },
+                   splitLine: { lineStyle: { color: '#1e293b' } } },
+                { type: 'value', name: '容量', axisLabel: { color: '#64748b', formatter: v => (v / 1000).toFixed(1) + 't' },
+                   splitLine: { show: false } },
+            ],
+            series: [
+                { name: '当日最大重量', type: 'line', data: te.max_weights, smooth: true,
+                   symbol: 'circle', symbolSize: 5, lineStyle: { color: c, width: 2 }, itemStyle: { color: c } },
+                { name: '当日容量', type: 'bar', yAxisIndex: 1, data: te.volumes,
+                   itemStyle: { color: c, opacity: 0.25 }, barMaxWidth: 18 },
+            ],
+            grid: { left: 45, right: 50, top: 55, bottom: 45 },
+        });
+    });
+})();
+
+// --- Top Exercises ---
+(function() {
+    const chart = initChart('top-exercises-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { data: ['总容量(kg)', '总组数', '训练次数'], top: 5, ...darkTheme.legend },
+        xAxis: { type: 'value', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        yAxis: { type: 'category', data: ["单臂哑铃划船", "悍马机正手下拉", "器械大剪刀", "器械推胸", "器械腿屈伸", "深蹲", "硬拉", "上斜卧推", "杠铃深蹲", "器械推肩", "器械外展", "器械内收", "坐姿腿屈伸", "器械倒蹬", "宽握高位下拉"], axisLabel: { color: '#94a3b8', fontSize: 11 }, inverse: true },
+        series: [
+            { name: '总容量(kg)', type: 'bar', data: [55028.0, 45635.0, 32495.0, 30730.0, 26580.0, 24890.0, 24000.0, 21920.0, 19390.0, 19095.0, 18475.0, 17540.0, 16650.0, 16450.0, 14735.0],
+               itemStyle: { color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                   { offset: 0, color: '#818cf8' }, { offset: 1, color: '#4f46e5' }
+               ]) } },
+            { name: '总组数', type: 'bar', data: [74, 57, 61, 69, 38, 34, 45, 63, 30, 64, 29, 28, 23, 10, 32], itemStyle: { color: '#38bdf8' } },
+            { name: '训练次数', type: 'bar', data: [16, 12, 13, 15, 9, 7, 9, 14, 6, 14, 9, 9, 5, 2, 7], itemStyle: { color: '#22c55e' } },
+        ],
+        grid: { left: 140, right: 40, top: 50, bottom: 30 },
+    });
+})();
+
+// --- Progressive Overload ---
+(function() {
+    const chart = initChart('progressive-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { top: 5, type: 'scroll', ...darkTheme.legend },
+        xAxis: { type: 'time', axisLabel: { color: '#64748b' } },
+        yAxis: { type: 'value', name: '最大重量(kg)', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{"name": "单臂哑铃划船", "type": "line", "data": [["2026-01-08", 60.0], ["2026-01-16", 32.0], ["2026-02-04", 20.0], ["2026-02-10", 32.0], ["2026-03-04", 30.0], ["2026-03-18", 25.0], ["2026-04-08", 25.0], ["2026-04-29", 20.0], ["2026-05-06", 25.0], ["2026-05-27", 70.0], ["2026-06-10", 50.0], ["2026-06-10", 20.0], ["2026-06-17", 80.0], ["2026-06-30", 32.0], ["2026-07-15", 60.0], ["2026-08-10", 80.0], ["2026-08-28", 22.0], ["2026-08-28", 60.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "器械推胸", "type": "line", "data": [["2026-02-05", 60.0], ["2026-02-28", 40.0], ["2026-03-06", 50.0], ["2026-03-13", 60.0], ["2026-03-20", 70.0], ["2026-04-03", 40.0], ["2026-04-10", 60.0], ["2026-04-17", 60.0], ["2026-05-08", 110.0], ["2026-05-15", 40.0], ["2026-05-21", 50.0], ["2026-05-29", 50.0], ["2026-06-05", 40.0], ["2026-06-12", 70.0], ["2026-07-03", 60.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "上斜卧推", "type": "line", "data": [["2026-02-28", 60.0], ["2026-03-23", 50.0], ["2026-04-10", 55.0], ["2026-04-17", 60.0], ["2026-04-27", 70.0], ["2026-05-18", 70.0], ["2026-05-21", 50.0], ["2026-05-29", 50.0], ["2026-06-05", 50.0], ["2026-06-12", 40.0], ["2026-06-29", 40.0], ["2026-09-11", 40.0], ["2026-09-18", 50.0], ["2026-09-30", 40.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "器械推肩", "type": "line", "data": [["2026-03-06", 40.0], ["2026-03-20", 40.0], ["2026-04-03", 45.0], ["2026-04-17", 35.0], ["2026-05-08", 30.0], ["2026-05-15", 45.0], ["2026-05-21", 30.0], ["2026-05-29", 25.0], ["2026-06-05", 30.0], ["2026-06-12", 30.0], ["2026-07-03", 40.0], ["2026-07-13", 40.0], ["2026-08-10", 25.0], ["2026-09-08", 20.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "实力推", "type": "line", "data": [["2026-03-06", 20.0], ["2026-03-13", 20.0], ["2026-03-23", 20.0], ["2026-03-27", 30.0], ["2026-04-03", 40.0], ["2026-04-10", 20.0], ["2026-04-17", 20.0], ["2026-05-08", 35.0], ["2026-05-18", 30.0], ["2026-06-05", 20.0], ["2026-06-12", 30.0], ["2026-07-13", 30.0], ["2026-07-21", 40.0], ["2026-09-08", 20.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "器械大剪刀", "type": "line", "data": [["2026-01-16", 50.0], ["2026-01-21", 60.0], ["2026-03-04", 70.0], ["2026-03-18", 50.0], ["2026-03-25", 70.0], ["2026-04-01", 50.0], ["2026-04-08", 60.0], ["2026-04-15", 70.0], ["2026-04-29", 70.0], ["2026-07-15", 40.0], ["2026-08-28", 70.0], ["2026-09-03", 50.0], ["2026-09-16", 50.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "悍马机正手下拉", "type": "line", "data": [["2026-01-28", 105.0], ["2026-02-04", 115.0], ["2026-02-10", 135.0], ["2026-03-04", 80.0], ["2026-04-15", 80.0], ["2026-05-06", 90.0], ["2026-05-13", 80.0], ["2026-05-20", 45.0], ["2026-05-27", 70.0], ["2026-06-17", 70.0], ["2026-07-23", 70.0], ["2026-09-03", 80.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "竖脊肌俯身", "type": "line", "data": [["2026-01-08", 20.0], ["2026-01-19", 20.0], ["2026-02-09", 45.0], ["2026-03-04", 10.0], ["2026-03-11", 50.0], ["2026-03-23", 30.0], ["2026-04-29", 25.0], ["2026-06-01", 40.0], ["2026-07-21", 30.0], ["2026-08-31", 30.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}],
+        grid: { left: 60, right: 30, top: 60, bottom: 40 },
+    });
+})();
+
+// --- e1RM Trends ---
+(function() {
+    const chart = initChart('e1rm-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { top: 5, type: 'scroll', ...darkTheme.legend },
+        xAxis: { type: 'time', axisLabel: { color: '#64748b' } },
+        yAxis: { type: 'value', name: 'e1RM (kg)', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{"name": "单臂哑铃划船", "type": "line", "data": [["2026-01-08", 70.0], ["2026-01-16", 39.2], ["2026-02-04", 28.0], ["2026-02-10", 38.4], ["2026-03-04", 42.0], ["2026-03-18", 35.0], ["2026-04-08", 31.7], ["2026-04-29", 28.0], ["2026-05-06", 35.0], ["2026-05-27", 98.0], ["2026-06-10", 70.0], ["2026-06-10", 28.0], ["2026-06-17", 112.0], ["2026-06-30", 40.5], ["2026-07-15", 80.0], ["2026-08-10", 112.0], ["2026-08-28", 30.8], ["2026-08-28", 84.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "器械推胸", "type": "line", "data": [["2026-02-05", 68.0], ["2026-02-28", 56.0], ["2026-03-06", 70.0], ["2026-03-13", 84.0], ["2026-03-20", 81.7], ["2026-04-03", 56.0], ["2026-04-10", 76.0], ["2026-04-17", 76.0], ["2026-05-08", 113.7], ["2026-05-15", 56.0], ["2026-05-21", 70.0], ["2026-05-29", 70.0], ["2026-06-05", 60.0], ["2026-06-12", 95.7], ["2026-07-03", 84.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "上斜卧推", "type": "line", "data": [["2026-02-28", 70.0], ["2026-03-23", 63.3], ["2026-04-10", 66.7], ["2026-04-17", 68.0], ["2026-04-27", 81.7], ["2026-05-18", 84.0], ["2026-05-21", 70.0], ["2026-05-29", 63.3], ["2026-06-05", 66.7], ["2026-06-12", 53.3], ["2026-06-29", 56.0], ["2026-09-11", 53.3], ["2026-09-18", 63.3], ["2026-09-30", 53.3]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "器械推肩", "type": "line", "data": [["2026-03-06", 53.3], ["2026-03-20", 56.0], ["2026-04-03", 53.3], ["2026-04-17", 39.7], ["2026-05-08", 42.0], ["2026-05-15", 56.0], ["2026-05-21", 42.0], ["2026-05-29", 35.0], ["2026-06-05", 40.0], ["2026-06-12", 45.0], ["2026-07-03", 50.7], ["2026-07-13", 56.0], ["2026-08-10", 35.0], ["2026-09-08", 25.3]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "实力推", "type": "line", "data": [["2026-03-06", 28.0], ["2026-03-13", 28.0], ["2026-03-23", 28.0], ["2026-03-27", 37.0], ["2026-04-03", 41.3], ["2026-04-10", 28.0], ["2026-04-17", 28.0], ["2026-05-08", 44.3], ["2026-05-18", 36.0], ["2026-06-05", 28.0], ["2026-06-12", 36.0], ["2026-07-13", 36.0], ["2026-07-21", 44.0], ["2026-09-08", 25.3]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "器械大剪刀", "type": "line", "data": [["2026-01-16", 63.3], ["2026-01-21", 70.0], ["2026-03-04", 74.7], ["2026-03-18", 70.0], ["2026-03-25", 84.0], ["2026-04-01", 70.0], ["2026-04-08", 76.0], ["2026-04-15", 88.7], ["2026-04-29", 93.3], ["2026-07-15", 56.0], ["2026-08-28", 98.0], ["2026-09-03", 60.0], ["2026-09-16", 70.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "悍马机正手下拉", "type": "line", "data": [["2026-01-28", 133.0], ["2026-02-04", 141.8], ["2026-02-10", 148.5], ["2026-03-04", 101.3], ["2026-04-15", 112.0], ["2026-05-06", 126.0], ["2026-05-13", 112.0], ["2026-05-20", 63.0], ["2026-05-27", 98.0], ["2026-06-17", 98.0], ["2026-07-23", 98.0], ["2026-09-03", 112.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}, {"name": "竖脊肌俯身", "type": "line", "data": [["2026-01-08", 28.0], ["2026-01-19", 28.0], ["2026-02-09", 57.0], ["2026-03-04", 15.0], ["2026-03-11", 56.7], ["2026-03-23", 45.0], ["2026-04-29", 35.0], ["2026-06-01", 56.0], ["2026-07-21", 45.0], ["2026-08-31", 42.0]], "smooth": true, "symbol": "circle", "symbolSize": 4}],
+        grid: { left: 60, right: 30, top: 60, bottom: 40 },
+    });
+})();
+
+// --- Rest Distribution ---
+(function() {
+    const chart = initChart('rest-dist-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '休息日分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: '{b}: {c}次 ({d}%)' },
+        legend: { bottom: 0, ...darkTheme.legend },
+        series: [{
+            type: 'pie', radius: ['28%', '52%'], center: ['50%', '46%'],
+            avoidLabelOverlap: true,
+            data: ["连续训练(0天)", "休息1天", "休息2天", "休息3天+"].map((name, i) => ({ name, value: [19, 47, 19, 14][i] })),
+            label: { color: '#94a3b8', fontSize: 10, formatter: '{d}%' },
+            labelLine: { show: true, length: 6, length2: 6, lineStyle: { color: '#475569' } },
+            itemStyle: { borderRadius: 6, borderColor: '#1e293b', borderWidth: 2 },
+            color: ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'],
+        }],
+    });
+})();
+
+// --- Muscle Recovery ---
+(function() {
+    const chart = initChart('muscle-recovery-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '各肌群平均恢复间隔(天)', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        xAxis: { type: 'category', data: ["背部", "手臂", "胸部", "肩部", "核心", "臀部", "腿部", "cardio"], axisLabel: { color: '#64748b', rotate: 30 } },
+        yAxis: { type: 'value', name: '天', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'bar', data: [4.2, 3.6, 8.3, 7.2, 4.4, 3.9, 6.5, 3.2],
+            itemStyle: { color: function(p) {
+                return p.value >= 3 ? '#22c55e' : (p.value >= 2 ? '#f59e0b' : '#ef4444');
+            } },
+            markLine: {
+                data: [{ yAxis: 2, label: { formatter: 'ACSM最低(48h)', color: '#f59e0b' }, lineStyle: { color: '#f59e0b', type: 'dashed' } },
+                       { yAxis: 3, label: { formatter: 'ACSM推荐(72h)', color: '#22c55e' }, lineStyle: { color: '#22c55e', type: 'dashed' } }],
+            },
+        }],
+        grid: { left: 50, right: 20, top: 50, bottom: 60 },
+    });
+})();
+
+// --- Sets per Exercise Distribution ---
+(function() {
+    const chart = initChart('sets-dist-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '单动作正式组数分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + ' 组: ' + p[0].value + ' 个动作'; } },
+        xAxis: { type: 'category', data: ["0-0", "1-1", "2-2", "3-3", "4-4", "5-5", "6-6", "7-7", "8-8", "9-9", "10-10", "12-12"], name: '组/动作', axisLabel: { color: '#64748b' } },
+        yAxis: { type: 'value', name: '动作数', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'bar', data: [96, 10, 26, 103, 106, 115, 48, 6, 4, 1, 1, 1],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#38bdf8' }, { offset: 1, color: '#0284c7' }
+            ]) },
+        }],
+        grid: { left: 50, right: 20, top: 50, bottom: 40 },
+    });
+})();
+
+// --- Sets per Session Distribution ---
+(function() {
+    const chart = initChart('session-sets-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '单次训练课总组数分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + ' 组: ' + p[0].value + ' 次课'; } },
+        xAxis: { type: 'category', data: ["5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39"], name: '组/课', axisLabel: { color: '#64748b' } },
+        yAxis: { type: 'value', name: '课次数', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{
+            type: 'bar', data: [6, 3, 26, 37, 15, 1, 1],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#818cf8' }, { offset: 1, color: '#4f46e5' }
+            ]) },
+        }],
+        grid: { left: 50, right: 20, top: 50, bottom: 40 },
+    });
+})();
+
+// --- Wearable: Weekly calories + duration ---
+(function() {
+    const chart = initChart('wear-weekly-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '每周卡路里与训练时长', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { data: ['卡路里(kcal)', '时长(小时)'], top: 28, ...darkTheme.legend },
+        xAxis: { type: 'category', data: ["2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01", "2026-06-08", "2026-06-15", "2026-06-29", "2026-07-06", "2026-07-13", "2026-07-20", "2026-07-27", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28"], axisLabel: { color: '#64748b', rotate: 45, fontSize: 9 } },
+        yAxis: [
+            { type: 'value', name: 'kcal', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+            { type: 'value', name: '小时', axisLabel: { color: '#64748b' }, splitLine: { show: false } },
+        ],
+        series: [
+            { name: '卡路里(kcal)', type: 'bar', data: [359.0, 948.0, 1040.0, 786.0, 1006.0, 603.0, 1154.0, 942.0, 932.0, 1551.0, 805.0, 932.0, 624.0, 865.0, 686.0, 1181.0, 1202.0, 970.0, 1416.0, 918.0, 1015.0, 682.0, 1128.0, 1189.0, 1020.0, 1042.0, 443.0, 722.0, 686.0, 1107.0, 1508.0, 1376.0, 1822.0, 665.0, 732.0],
+               itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                   { offset: 0, color: '#fb923c' }, { offset: 1, color: '#c2410c' } ]) } },
+            { name: '时长(小时)', type: 'line', yAxisIndex: 1, data: [0.84, 2.38, 2.64, 2.37, 2.77, 1.72, 3.22, 2.56, 2.51, 4.06, 2.25, 2.63, 1.75, 2.39, 1.84, 3.48, 3.7, 2.75, 3.94, 2.95, 3.27, 1.74, 2.82, 2.67, 2.94, 2.31, 1.25, 1.85, 1.91, 2.36, 3.55, 3.72, 4.54, 1.5, 1.64], smooth: true,
+               lineStyle: { color: '#38bdf8', width: 2 }, itemStyle: { color: '#38bdf8' } },
+        ],
+        grid: { left: 60, right: 55, top: 65, bottom: 80 },
+    });
+})();
+
+// --- Wearable: Monthly calories + HR ---
+(function() {
+    const chart = initChart('wear-monthly-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '月度卡路里与平均心率', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip },
+        legend: { data: ['卡路里(kcal)', '平均心率(bpm)'], top: 28, ...darkTheme.legend },
+        xAxis: { type: 'category', data: ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], axisLabel: { color: '#64748b' } },
+        yAxis: [
+            { type: 'value', name: 'kcal', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+            { type: 'value', name: 'bpm', min: 100, axisLabel: { color: '#64748b' }, splitLine: { show: false } },
+        ],
+        series: [
+            { name: '卡路里(kcal)', type: 'bar', data: [3133.0, 2763.0, 4575.0, 2762.0, 4769.0, 3413.0, 4024.0, 2840.0, 5778.0],
+               itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                   { offset: 0, color: '#fb923c' }, { offset: 1, color: '#c2410c' } ]) } },
+            { name: '平均心率(bpm)', type: 'line', yAxisIndex: 1, data: [141.9, 136.8, 137.4, 132.4, 131.6, 131.7, 136.0, 140.6, 143.1], smooth: true,
+               connectNulls: false, symbol: 'circle', symbolSize: 5,
+               lineStyle: { color: '#f87171', width: 2 }, itemStyle: { color: '#f87171' } },
+        ],
+        grid: { left: 60, right: 55, top: 65, bottom: 40 },
+    });
+})();
+
+// --- Wearable: Monthly duration ---
+(function() {
+    const chart = initChart('wear-monthly-dur-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '月度训练时长 (小时)', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + ': ' + p[0].value + ' 小时'; } },
+        xAxis: { type: 'category', data: ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], axisLabel: { color: '#64748b' } },
+        yAxis: { type: 'value', name: '小时', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{ type: 'bar', data: [8.23, 7.71, 12.21, 7.78, 13.87, 9.96, 9.99, 6.84, 14.23],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#38f9d7' }, { offset: 1, color: '#0e7490' } ]) } }],
+        grid: { left: 50, right: 20, top: 50, bottom: 40 },
+    });
+})();
+
+// --- Wearable: Calories distribution ---
+(function() {
+    const chart = initChart('wear-cal-dist-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '单次卡路里消耗分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + ' kcal: ' + p[0].value + ' 次'; } },
+        xAxis: { type: 'category', data: ["150-199", "200-249", "250-299", "300-349", "350-399", "400-449", "450-499", "500-549", "550-599", "750-799"], name: 'kcal', axisLabel: { color: '#64748b', rotate: 45, fontSize: 9 } },
+        yAxis: { type: 'value', name: '课次', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{ type: 'bar', data: [1, 5, 14, 46, 22, 6, 2, 1, 2, 1],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#fb923c' }, { offset: 1, color: '#c2410c' } ]) } }],
+        grid: { left: 50, right: 20, top: 50, bottom: 60 },
+    });
+})();
+
+// --- Wearable: HR distribution ---
+(function() {
+    const chart = initChart('wear-hr-dist-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '平均心率分布', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + ' bpm: ' + p[0].value + ' 次'; } },
+        xAxis: { type: 'category', data: ["110-114", "115-119", "120-124", "125-129", "130-134", "135-139", "140-144", "145-149", "150-154", "155-159"], name: 'bpm', axisLabel: { color: '#64748b', rotate: 45, fontSize: 9 } },
+        yAxis: { type: 'value', name: '课次', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{ type: 'bar', data: [3, 1, 5, 9, 20, 22, 15, 13, 8, 1],
+            itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#f87171' }, { offset: 1, color: '#b91c1c' } ]) } }],
+        grid: { left: 50, right: 20, top: 50, bottom: 60 },
+    });
+})();
+
+// --- Wearable: HR zones ---
+(function() {
+    const chart = initChart('wear-hr-zone-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '心率区间停留时长 (分钟)', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'axis', ...darkTheme.tooltip, formatter: function(p) { return p[0].name + '<br/>' + p[0].value + ' 分钟'; } },
+        xAxis: { type: 'category', data: ["Z1 恢复 (<60%)", "Z2 有氧 (60-70%)", "Z3 节奏 (70-80%)", "Z4 阈值 (80-90%)", "Z5 极限 (>=90%)"], axisLabel: { color: '#64748b', fontSize: 9, interval: 0, rotate: 20 } },
+        yAxis: { type: 'value', name: '分钟', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{ type: 'bar', data: [246.4, 1177.0, 3492.3, 419.9, 0.0],
+            itemStyle: { color: function(p) {
+                return ['#3b82f6', '#22c55e', '#f59e0b', '#f97316', '#ef4444'][p.dataIndex] || '#64748b';
+            } },
+            label: { show: true, position: 'top', color: '#94a3b8', fontSize: 10,
+                formatter: function(p) { return [3, 21, 64, 9, 0][p.dataIndex] + '次'; } } }],
+        grid: { left: 55, right: 20, top: 50, bottom: 55 },
+    });
+})();
+
+// --- Wearable: Calories by type ---
+(function() {
+    const chart = initChart('wear-type-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '按运动类型的卡路里消耗', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: '{b}: {c} kcal ({d}%)' },
+        legend: { bottom: 0, ...darkTheme.legend },
+        series: [{
+            type: 'pie', radius: ['28%', '52%'], center: ['50%', '46%'], avoidLabelOverlap: true,
+            data: ["力量", "有氧·游泳", "有氧·爬楼", "有氧·网球"].map((name, i) => ({ name, value: [31005.0, 1213.0, 691.0, 1148.0][i] })),
+            label: { color: '#94a3b8', fontSize: 10, formatter: '{d}%' },
+            labelLine: { show: true, length: 6, length2: 6, lineStyle: { color: '#475569' } },
+            itemStyle: { borderRadius: 6, borderColor: '#1e293b', borderWidth: 2 },
+        }],
+    });
+})();
+
+// --- Wearable: Volume vs calories scatter ---
+(function() {
+    const chart = initChart('wear-scatter-chart');
+    if (!chart) return;
+    chart.setOption({
+        ...darkTheme,
+        title: { text: '训练容量 vs 卡路里消耗', left: 'center', ...darkTheme.title },
+        tooltip: { trigger: 'item', ...darkTheme.tooltip, formatter: function(p) { return '容量 ' + p.value[0].toLocaleString() + ' kg<br/>卡路里 ' + p.value[1] + ' kcal'; } },
+        xAxis: { type: 'value', name: '容量(kg)', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        yAxis: { type: 'value', name: 'kcal', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [{ type: 'scatter', data: [[10980.0, 359], [13970.0, 315], [6996.0, 322], [8560.0, 311], [6786.0, 356], [10805.0, 366], [4942.0, 318], [9645.0, 219], [11887.5, 264], [4257.0, 303], [13565.0, 346], [11575.0, 343], [5710.0, 317], [6924.0, 310], [11239.0, 293], [10730.0, 526], [9140.0, 315], [5442.0, 313], [11930.0, 364], [13020.0, 298], [6898.0, 280], [8820.0, 353], [7492.5, 295], [6280.0, 284], [11190.0, 346], [8000.0, 317], [5794.0, 316], [13720.0, 572], [4475.0, 297], [9590.0, 302], [3882.0, 206], [13100.0, 345], [10320.0, 312], [6380.0, 275], [14440.0, 308], [7580.0, 316], [14600.0, 320], [8180.0, 220], [7670.0, 325], [6190.0, 433], [8100.0, 253], [10070.0, 313], [5150.0, 303], [9580.0, 319], [9378.0, 347], [6088.0, 212], [10745.0, 309], [9725.0, 361], [6266.0, 300], [4520.0, 323], [15990.0, 349], [8270.0, 311], [9460.0, 433], [3729.0, 237], [7075.0, 309], [11040.0, 372], [13840.0, 387], [8010.0, 256], [11920.0, 337], [15480.0, 345], [7600.0, 426], [11492.0, 372], [7832.0, 330], [8910.0, 358], [6140.0, 298], [10960.0, 322], [9900.0, 400], [5195.0, 302], [10200.0, 310], [3780.0, 157], [4640.0, 286], [14250.0, 384], [4815.0, 338], [8940.0, 369], [4800.0, 380], [15032.0, 322], [5248.0, 325], [8060.0, 460], [8310.0, 379], [9250.0, 302], [2428.0, 349], [5860.0, 364], [3740.0, 359], [4380.0, 381], [9462.0, 295], [3000.0, 366], [3450.0, 299], [3920.0, 385], [1778.0, 347]], symbolSize: 8,
+            itemStyle: { color: 'rgba(56,189,248,0.65)', borderColor: '#38bdf8', borderWidth: 1 } }],
+        grid: { left: 55, right: 25, top: 50, bottom: 45 },
+    });
+})();
+
+</script>
+</body>
+</html>
