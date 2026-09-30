@@ -392,10 +392,44 @@ body {
 
 /* Print */
 @media print {
-    body { background: white; color: #1a1a1a; }
+     body { background: white; color: #1a1a1a; }
     .section { break-inside: avoid; border: 1px solid #ddd; }
     .header h1 { -webkit-text-fill-color: #1e40af; }
     .stat-value { -webkit-text-fill-color: #1e40af; }
+}
+
+/* ===== 手机端适配(≤640px):不需要 UA 嗅探,同一页面按视口自动适配 ===== */
+@media (max-width: 640px) {
+    body { font-size: 14px; }
+    .container { padding: 12px; }
+    .header { padding: 26px 14px; }
+    .header h1 { font-size: 1.45em; line-height: 1.35; }
+    .header .subtitle { font-size: 0.95em; }
+    .header-avatar { width: 72px; height: 72px; margin-bottom: 10px; }
+    .quick-nav { padding: 8px 12px; gap: 6px; }
+    .quick-nav a { font-size: 11px; padding: 3px 9px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-card { padding: 14px 8px; }
+    .stat-value { font-size: 1.5em; }
+    .grade-section { flex-direction: column; text-align: center; }
+    .grade-message { max-width: 100%; }
+    .grade-message p { text-align: left; }
+    .section { padding: 16px 12px; }
+    .section-title { font-size: 1.05em; }
+    .chart-container { height: 320px !important; }
+    .chart-half { height: 280px; }
+    .trend-chart { height: 240px; }
+    .assessments-grid, .health-cols { grid-template-columns: 1fr !important; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    /* 公式卡与数据表:窄屏防溢出 */
+    .formulas-grid { grid-template-columns: 1fr !important; }
+    .formula-card { padding: 12px 10px; max-width: 100%; }
+    .formula-expr { white-space: normal; word-break: break-word; font-size: 0.95em; padding: 8px 6px; }
+    .formula-desc, .formula-src { word-break: break-word; }
+    .table-scroll { max-height: 480px; }
+    .data-table { min-width: 560px; }
+    .data-table th, .data-table td { padding: 7px 8px; font-size: 0.85em; }
+    #back-top { right: 14px; bottom: 18px; width: 36px; height: 36px; }
 }
 </style>
 </head>
@@ -655,6 +689,7 @@ body {
             <strong>复合动作说明：</strong>硬拉、深蹲、划船、推举等复合动作会同时刺激多个肌群。下表"有效组数/周"已将复合动作按贡献权重折算计入次要肌群
             （例：硬拉计入 腿1.0 + 臀0.8 + 背0.7 + 臂0.4 + 核心0.4），因此即使你很少"单独练"某个肌群，它从复合动作获得的间接刺激也会被统计。"直接组数/周"仅统计以该肌群为主训的动作。
         </div>
+        <div class="table-scroll">
         <table class="data-table">
             <thead>
                 <tr>
@@ -735,6 +770,7 @@ body {
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -914,6 +950,7 @@ body {
         按当前节奏（周均 2.63 次）下个百次约需 9-10 个月。
     </div>
     <div style="overflow-x: auto;">
+        <div class="table-scroll">
         <table class="data-table">
             <thead>
                 <tr><th>指标</th><th>当前百次</th><th>下个百次目标</th><th>说明</th></tr>
@@ -930,6 +967,7 @@ body {
                 <tr><td style="color:var(--text);">饮食/睡眠记录</td><td>未记录</td><td style="color: var(--accent); font-weight: 600;">蛋白质 1.6-2.2g/kg/天；睡眠 ≥7h</td><td>按 ~90kg 体重即每天 145-200g 蛋白质；这两项是保肌减脂的另一半，建议开始记录（哪怕粗粒度）</td></tr>
             </tbody>
         </table>
+        </div>
     </div>
     <div class="chart-caption" style="margin-top: 10px;">
         <strong>*口径与免责：</strong>脂肪当量按 7,700 kcal/kg 换算，是量级估算（运动消耗含糖原供能部分，非纯脂肪供能）；蛋白质与睡眠建议参考 ACSM/Drewnowski 等共识；
@@ -948,6 +986,7 @@ body {
     <div class="section-title"><span class="icon">🆙</span> 渐进超负荷追踪</div>
     <div id="progressive-chart" class="chart-container" style="height: 450px;"></div>
     <div style="margin-top: 16px; overflow-x: auto;">
+        <div class="table-scroll">
         <table class="data-table">
             <thead>
                 <tr><th>动作</th><th>起始重量</th><th>最新重量</th><th>最大重量</th><th>增长率</th><th>追踪次数</th></tr>
@@ -1061,6 +1100,7 @@ body {
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -1183,6 +1223,10 @@ function initChart(id) {
     if (!el) return null;
     const chart = echarts.init(el, null, { renderer: 'canvas' });
     window.addEventListener('resize', () => chart.resize());
+    // 懒初始化的图表在进入视口/容器尺寸变化后自动重算(手机端旋转、折叠屏分屏都覆盖)
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(() => chart.resize()).observe(el);
+    }
     return chart;
 }
 
