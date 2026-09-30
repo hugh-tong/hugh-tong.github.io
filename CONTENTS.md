@@ -50,7 +50,7 @@ CFD/                        ← CFD 技术主体
 | 23 | 2026-09-15 | P3 搬运:数值方法 11 篇(7 实质 + 4 占位) | CFD/数值方法 | rhie-chow-interpolation 等 | ✅ Schemes.md 已于 09-13 搬过,跳过 |
 | 24 | 2026-09-15 | P4 搬运:CS/CSAPP 14 篇(9 实质 + 5 占位) | 工具(Python/Linux/计算机系统/C++) | gdb-notes-openfoam-laplacian 等 | ✅ 隐私 3 篇不搬(JusmarBase 调试日志/SCP 工作流/SurfTheInternet) |
 | 25 | 2026-09-15 | P5 搬运:ReadLog 4 篇(2 实质 + 2 占位)+ Zotero | CFD/论文阅读 + 工具/Zotero | readlog-2017-fu-boiling 等 | ✅ 方案 A:论文阅读挂 CFD 下 |
-| 26 | 2026-09-30 | 100 次训练数据分析报告(独立交互页 + 公告文) | 本站 | training-analysis-report-live | ✅ 页面:/tools/training-analysis/,ECharts 全交互 |
+| 26 | 2026-09-30 | 100 次训练数据分析报告(独立交互页 + 公告文) | 本站 | training-analysis-report-live | ✅ 页面:/report/training-analysis/,ECharts 全交互 |
 
 > 状态图例:✅ 已发布 · 🚧 草稿中 · ⏸ 暂缓 · ⚠️ 有遗留问题
 
@@ -81,7 +81,7 @@ CFD/                        ← CFD 技术主体
 
 ## 五、最近动态(倒序,新在上)
 
-- **2026-09-30**:训练数据分析报告上线——TODO/training_analysis.html 移植为 /tools/training-analysis/ 独立页(标题改为「tttt个人运行100次数据分析报告」,🏋️ emoji 换为主页同款旋转头像 tttt.png),公告文引导访问
+- **2026-09-30**:训练数据分析报告上线——TODO/training_analysis.html 移植为 /report/training-analysis/ 独立页(标题改为「tttt个人运行100次数据分析报告」,🏋️ emoji 换为主页同款旋转头像 tttt.png),公告文引导访问
 
 - **2026-09-15(晚二)**:P4+P5 完成——CS/CSAPP 14 篇 + ReadLog 4 篇 + Zotero,共 20 篇上线(11 实质 + 9 占位);**全部 5 个优先级队列搬运完毕**。新增分类 [CFD, 论文阅读]、工具/Python、工具/计算机系统、工具/C++、工具/Zotero。隐私红线确立:公司项目调试日志、个人工作流(含私服地址)、科学上网相关一律不搬
 - **2026-09-15(晚)**:P3 队列完成——工具链 8 + 理论 7 + 数值方法 11,共 26 篇上线(18 实质 + 8 占位);Mac 同步盘目录间歇性消失,改为远端 tar 打包一次拉取;新增分类 CFD/OpenFOAM/工具链、CFD/理论(求解算法/湍流)
