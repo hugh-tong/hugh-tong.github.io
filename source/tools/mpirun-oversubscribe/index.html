@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="交互模拟 MPI 进程数超过物理核心数后产生的调度竞争、缓存压力与性能变化。">
 <title>--oversubscribe -np 256 在 64 核服务器上会发生什么</title>
+<link rel="stylesheet" href="/tools/assets/tool-shell.css">
+<script defer src="/tools/assets/tool-shell.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -136,7 +139,7 @@
   .badge.green { background: #12261e; color: #7ee787; }
 </style>
 </head>
-<body>
+<body data-tool-scheme="dark" data-tool-shell-root>
 
 <h1>mpirun --oversubscribe -np 256 在 64 物理核上执行模拟</h1>
 <p class="subtitle">模拟 256 个 MPI 进程争抢 64 个物理核心时，操作系统调度器、缓存、内存带宽发生了什么</p>

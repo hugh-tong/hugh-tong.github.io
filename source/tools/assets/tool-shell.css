@@ -1,0 +1,150 @@
+/* Shared chrome for standalone tools. Keep tool-specific visualizations in each page. */
+:root {
+  --tool-shell-light-bg: rgba(255, 255, 255, .92);
+  --tool-shell-light-ink: #24344b;
+  --tool-shell-light-line: rgba(53, 79, 110, .18);
+  --tool-shell-dark-bg: rgba(11, 20, 38, .86);
+  --tool-shell-dark-ink: #e6efff;
+  --tool-shell-dark-line: rgba(184, 205, 238, .22);
+  --tool-shell-focus: #4f9dff;
+}
+
+/* Component contract: pages provide tokens; this layer owns the repeated chrome. */
+.tool-component-hero,
+.tool-component-panel,
+.tool-component-card {
+  border: 1px solid var(--tool-component-border, var(--tool-shell-light-line));
+  box-shadow: var(--tool-component-shadow, 0 12px 32px rgba(24, 45, 74, .08));
+}
+
+.tool-component-hero {
+  padding: var(--tool-component-hero-padding, 28px);
+  border-radius: var(--tool-component-hero-radius, 20px);
+  background: var(--tool-component-hero-bg, var(--tool-shell-light-bg));
+}
+
+.tool-component-panel {
+  padding: var(--tool-component-panel-padding, 20px);
+  border-radius: var(--tool-component-panel-radius, 18px);
+  background: var(--tool-component-panel-bg, var(--tool-shell-light-bg));
+}
+
+.tool-component-card {
+  padding: var(--tool-component-card-padding, 14px);
+  border-radius: var(--tool-component-card-radius, 14px);
+  background: var(--tool-component-card-bg, var(--tool-shell-light-bg));
+}
+
+.tool-component-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tool-component-gap, 12px);
+}
+
+.tool-component-button {
+  min-height: 38px;
+  border: 1px solid var(--tool-component-button-border, var(--tool-shell-light-line));
+  border-radius: var(--tool-component-button-radius, 10px);
+  padding: 8px 13px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.tool-component-button:focus-visible,
+.tool-component-control :is(input, select):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--tool-shell-focus) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.tool-component-note {
+  margin-top: var(--tool-component-note-margin, 14px);
+  padding: var(--tool-component-note-padding, 12px 14px);
+  border-left: 3px solid var(--tool-component-note-accent, var(--tool-shell-focus));
+  border-radius: var(--tool-component-note-radius, 8px);
+  background: var(--tool-component-note-bg, rgba(79, 157, 255, .08));
+  color: var(--tool-component-note-ink, inherit);
+}
+
+.tool-component-footer {
+  margin-top: var(--tool-component-footer-margin, 18px);
+  color: var(--tool-component-muted, inherit);
+  font-size: var(--tool-component-footer-size, 13px);
+}
+
+.tool-shell-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 8px 10px;
+  border: 1px solid var(--tool-shell-light-line);
+  border-radius: 999px;
+  background: var(--tool-shell-light-bg);
+  box-shadow: 0 8px 24px rgba(24, 45, 74, .08);
+  font: 600 12px/1.2 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+.tool-shell-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--tool-shell-light-ink);
+  text-decoration: none;
+}
+
+.tool-shell-nav__link:hover {
+  background: rgba(79, 157, 255, .12);
+}
+
+.tool-shell-nav__link:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--tool-shell-focus) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.tool-shell-nav__separator {
+  width: 1px;
+  height: 18px;
+  background: var(--tool-shell-light-line);
+}
+
+[data-tool-scheme="dark"] .tool-shell-nav {
+  border-color: var(--tool-shell-dark-line);
+  background: var(--tool-shell-dark-bg);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .24);
+}
+
+[data-tool-scheme="dark"] .tool-shell-nav__link {
+  color: var(--tool-shell-dark-ink);
+}
+
+[data-tool-scheme="dark"] .tool-shell-nav__link:hover {
+  background: rgba(125, 211, 252, .14);
+}
+
+[data-tool-scheme="dark"] .tool-shell-nav__separator {
+  background: var(--tool-shell-dark-line);
+}
+
+.tool-shell-runtime-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #e67b86;
+  border-radius: 12px;
+  background: #fff0f1;
+  color: #7c1d2a;
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+[data-tool-scheme="dark"] .tool-shell-runtime-error {
+  background: rgba(251, 113, 133, .15);
+  color: #ffe4e6;
+}
+
+@media (max-width: 520px) {
+  .tool-shell-nav { border-radius: 14px; }
+  .tool-shell-nav__separator { display: none; }
+}

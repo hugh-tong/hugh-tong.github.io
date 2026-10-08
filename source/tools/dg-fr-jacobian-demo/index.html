@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="description" content="交互观察 DG/FR 高阶离散中自由度、单元 Jacobian block 和估算存储量的增长。" />
 <title>DG / FR Jacobian 为什么会变大？</title>
+<link rel="stylesheet" href="/tools/assets/tool-shell.css" />
+<script defer src="/tools/assets/tool-shell.js"></script>
 <style>
   :root{
     --bg:#0b1020; --panel:#121a31; --panel2:#0f1730; --text:#e9eefb;
@@ -11,6 +14,10 @@
     --good:#86efac; --warn:#fbbf24; --danger:#fb7185;
     --subtle:rgba(255,255,255,.025); --code-bg:#0a1127; --canvas-bg:#090f22;
     --canvas-zero:#263252; --note-text:#cdd9f3;
+    --tool-component-border:var(--line); --tool-component-shadow:0 18px 45px rgba(0,0,0,.20);
+    --tool-component-panel-bg:linear-gradient(180deg,var(--panel),var(--panel2)); --tool-component-panel-padding:18px; --tool-component-panel-radius:18px;
+    --tool-component-card-bg:var(--subtle); --tool-component-card-padding:14px; --tool-component-card-radius:15px;
+    --tool-component-button-border:var(--line); --tool-component-button-radius:999px; --tool-component-note-accent:var(--accent); --tool-component-note-bg:rgba(125,211,252,.06); --tool-component-note-ink:var(--note-text); --tool-component-muted:var(--muted); --tool-component-footer-size:12px;
   }
   :root[data-theme="light"]{
     --bg:#f4f7fb; --panel:#ffffff; --panel2:#f8fbff; --text:#172033;
@@ -33,13 +40,8 @@
   p{line-height:1.72}
   .lead{color:var(--muted);max-width:900px;margin:0 0 24px}
   .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
-  .panel{
-    background:linear-gradient(180deg,var(--panel),var(--panel2));
-    border:1px solid var(--line); border-radius:18px; padding:18px;
-    box-shadow:0 18px 45px rgba(0,0,0,.20);
-  }
   .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-  .control{background:var(--subtle);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .control{--tool-component-card-padding:13px;--tool-component-card-radius:14px}
   label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px;margin-bottom:8px}
   input[type=range]{width:100%}
   select{
@@ -48,7 +50,6 @@
   }
   .value{color:var(--accent);font-variant-numeric:tabular-nums}
   .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
-  .card{background:var(--subtle);border:1px solid var(--line);border-radius:15px;padding:14px}
   .k{font-size:12px;color:var(--muted);margin-bottom:5px}
   .v{font-size:clamp(20px,3vw,30px);font-weight:760;letter-spacing:-.03em}
   .s{font-size:12px;color:var(--muted);margin-top:5px}
@@ -63,18 +64,13 @@
   .barrow{display:grid;grid-template-columns:150px 1fr 105px;align-items:center;gap:10px;margin:10px 0}
   .bar{height:12px;background:var(--code-bg);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
   .fill{height:100%;border-radius:999px}
-  .note{
-    margin-top:14px;padding:12px 14px;border-left:3px solid var(--accent);
-    background:rgba(125,211,252,.06);color:var(--note-text);border-radius:8px
-  }
   .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:center}
   .step{
     min-height:94px;border:1px solid var(--line);background:var(--panel2);border-radius:13px;padding:12px;
     display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text);font-size:13px;line-height:1.5
   }
   .arrow{text-align:center;color:var(--muted)}
-  .footer{margin-top:18px;color:var(--muted);font-size:12px}
-  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .toolbar{margin-bottom:18px}
   .toolbar button{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:var(--panel);color:var(--text);cursor:pointer;font:inherit}
   .status{font-size:12px;color:var(--muted)}
   .runtime-error{margin:12px 0;padding:12px 14px;border:1px solid #fb7185;border-radius:10px;background:rgba(251,113,133,.12);color:var(--text)}
@@ -87,11 +83,11 @@
   }
 </style>
 </head>
-<body>
-<div class="wrap">
-  <div class="toolbar">
+<body data-tool-scheme="dark">
+<div class="wrap" data-tool-shell-root>
+  <div class="toolbar tool-component-toolbar">
     <span class="status" id="runtimeStatus" role="status">正在初始化交互图…</span>
-    <button id="themeToggle" type="button" aria-pressed="false">切换为浅色</button>
+    <button id="themeToggle" class="tool-component-button" type="button" aria-pressed="false">切换为浅色</button>
   </div>
   <h1>为什么 DG / FR 的 Jacobian 会迅速变大？</h1>
   <p class="lead">
@@ -100,22 +96,22 @@
     数值是教学估算，用于观察数量级和趋势。
   </p>
 
-  <div class="panel">
+  <div class="panel tool-component-panel">
     <h2>1. 调参数：看看自由度怎样增长</h2>
     <div class="controls">
-      <div class="control">
+      <div class="control tool-component-card">
         <label><span>单元数量</span><span class="value" id="cellsV"></span></label>
         <input id="cells" type="range" min="100" max="50000" step="100" value="5000">
       </div>
-      <div class="control">
+      <div class="control tool-component-card">
         <label><span>多项式阶次 p</span><span class="value" id="pV"></span></label>
         <input id="p" type="range" min="0" max="6" step="1" value="3">
       </div>
-      <div class="control">
+      <div class="control tool-component-card">
         <label><span>守恒变量数量</span><span class="value" id="eqV"></span></label>
         <input id="eq" type="range" min="1" max="8" step="1" value="5">
       </div>
-      <div class="control">
+      <div class="control tool-component-card">
         <label><span>单元类型</span></label>
         <select id="dim">
           <option value="2">二维三角形</option>
@@ -125,38 +121,38 @@
     </div>
 
     <div class="cards">
-      <div class="card"><div class="k">每单元空间自由度</div><div class="v" id="basis"></div><div class="s">Np</div></div>
-      <div class="card"><div class="k">全局未知量</div><div class="v" id="unknowns"></div><div class="s">cells × Np × equations</div></div>
-      <div class="card"><div class="k">单元 Jacobian block</div><div class="v" id="block"></div><div class="s">(Np × equations)²</div></div>
-      <div class="card"><div class="k">估算稀疏 Jacobian 存储</div><div class="v" id="jacmem"></div><div class="s">仅数值项，double</div></div>
+      <div class="card tool-component-card"><div class="k">每单元空间自由度</div><div class="v" id="basis"></div><div class="s">Np</div></div>
+      <div class="card tool-component-card"><div class="k">全局未知量</div><div class="v" id="unknowns"></div><div class="s">cells × Np × equations</div></div>
+      <div class="card tool-component-card"><div class="k">单元 Jacobian block</div><div class="v" id="block"></div><div class="s">(Np × equations)²</div></div>
+      <div class="card tool-component-card"><div class="k">估算稀疏 Jacobian 存储</div><div class="v" id="jacmem"></div><div class="s">仅数值项，double</div></div>
     </div>
 
     <div class="formula" id="formula"></div>
   </div>
 
   <div class="grid" style="margin-top:18px">
-    <div class="panel">
+    <div class="panel tool-component-panel">
       <h2>2. Jacobian 稀疏块结构</h2>
-      <canvas id="matrix" width="720" height="420"></canvas>
+      <canvas id="matrix" width="720" height="420">你的浏览器不支持 Canvas，无法显示 Jacobian 稀疏块图。</canvas>
       <div class="legend">
         <span><span class="dot" style="background:#7dd3fc"></span>本单元 block</span>
         <span><span class="dot" style="background:#a78bfa"></span>邻居耦合 block</span>
         <span><span class="dot" style="background:#263252"></span>零区域</span>
       </div>
-      <p class="note">
+      <p class="note tool-component-note">
         FVM 中一个单元的 block 通常接近 “方程数 × 方程数”；DG/FR 中 block 变成
         “(求解点数 × 方程数) × (求解点数 × 方程数)”。高阶最先把 block 本身放大。
       </p>
     </div>
 
-    <div class="panel">
+    <div class="panel tool-component-panel">
       <h2>3. 同一网格：FVM vs DG/FR</h2>
       <div class="barrow"><span>FVM 未知量</span><div class="bar"><div class="fill" id="b1" style="background:#86efac"></div></div><span id="t1"></span></div>
       <div class="barrow"><span>DG/FR 未知量</span><div class="bar"><div class="fill" id="b2" style="background:#7dd3fc"></div></div><span id="t2"></span></div>
       <div class="barrow"><span>FVM Jacobian</span><div class="bar"><div class="fill" id="b3" style="background:#fbbf24"></div></div><span id="t3"></span></div>
       <div class="barrow"><span>DG/FR Jacobian</span><div class="bar"><div class="fill" id="b4" style="background:#fb7185"></div></div><span id="t4"></span></div>
 
-      <p class="note" id="compare"></p>
+      <p class="note tool-component-note" id="compare"></p>
 
       <h2 style="margin-top:22px">4. 为什么 Matrix-Free 有吸引力？</h2>
       <div class="flow">
@@ -174,15 +170,15 @@
   </div>
 
   <div class="two">
-    <div class="panel">
+    <div class="panel tool-component-panel">
       <h2>5. 阶次 p 对每单元自由度的影响</h2>
-      <canvas id="curve" width="720" height="330"></canvas>
-      <p class="note">
+      <canvas id="curve" width="720" height="330">你的浏览器不支持 Canvas，无法显示阶次与 block 大小曲线。</canvas>
+      <p class="note tool-component-note">
         三角形：Np=(p+1)(p+2)/2；四面体：Np=(p+1)(p+2)(p+3)/6。
         Jacobian block 的元素数近似与 Np² 成正比，所以增长比自由度本身更快。
       </p>
     </div>
-    <div class="panel">
+    <div class="panel tool-component-panel">
       <h2>6. 你可以怎样理解论文里的“Jacobian 太大”</h2>
       <p>
         不是简单指矩阵行数多，而是三件事叠加：第一，高阶单元内部有很多解自由度；第二，
@@ -209,7 +205,7 @@ blockEntries ≈ blockSize²
     </div>
   </div>
 
-  <div class="footer">
+  <div class="footer tool-component-footer">
     教学模型假设：二维三角形平均 3 个邻居，三维四面体平均 4 个邻居；每个非零单元耦合块按完整 dense block 估算；
     未计 CSR/索引、预处理器、临时向量和通信缓存，因此不是实际代码内存预测。
   </div>

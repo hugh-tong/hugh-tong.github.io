@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="用二维线性系统的几何图像对比良态与病态矩阵的扰动放大效应。">
     <title>良态 vs 病态矩阵 · 可视化对比</title>
+    <link rel="stylesheet" href="/tools/assets/tool-shell.css">
+    <script defer src="/tools/assets/tool-shell.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -192,7 +195,7 @@
         }
     </style>
 </head>
-<body>
+<body data-tool-scheme="light" data-tool-shell-root>
 
 <h1>🧮 矩阵条件数 · 良态 vs 病态</h1>
 <div class="subtitle">固定解 <strong>x₀ = [0.5, 0]</strong>，扰动 <strong>b</strong> 观察 <strong>x</strong> 的变化</div>
@@ -203,7 +206,7 @@
         <h2>✅ 良态矩阵 <span class="badge good">条件数小</span></h2>
         <div class="matrix-display" id="good-matrix-text">A = [[2, 1], [1, 2]]</div>
         <div class="cond-info">条件数 κ = <span class="cond-value good" id="good-cond">3.00</span></div>
-        <canvas id="good-canvas" width="500" height="500"></canvas>
+        <canvas id="good-canvas" width="500" height="500">你的浏览器不支持 Canvas，无法显示良态矩阵示意图。</canvas>
         <div class="controls">
             <div class="control-group">
                 <label>扰动大小 ε</label>
@@ -233,7 +236,7 @@
         <h2>⚠️ 病态矩阵 <span class="badge ill">条件数巨大</span></h2>
         <div class="matrix-display" id="ill-matrix-text">A = [[1, 1], [1, 1.0001]]</div>
         <div class="cond-info">条件数 κ = <span class="cond-value ill" id="ill-cond">40000</span></div>
-        <canvas id="ill-canvas" width="500" height="500"></canvas>
+        <canvas id="ill-canvas" width="500" height="500">你的浏览器不支持 Canvas，无法显示病态矩阵示意图。</canvas>
         <div class="controls">
             <div class="control-group">
                 <label>扰动大小 ε</label>

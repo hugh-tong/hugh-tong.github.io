@@ -5,25 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="边界层几何增长网格计算器：根据首层高度、层数、伸展比和总厚度进行互算。">
   <title>边界层网格计算器 | tttt</title>
+  <link rel="stylesheet" href="/tools/assets/tool-shell.css">
+  <script defer src="/tools/assets/tool-shell.js"></script>
   <style>
-    :root { color-scheme: light; --ink:#172033; --muted:#5c6b82; --line:#dbe4ef; --blue:#1769aa; --blue-soft:#eaf4fc; --bg:#f4f7fb; --card:#fff; --green:#16845b; --orange:#b76413; }
+    :root { color-scheme: light; --ink:#172033; --muted:#5c6b82; --line:#dbe4ef; --blue:#1769aa; --blue-soft:#eaf4fc; --bg:#f4f7fb; --card:#fff; --green:#16845b; --orange:#b76413; --tool-component-border:var(--line); --tool-component-shadow:0 12px 35px rgba(35,63,91,.08); --tool-component-panel-padding:24px; --tool-component-panel-radius:18px; --tool-component-panel-bg:rgba(255,255,255,.94); --tool-component-card-bg:#fbfdff; --tool-component-button-radius:8px; --tool-component-muted:var(--muted); --tool-component-note-accent:var(--orange); --tool-component-note-bg:#fff7ed; --tool-component-note-ink:#74400e; }
     * { box-sizing: border-box; }
     body { margin:0; background:linear-gradient(145deg,#eef5fb 0%,var(--bg) 42%,#f8fafc 100%); color:var(--ink); font:15px/1.65 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
     .shell { width:min(1120px,calc(100% - 32px)); margin:28px auto 56px; }
     .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:22px; align-items:stretch; margin-bottom:22px; }
-    .hero-copy,.card { background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:18px; box-shadow:0 12px 35px rgba(35,63,91,.08); }
-    .hero-copy { padding:30px 32px; }
+    .hero-copy { --tool-component-hero-padding:30px 32px; --tool-component-hero-radius:18px; --tool-component-hero-bg:rgba(255,255,255,.94); }
     .eyebrow { margin:0 0 6px; color:var(--blue); font-weight:700; letter-spacing:.08em; font-size:.78rem; text-transform:uppercase; }
     h1 { margin:0 0 10px; font-size:clamp(1.8rem,4vw,2.7rem); line-height:1.2; }
     h2 { margin:0 0 14px; font-size:1.2rem; }
     h3 { margin:18px 0 8px; font-size:1rem; }
     .lead { margin:0; color:var(--muted); max-width:56ch; }
-    .formula-card { padding:22px; display:flex; flex-direction:column; justify-content:center; background:linear-gradient(150deg,#102d4a,#1f5d8b); color:#eef8ff; border-radius:18px; box-shadow:0 12px 35px rgba(20,64,100,.2); }
+    .formula-card { --tool-component-hero-padding:22px; --tool-component-hero-radius:18px; --tool-component-hero-bg:linear-gradient(150deg,#102d4a,#1f5d8b); --tool-component-shadow:0 12px 35px rgba(20,64,100,.2); display:flex; flex-direction:column; justify-content:center; color:#eef8ff; }
     .formula-card h2 { color:#fff; }
     .formula { margin:10px 0; padding:13px 16px; border:1px solid rgba(255,255,255,.25); border-radius:10px; text-align:center; font:1.12rem Georgia,serif; background:rgba(255,255,255,.08); }
     .formula-note { margin:0; color:#cde4f4; font-size:.85rem; }
     .grid { display:grid; grid-template-columns:minmax(300px,.85fr) minmax(420px,1.15fr); gap:22px; }
-    .card { padding:24px; }
     .tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:20px; padding:5px; border-radius:11px; background:#edf2f7; }
     .tabs button { border:0; border-radius:8px; padding:10px 6px; background:transparent; color:var(--muted); cursor:pointer; font-weight:650; }
     .tabs button.active { background:#fff; color:var(--blue); box-shadow:0 2px 7px rgba(25,55,85,.12); }
@@ -34,7 +34,7 @@
     input { display:block; width:100%; margin-top:5px; padding:10px 11px; border:1px solid #cbd7e5; border-radius:8px; color:var(--ink); background:#fbfdff; font:inherit; }
     input:focus { outline:3px solid #cfe7f8; border-color:var(--blue); }
     .actions { display:flex; gap:9px; margin-top:18px; }
-    .primary,.secondary { border-radius:8px; padding:10px 15px; cursor:pointer; font:inherit; font-weight:700; }
+    .primary,.secondary { font-weight:700; }
     .primary { border:1px solid var(--blue); background:var(--blue); color:#fff; flex:1; }
     .secondary { border:1px solid var(--line); background:#fff; color:var(--muted); }
     .result { margin-top:18px; padding:14px; border:1px solid #cfe2f2; border-radius:10px; background:var(--blue-soft); }
@@ -50,26 +50,26 @@
     .chart-wrap { margin-top:14px; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#fff; }
     #chart-svg { display:block; width:100%; height:auto; }
     .axis-label { fill:#607086; font-size:11px; }
-    .callout { margin-top:14px; padding:12px 14px; border-left:4px solid var(--orange); background:#fff7ed; color:#74400e; font-size:.86rem; }
+    .callout { font-size:.86rem; }
     .explain { margin-top:22px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
     .explain > div { padding:16px; border:1px solid var(--line); border-radius:12px; background:#fbfdff; }
     .explain h3 { margin-top:0; color:var(--blue); }
     .explain p { margin:0; color:var(--muted); font-size:.88rem; }
-    .footer { margin-top:20px; color:var(--muted); font-size:.82rem; }
+    .footer { --tool-component-footer-margin:20px; --tool-component-footer-size:.82rem; }
     .footer a { color:var(--blue); }
     @media (max-width:800px) { .hero,.grid { grid-template-columns:1fr; } .hero-copy { padding:24px; } }
     @media (max-width:520px) { .shell { width:min(100% - 20px,1120px); margin-top:12px; } .card { padding:17px; } .fields,.explain { grid-template-columns:1fr; } .tabs button { font-size:.78rem; } }
   </style>
 </head>
-<body>
-  <main class="shell">
+<body data-tool-scheme="light">
+  <main class="shell" data-tool-shell-root>
     <section class="hero">
-      <div class="hero-copy">
+      <div class="hero-copy tool-component-hero">
         <p class="eyebrow">CFD / Mesh Design Tool</p>
         <h1>边界层网格计算器</h1>
         <p class="lead">用等比增长模型估算首层高度、最外层高度、层数、伸展比和边界层总厚度。右侧图形会同步展示每一层的增长趋势。</p>
       </div>
-      <div class="formula-card" aria-label="几何增长公式">
+      <div class="formula-card tool-component-hero" aria-label="几何增长公式">
         <h2>等比边界层模型</h2>
         <div class="formula">Δs<sub>i</sub> = Δs<sub>1</sub> · r<sup>i−1</sup></div>
         <div class="formula">H = Δs<sub>1</sub> · (r<sup>N</sup> − 1) / (r − 1)</div>
@@ -78,7 +78,7 @@
     </section>
 
     <section class="grid">
-      <div class="card">
+      <div class="card tool-component-panel">
         <h2>输入参数</h2>
         <div class="tabs" role="tablist" aria-label="计算模式">
           <button class="active" data-tab="ratio" role="tab">求伸展比</button>
@@ -92,30 +92,30 @@
             <label>最外层高度 Δsₙ<input id="ratio-dsn" type="number" value="0.1" min="0.0000001" step="any" required></label>
           </div>
           <label style="margin-top:13px">层数 N<input id="ratio-n" type="number" value="15" min="2" step="1" required></label>
-          <div class="actions"><button class="primary" type="submit">计算伸展比</button><button class="secondary" type="reset">重置</button></div>
+          <div class="actions"><button class="primary tool-component-button" type="submit">计算伸展比</button><button class="secondary tool-component-button" type="reset">重置</button></div>
           <div class="result" id="result-ratio" hidden><div class="result-grid"><div><div class="metric-label">伸展比 r</div><div class="metric" id="out-ratio">—</div></div><div><div class="metric-label">总厚度 H</div><div class="metric" id="out-ratio-h">—</div></div></div><p class="hint">r 越接近 1，层厚增长越缓；工程上还需结合 y⁺、棱柱层质量和远场尺寸判断。</p></div>
         </form>
 
         <form id="panel-layers" class="panel">
           <div class="fields"><label>首层高度 Δs₁<input id="layers-ds1" type="number" value="0.001" min="0.0000001" step="any" required></label><label>最外层高度 Δsₙ<input id="layers-dsn" type="number" value="0.1" min="0.0000001" step="any" required></label></div>
           <label style="margin-top:13px">伸展比 r<input id="layers-r" type="number" value="1.2" min="1.000001" step="any" required></label>
-          <div class="actions"><button class="primary" type="submit">计算层数</button><button class="secondary" type="reset">重置</button></div>
+          <div class="actions"><button class="primary tool-component-button" type="submit">计算层数</button><button class="secondary tool-component-button" type="reset">重置</button></div>
           <div class="result" id="result-layers" hidden><div class="result-grid"><div><div class="metric-label">理论层数</div><div class="metric" id="out-layers">—</div></div><div><div class="metric-label">建议取整</div><div class="metric" id="out-layers-int">—</div></div></div><p class="hint" id="out-layers-note"></p></div>
         </form>
 
         <form id="panel-thickness" class="panel">
           <label>目标总厚度 H<input id="thick-h" type="number" value="1" min="0.000001" step="any" required></label>
           <div class="fields" style="margin-top:13px"><label>首层高度 Δs₁<input id="thick-ds1" type="number" value="0.001" min="0.0000001" step="any" required></label><label>最外层高度 Δsₙ<input id="thick-dsn" type="number" value="0.1" min="0.0000001" step="any" required></label></div>
-          <div class="actions"><button class="primary" type="submit">计算 r 和 N</button><button class="secondary" type="reset">重置</button></div>
+          <div class="actions"><button class="primary tool-component-button" type="submit">计算 r 和 N</button><button class="secondary tool-component-button" type="reset">重置</button></div>
           <div class="result" id="result-thickness" hidden><div class="result-grid"><div><div class="metric-label">伸展比 r</div><div class="metric" id="out-thick-r">—</div></div><div><div class="metric-label">理论层数</div><div class="metric" id="out-thick-n">—</div></div></div><p class="hint">取整层数后需要重新调整 r，实际 H 会产生小幅变化。</p></div>
         </form>
       </div>
 
-      <div class="card viz-card">
+      <div class="card viz-card tool-component-panel">
         <div class="viz-head"><h2>层厚增长可视化</h2><span class="legend" id="viz-summary">等待输入</span></div>
         <svg id="layer-svg" viewBox="0 0 620 290" role="img" aria-label="边界层厚度逐层增长示意图"></svg>
         <div class="chart-wrap"><svg id="chart-svg" viewBox="0 0 620 220" role="img" aria-label="各层厚度半对数曲线"></svg></div>
-        <div class="callout"><strong>新手提示：</strong>首层高度通常由目标 y⁺ 和壁面处理决定；伸展比只是几何分布参数，不能单独决定网格是否合理。高伸展比可能造成相邻单元尺寸突变。</div>
+        <div class="callout tool-component-note"><strong>新手提示：</strong>首层高度通常由目标 y⁺ 和壁面处理决定；伸展比只是几何分布参数，不能单独决定网格是否合理。高伸展比可能造成相邻单元尺寸突变。</div>
       </div>
     </section>
 
@@ -124,7 +124,7 @@
       <div><h3>伸展比 r</h3><p>相邻两层厚度的比例。r=1 表示等厚层；r 越大，远离壁面的单元增长越快，但过大可能降低平滑性。</p></div>
       <div><h3>总厚度 H</h3><p>所有边界层网格层厚度之和。它应覆盖主要速度/温度梯度区域，并与外部主体网格平滑衔接。</p></div>
     </section>
-    <p class="footer">这是几何估算工具，不替代 y⁺ 计算、网格质量检查或独立性验证。返回<a href="/">博客首页</a>。</p>
+    <p class="footer tool-component-footer">这是几何估算工具，不替代 y⁺ 计算、网格质量检查或独立性验证。返回<a href="/">博客首页</a>。</p>
   </main>
   <script>
     (function () {

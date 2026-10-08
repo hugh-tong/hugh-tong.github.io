@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="交互理解自回归生成中 KV Cache 的复用范围、计算节省和显存代价。" />
   <title>KV Cache 交互实验室</title>
+  <link rel="stylesheet" href="/tools/assets/tool-shell.css" />
+  <script defer src="/tools/assets/tool-shell.js"></script>
   <style>
     :root{--bg:#f4f7fb;--panel:#fff;--ink:#172033;--muted:#68748a;--line:#dce3ee;--q:#7c3aed;--k:#0e7490;--v:#d97706;--active:#2563eb;--soft:#edf4ff;--ok:#15803d;--warn:#b45309;--shadow:0 14px 40px rgba(30,50,80,.08)}
     *{box-sizing:border-box} body{margin:0;font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#eef4ff 0,#f8fafc 42%,#f3f0ff 100%);color:var(--ink)}
@@ -17,8 +20,8 @@
     @media(max-width:820px){.hero{display:block}.formula{display:inline-block;margin-top:14px;white-space:normal}.toolbar{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.stage{grid-template-columns:1fr}.bar-row{grid-template-columns:90px 1fr 64px}}@media(max-width:440px){.metrics{grid-template-columns:1fr}.actions{display:grid}.hero h1{font-size:30px}.app{padding:18px 12px}}
   </style>
 </head>
-<body>
-<main class="app">
+<body data-tool-scheme="light">
+<main class="app" data-tool-shell-root>
   <header class="hero"><div><div class="eyebrow">TRANSFORMER · INTERACTIVE LAB</div><h1>KV Cache 到底缓存了什么？</h1><p>把自回归生成看成一次不断变长的离散计算：每生成一个新 token，旧 token 的 Key / Value 不会改变。KV Cache 用显存保存它们，从而避免重复投影。</p></div><div class="formula">Attention(Q,K,V) = softmax(QKᵀ/√d) V</div></header>
   <section class="toolbar">
     <div class="field"><label><span>当前生成步</span><b id="stepValue">4 / 8</b></label><input id="step" type="range" min="1" max="8" value="4"></div>

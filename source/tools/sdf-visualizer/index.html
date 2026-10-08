@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="用圆形教学模型交互理解 Signed Distance Function（SDF）的符号、最近点、法向、零等值面与窄带。" />
+  <title>SDF 可视化 | tttt</title>
+  <link rel="stylesheet" href="/tools/assets/tool-shell.css" />
+  <script defer src="/tools/assets/tool-shell.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel2: #0f1530;
+      --card: #182145;
+      --line: #2b376a;
+      --text: #e7ecff;
+      --muted: #a9b4dd;
+      --accent: #7dd3fc;
+      --accent2: #fca5a5;
+      --accent3: #86efac;
+      --warning: #fde68a;
+      --solid: #4f9dff;
+      --fluid: #ff7f6b;
+      --interface: #f8fafc;
+      --ring: #ffd54a;
+      --shadow: 0 12px 30px rgba(0,0,0,0.25);
+      --radius: 16px;
+      --tool-component-border: var(--line);
+      --tool-component-shadow: var(--shadow);
+      --tool-component-hero-bg: linear-gradient(135deg, rgba(30,41,90,0.96), rgba(13,20,47,0.96));
+      --tool-component-hero-padding: 24px 28px;
+      --tool-component-hero-radius: 22px;
+      --tool-component-panel-bg: linear-gradient(180deg, rgba(18,25,51,0.95), rgba(13,19,41,0.95));
+      --tool-component-panel-padding: 20px;
+      --tool-component-panel-radius: 22px;
+      --tool-component-card-bg: rgba(255,255,255,0.02);
+      --tool-component-card-padding: 16px;
+      --tool-component-card-radius: 16px;
+      --tool-component-button-radius: 10px;
+      --tool-component-muted: var(--muted);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(72, 111, 255, 0.12), transparent 30%),
+        radial-gradient(circle at left bottom, rgba(52, 211, 153, 0.10), transparent 25%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      width: min(1400px, 96vw);
+      margin: 24px auto 40px;
+    }
+
+    .hero { margin-bottom: 20px; }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      letter-spacing: 0.4px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .formula-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .formula-card { --tool-component-card-bg: rgba(255,255,255,0.03); --tool-component-card-radius: 14px; }
+
+    .formula-card h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    .formula {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 14px;
+      color: #f3f4f6;
+      white-space: pre-line;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section { margin-top: 20px; }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .step {
+      position: relative;
+      --tool-component-card-bg: linear-gradient(180deg, rgba(25,35,77,0.95), rgba(18,25,51,0.95));
+      --tool-component-card-padding: 14px 12px;
+      --tool-component-card-radius: 14px;
+      min-height: 160px;
+    }
+
+    .step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--warning);
+      font-size: 22px;
+      font-weight: 700;
+      z-index: 5;
+    }
+
+    .step .idx {
+      display: inline-flex;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      justify-content: center;
+      align-items: center;
+      background: rgba(125,211,252,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(125,211,252,0.35);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .step h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: 18px;
+    }
+
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .ctrl { --tool-component-border: rgba(255,255,255,0.05); --tool-component-card-padding: 12px; --tool-component-card-radius: 12px; }
+
+    .ctrl label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .ctrl .value {
+      float: right;
+      color: var(--text);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #7dd3fc;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      transform: translateY(1px);
+      margin-right: 6px;
+      accent-color: #7dd3fc;
+    }
+
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(55,65,120,0.85), rgba(28,37,72,0.95));
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: #6ea8fe;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      border-radius: 12px;
+      background: #0a1024;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    #sdfCanvas {
+      aspect-ratio: 1 / 1;
+      cursor: crosshair;
+    }
+
+    #sliceCanvas {
+      height: 240px;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .bar {
+      width: 260px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background:
+        linear-gradient(90deg,
+          #2b6ef2 0%,
+          #77b0ff 35%,
+          #f8fafc 50%,
+          #ffb4a8 65%,
+          #ef6b57 100%);
+    }
+
+    .legend small {
+      color: var(--muted);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px;
+      align-items: start;
+      font-size: 14px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    .kv:last-child { border-bottom: none; }
+
+    .code {
+      background: #0b1229;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #dbe7ff;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-left: 8px;
+      vertical-align: middle;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .solidBadge { background: rgba(79,157,255,0.14); color: #9bc5ff; }
+    .fluidBadge { background: rgba(239,107,87,0.14); color: #ffb4a8; }
+    .bandBadge  { background: rgba(255,213,74,0.14); color: #ffe38f; }
+
+    .of-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .of-card { --tool-component-card-padding: 14px; --tool-component-card-radius: 14px; }
+
+    .of-card h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: var(--accent3);
+    }
+
+    .footer { --tool-component-footer-margin: 16px; --tool-component-footer-size: 13px; }
+
+    .teaching-note,
+    .runtime-error {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .teaching-note {
+      border: 1px solid rgba(125,211,252,0.34);
+      background: rgba(125,211,252,0.08);
+      color: #d8e9ff;
+    }
+
+    .runtime-error {
+      border: 1px solid rgba(252,165,165,0.65);
+      background: rgba(252,165,165,0.12);
+      color: #ffe4e6;
+    }
+
+    @media (max-width: 1180px) {
+      .flow { grid-template-columns: repeat(3, 1fr); }
+      .step:nth-child(3)::after,
+      .step:nth-child(6)::after { content: ""; }
+    }
+
+    @media (max-width: 980px) {
+      .formula-grid,
+      .demo-grid,
+      .of-grid {
+        grid-template-columns: 1fr;
+      }
+      .flow {
+        grid-template-columns: 1fr;
+      }
+      .step::after { content: "↓" !important; right: 50%; top: auto; bottom: -16px; transform: translateX(50%); }
+      .step:last-child::after { content: "" !important; }
+      .toolbar { grid-template-columns: 1fr; }
+      .kv { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body data-tool-scheme="dark">
+  <div class="wrap" data-tool-shell-root>
+
+    <section class="hero tool-component-hero">
+      <h1>Signed Distance Function（SDF）可视化页面</h1>
+      <p>
+        这个页面通过一个圆形障碍物 demo，展示 SDF 在几何表达、内外分类、最近点搜索、法向计算、零等值面与窄带判定中的整体工作过程，
+        并给出它与 OpenFOAM 中 searchableSurface、signedDistance、wallDist、isoSurface、IBM/Level-Set 思路之间的对应关系。
+      </p>
+      <div class="teaching-note" role="note">
+        <strong>使用边界：</strong>这是二维圆形的教学模型，用于理解 SDF 的几何关系和数量级，不是 STL/CAD、复杂拓扑或 OpenFOAM 求解器的数值验证。
+        页面中的 OpenFOAM 名称用于概念对照；具体类、函数和可用性会随版本、库与求解器而变化。
+      </div>
+
+      <div class="formula-grid">
+        <div class="formula-card tool-component-card">
+          <h3>定义</h3>
+          <div class="formula">φ(x) = s(x) · d(x, Γ)
+
+其中
+d(x, Γ) = min ||x - y||,  y ∈ Γ</div>
+          <div class="muted">Γ 为几何边界，符号 s(x) 用于区分 inside / outside。</div>
+        </div>
+        <div class="formula-card tool-component-card">
+          <h3>符号约定</h3>
+          <div class="formula">φ(x) &lt; 0   inside
+φ(x) = 0   on interface
+φ(x) &gt; 0   outside</div>
+          <div class="muted">本页面采用“内部为负，外部为正”的常见约定。</div>
+        </div>
+        <div class="formula-card tool-component-card">
+          <h3>法向与界面</h3>
+          <div class="formula">n = ∇φ / |∇φ|
+
+Γ = { x | φ(x) = 0 }</div>
+          <div class="muted">法向可以直接由 SDF 梯度得到，零等值面就是界面。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tool-component-panel">
+      <h2>整体流程</h2>
+      <div class="flow">
+        <div class="step tool-component-card">
+          <div class="idx">1</div>
+          <h3>定义几何</h3>
+          <p>先给出一个几何边界 Γ。这里用一个圆形障碍物代替一般三角面片或 CAD 几何。</p>
+        </div>
+        <div class="step tool-component-card">
+          <div class="idx">2</div>
+          <h3>查询最近点</h3>
+          <p>对于任意采样点 x，找到边界 Γ 上的最近点 xΓ，并得到无符号距离 d(x, Γ)。</p>
+        </div>
+        <div class="step tool-component-card">
+          <div class="idx">3</div>
+          <h3>判断内外</h3>
+          <p>根据点位于 solid 还是 fluid 的哪一侧，确定符号 s(x)。</p>
+        </div>
+        <div class="step tool-component-card">
+          <div class="idx">4</div>
+          <h3>构造 SDF</h3>
+          <p>得到有符号距离场 φ(x)=s(x)d(x,Γ)。内部为负，外部为正，界面为零。</p>
+        </div>
+        <div class="step tool-component-card">
+          <div class="idx">5</div>
+          <h3>提取几何信息</h3>
+          <p>用 ∇φ/|∇φ| 计算法向，用 φ=0 得到界面，用 |φ|&lt;ε 得到窄带。</p>
+        </div>
+        <div class="step tool-component-card">
+          <div class="idx">6</div>
+          <h3>进入应用</h3>
+          <p>可用于 immersed boundary、level set、界面重构、网格/壁面距离计算与拓扑优化等。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tool-component-panel">
+      <h2>交互 Demo</h2>
+      <div class="demo-grid">
+        <div class="panel tool-component-card">
+          <h3>主场图：SDF 场、零等值面、最近点、法向与窄带</h3>
+
+          <div class="toolbar">
+            <div class="ctrl tool-component-card tool-component-control">
+              <label>
+                圆半径
+                <span class="value" id="radiusValue">0.38</span>
+              </label>
+              <input id="radiusSlider" type="range" min="0.18" max="0.62" step="0.01" value="0.38" />
+            </div>
+
+            <div class="ctrl tool-component-card tool-component-control">
+              <label>
+                窄带半宽 ε
+                <span class="value" id="epsValue">0.08</span>
+              </label>
+              <input id="epsSlider" type="range" min="0.02" max="0.20" step="0.005" value="0.08" />
+            </div>
+
+            <div class="ctrl tool-component-card tool-component-control">
+              <label><input id="showBand" type="checkbox" checked />显示窄带 |φ| &lt; ε</label>
+              <label><input id="showNearest" type="checkbox" checked />显示最近点连线</label>
+              <label><input id="showNormal" type="checkbox" checked />显示法向</label>
+            </div>
+
+            <div class="ctrl tool-component-card tool-component-control">
+              <label><input id="showSlice" type="checkbox" checked />显示剖面线 y = cy</label>
+              <label><input id="animatePoint" type="checkbox" />自动演示采样点移动</label>
+              <label><input id="showGrid" type="checkbox" />显示网格辅助线</label>
+            </div>
+          </div>
+
+          <canvas id="sdfCanvas" width="700" height="700">你的浏览器不支持 Canvas，无法显示 SDF 场。</canvas>
+
+          <div class="legend">
+            <div class="bar"></div>
+            <small>蓝色：φ &lt; 0（solid 内部）</small>
+            <small>白色：φ = 0（界面）</small>
+            <small>红色：φ &gt; 0（fluid 外部）</small>
+          </div>
+
+          <div class="btns">
+            <button class="tool-component-button" id="presetOutside">采样点放到外部</button>
+            <button class="tool-component-button" id="presetInterface">采样点放到界面附近</button>
+            <button class="tool-component-button" id="presetInside">采样点放到内部</button>
+            <button class="tool-component-button" id="resetBtn">重置</button>
+          </div>
+        </div>
+
+        <div class="panel tool-component-card">
+          <h3>当前采样点信息</h3>
+          <div class="info-grid">
+            <div class="panel tool-component-card" style="--tool-component-card-padding: 12px;">
+              <div id="stateBadgeWrap" style="margin-bottom: 8px;"></div>
+              <div class="kv"><div>采样点 x</div><div id="ptInfo"></div></div>
+              <div class="kv"><div>最近点 xΓ</div><div id="nearestInfo"></div></div>
+              <div class="kv"><div>无符号距离 d</div><div id="distInfo"></div></div>
+              <div class="kv"><div>符号 s</div><div id="signInfo"></div></div>
+              <div class="kv"><div>SDF 值 φ</div><div id="phiInfo"></div></div>
+              <div class="kv"><div>法向 n</div><div id="normalInfo"></div></div>
+              <div class="kv"><div>分类</div><div id="classInfo"></div></div>
+            </div>
+
+            <div class="panel tool-component-card" style="--tool-component-card-padding: 12px;">
+              <h3 style="margin-top: 0;">本 demo 演示的“生效流程”</h3>
+              <div class="code">1) 选取一个采样点 x
+2) 计算到圆边界 Γ 的最近点 xΓ
+3) 计算无符号距离 d = ||x - xΓ||
+4) 判断 x 在圆内还是圆外
+5) 组合得到 φ = s · d
+6) 用 φ 的符号区分 solid / fluid
+7) 用 φ = 0 表示几何界面
+8) 用 |φ| &lt; ε 表示界面窄带
+9) 用 n = ∇φ / |∇φ| 表示外法向
+10) 这些量可进一步用于 IBM / Level Set / 几何重构</div>
+            </div>
+
+            <div class="panel tool-component-card" style="--tool-component-card-padding: 12px;">
+              <h3 style="margin-top: 0;">OpenFOAM 对应思路</h3>
+              <div class="code">几何对象            → searchableSurface / triSurface / plane
+最近点查询          → findNearest(...)
+内外判断            → getVolumeType(...)
+有符号距离          → 依版本/求解器而异的 signed-distance 工作流
+零等值面            → isoSurface / cutFaceIso / cutCellIso
+传播/距离场         → wallDist / meshWave / FaceCellWave
+法向                → 由几何法向或 ∇φ 归一化得到
+IBM / Level-Set     → 用 φ 做固液/流固分类和界面定位</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel tool-component-card" style="margin-top: 18px;">
+        <h3>剖面图：沿 y = cy 的一维 SDF 分布</h3>
+        <canvas id="sliceCanvas" width="1200" height="240">你的浏览器不支持 Canvas，无法显示 SDF 剖面图。</canvas>
+        <div class="footer tool-component-footer">
+          这条曲线展示了 φ(x, cy) 的一维切片。与圆相交的两点是 φ = 0 的位置。曲线在障碍物内部小于零，在外部大于零。
+        </div>
+      </div>
+    </section>
+
+    <section class="section tool-component-panel">
+      <h2>与 OpenFOAM 的对应理解</h2>
+      <div class="of-grid">
+        <div class="of-card tool-component-card">
+          <h4>1. 几何查询层</h4>
+          <div class="muted">
+            如果把这里的圆换成 STL / triSurface，那么“最近点”和“inside/outside 判断”就对应
+            `searchableSurface` 体系的功能。你可以把这一层理解为 SDF 构造的几何基础设施。
+          </div>
+        </div>
+        <div class="of-card tool-component-card">
+          <h4>2. 距离场层</h4>
+          <div class="muted">
+            当你把几何查询结果推广到整片网格或控制体时，就会得到 pointDistance、cellDistance、
+            wallDist 等距离场。若再附加符号，就得到严格意义上的 signed distance field。
+          </div>
+        </div>
+        <div class="of-card tool-component-card">
+          <h4>3. 界面与应用层</h4>
+          <div class="muted">
+            零等值面可表示 immersed boundary、level-set 界面、拓扑优化边界或局部重构界面。
+            对于 IBM，常见做法是用 φ 的符号确定流体/固体位置，用梯度得到法向和投影方向。
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const sdfCanvas = document.getElementById('sdfCanvas');
+    const sliceCanvas = document.getElementById('sliceCanvas');
+    const ctx = sdfCanvas.getContext('2d');
+    const sliceCtx = sliceCanvas.getContext('2d');
+
+    const radiusSlider = document.getElementById('radiusSlider');
+    const epsSlider = document.getElementById('epsSlider');
+
+    const radiusValue = document.getElementById('radiusValue');
+    const epsValue = document.getElementById('epsValue');
+
+    const showBand = document.getElementById('showBand');
+    const showNearest = document.getElementById('showNearest');
+    const showNormal = document.getElementById('showNormal');
+    const showSlice = document.getElementById('showSlice');
+    const animatePoint = document.getElementById('animatePoint');
+    const showGrid = document.getElementById('showGrid');
+
+    const ptInfo = document.getElementById('ptInfo');
+    const nearestInfo = document.getElementById('nearestInfo');
+    const distInfo = document.getElementById('distInfo');
+    const signInfo = document.getElementById('signInfo');
+    const phiInfo = document.getElementById('phiInfo');
+    const normalInfo = document.getElementById('normalInfo');
+    const classInfo = document.getElementById('classInfo');
+    const stateBadgeWrap = document.getElementById('stateBadgeWrap');
+
+    const presetOutside = document.getElementById('presetOutside');
+    const presetInterface = document.getElementById('presetInterface');
+    const presetInside = document.getElementById('presetInside');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const world = { xmin: -1.1, xmax: 1.1, ymin: -1.1, ymax: 1.1 };
+
+    const state = {
+      shape: {
+        cx: 0.18,
+        cy: 0.05,
+        r: parseFloat(radiusSlider.value),
+      },
+      eps: parseFloat(epsSlider.value),
+      sample: { x: 0.78, y: 0.35 },
+      hoverActive: false,
+      autoT: 0,
+      dragging: false,
+      needsFieldRedraw: true
+    };
+
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function fmt(v, n = 4) { return Number(v).toFixed(n); }
+
+    function worldToCanvas(x, y, canvas) {
+      const W = canvas.width;
+      const H = canvas.height;
+      const px = (x - world.xmin) / (world.xmax - world.xmin) * W;
+      const py = H - (y - world.ymin) / (world.ymax - world.ymin) * H;
+      return { x: px, y: py };
+    }
+
+    function canvasToWorld(px, py, canvas) {
+      const W = canvas.width;
+      const H = canvas.height;
+      const x = world.xmin + px / W * (world.xmax - world.xmin);
+      const y = world.ymin + (H - py) / H * (world.ymax - world.ymin);
+      return { x, y };
+    }
+
+    function sdfCircle(x, y) {
+      const { cx, cy, r } = state.shape;
+      const dx = x - cx;
+      const dy = y - cy;
+      return Math.sqrt(dx * dx + dy * dy) - r;
+    }
+
+    function nearestPointOnCircle(x, y) {
+      const { cx, cy, r } = state.shape;
+      let dx = x - cx;
+      let dy = y - cy;
+      let len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 1e-10) {
+        return { x: cx + r, y: cy };
+      }
+      return { x: cx + r * dx / len, y: cy + r * dy / len };
+    }
+
+    function normalCircle(x, y) {
+      const { cx, cy } = state.shape;
+      let dx = x - cx;
+      let dy = y - cy;
+      let len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 1e-10) return { x: 1, y: 0 };
+      return { x: dx / len, y: dy / len };
+    }
+
+    function classify(phi, eps) {
+      if (Math.abs(phi) < eps) return "窄带 / near-interface band";
+      if (phi < 0) return "solid 内部";
+      return "fluid 外部";
+    }
+
+    function fieldColor(phi) {
+      const maxPhi = 0.7;
+      const t = clamp(phi / maxPhi, -1, 1);
+
+      if (Math.abs(t) < 0.02) {
+        return "rgb(248,250,252)";
+      }
+
+      if (t < 0) {
+        const a = Math.abs(t);
+        const r = Math.round(46 + 50 * (1 - a));
+        const g = Math.round(106 + 90 * (1 - a));
+        const b = Math.round(242);
+        return `rgb(${r},${g},${b})`;
+      } else {
+        const a = Math.abs(t);
+        const r = Math.round(239 + 10 * (1 - a));
+        const g = Math.round(107 + 70 * (1 - a));
+        const b = Math.round(87 + 80 * (1 - a));
+        return `rgb(${r},${g},${b})`;
+      }
+    }
+
+    function drawGrid(canvasCtx, canvas) {
+      if (!showGrid.checked) return;
+      const W = canvas.width;
+      const H = canvas.height;
+      canvasCtx.save();
+      canvasCtx.strokeStyle = "rgba(255,255,255,0.06)";
+      canvasCtx.lineWidth = 1;
+
+      const step = 35;
+      for (let x = 0; x <= W; x += step) {
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(x, 0);
+        canvasCtx.lineTo(x, H);
+        canvasCtx.stroke();
+      }
+      for (let y = 0; y <= H; y += step) {
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(0, y);
+        canvasCtx.lineTo(W, y);
+        canvasCtx.stroke();
+      }
+      canvasCtx.restore();
+    }
+
+    function drawAxes(canvasCtx, canvas) {
+      const W = canvas.width;
+      const H = canvas.height;
+      const oX = worldToCanvas(0, 0, canvas).x;
+      const oY = worldToCanvas(0, 0, canvas).y;
+
+      canvasCtx.save();
+      canvasCtx.strokeStyle = "rgba(255,255,255,0.18)";
+      canvasCtx.lineWidth = 1.2;
+
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(0, oY);
+      canvasCtx.lineTo(W, oY);
+      canvasCtx.stroke();
+
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(oX, 0);
+      canvasCtx.lineTo(oX, H);
+      canvasCtx.stroke();
+
+      canvasCtx.fillStyle = "rgba(255,255,255,0.7)";
+      canvasCtx.font = "12px Segoe UI";
+      canvasCtx.fillText("x", W - 12, oY - 8);
+      canvasCtx.fillText("y", oX + 8, 14);
+      canvasCtx.restore();
+    }
+
+    function drawField() {
+      const W = sdfCanvas.width;
+      const H = sdfCanvas.height;
+      const nx = 150;
+      const ny = 150;
+      const dx = W / nx;
+      const dy = H / ny;
+
+      ctx.clearRect(0, 0, W, H);
+
+      for (let j = 0; j < ny; ++j) {
+        for (let i = 0; i < nx; ++i) {
+          const px = (i + 0.5) / nx * W;
+          const py = (j + 0.5) / ny * H;
+          const p = canvasToWorld(px, py, sdfCanvas);
+          const phi = sdfCircle(p.x, p.y);
+          ctx.fillStyle = fieldColor(phi);
+          ctx.fillRect(i * dx, j * dy, dx + 1, dy + 1);
+        }
+      }
+
+      drawGrid(ctx, sdfCanvas);
+      drawAxes(ctx, sdfCanvas);
+
+      if (showSlice.checked) {
+        drawSliceLineOnMain();
+      }
+
+      drawShapeBoundary();
+      if (showBand.checked) {
+        drawBand();
+      }
+
+      drawSampleAndVectors();
+    }
+
+    function drawShapeBoundary() {
+      const { cx, cy, r } = state.shape;
+      const c = worldToCanvas(cx, cy, sdfCanvas);
+      const edge = worldToCanvas(cx + r, cy, sdfCanvas);
+      const rr = Math.abs(edge.x - c.x);
+
+      ctx.save();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(255,255,255,0.95)";
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, rr, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = "13px Segoe UI";
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.fillText("Γ", c.x + rr + 10, c.y - 8);
+      ctx.restore();
+    }
+
+    function drawBand() {
+      const { cx, cy, r } = state.shape;
+      const eps = state.eps;
+      const c = worldToCanvas(cx, cy, sdfCanvas);
+      const rOut = Math.abs(worldToCanvas(cx + r + eps, cy, sdfCanvas).x - c.x);
+      const rIn = Math.abs(worldToCanvas(cx + Math.max(r - eps, 0.001), cy, sdfCanvas).x - c.x);
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,213,74,0.95)";
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([8, 6]);
+
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, rOut, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, rIn, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(255,213,74,0.95)";
+      ctx.font = "13px Segoe UI";
+      ctx.fillText("|φ| < ε", c.x + rOut + 10, c.y + 16);
+      ctx.restore();
+    }
+
+    function drawArrow(canvasCtx, x1, y1, x2, y2, color, width = 2.2) {
+      canvasCtx.save();
+      canvasCtx.strokeStyle = color;
+      canvasCtx.fillStyle = color;
+      canvasCtx.lineWidth = width;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(x1, y1);
+      canvasCtx.lineTo(x2, y2);
+      canvasCtx.stroke();
+
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      const hl = 10;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(x2, y2);
+      canvasCtx.lineTo(x2 - hl * Math.cos(ang - Math.PI / 6), y2 - hl * Math.sin(ang - Math.PI / 6));
+      canvasCtx.lineTo(x2 - hl * Math.cos(ang + Math.PI / 6), y2 - hl * Math.sin(ang + Math.PI / 6));
+      canvasCtx.closePath();
+      canvasCtx.fill();
+      canvasCtx.restore();
+    }
+
+    function drawSampleAndVectors() {
+      const { x, y } = state.sample;
+      const phi = sdfCircle(x, y);
+      const nearest = nearestPointOnCircle(x, y);
+      const normal = normalCircle(x, y);
+
+      const P = worldToCanvas(x, y, sdfCanvas);
+      const N = worldToCanvas(nearest.x, nearest.y, sdfCanvas);
+
+      if (showNearest.checked) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(125,211,252,0.95)";
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([7, 5]);
+        ctx.beginPath();
+        ctx.moveTo(P.x, P.y);
+        ctx.lineTo(N.x, N.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.fillStyle = "#7dd3fc";
+      ctx.beginPath();
+      ctx.arc(P.x, P.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.55)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#fde68a";
+      ctx.beginPath();
+      ctx.arc(N.x, N.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = "13px Segoe UI";
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.fillText("x", P.x + 8, P.y - 8);
+      ctx.fillText("xΓ", N.x + 8, N.y - 8);
+      ctx.restore();
+
+      if (showNormal.checked) {
+        const start = nearest;
+        const end = {
+          x: start.x + 0.22 * normal.x,
+          y: start.y + 0.22 * normal.y
+        };
+        const S = worldToCanvas(start.x, start.y, sdfCanvas);
+        const E = worldToCanvas(end.x, end.y, sdfCanvas);
+        drawArrow(ctx, S.x, S.y, E.x, E.y, "rgba(134,239,172,0.95)", 2.6);
+
+        ctx.save();
+        ctx.fillStyle = "rgba(134,239,172,0.95)";
+        ctx.font = "13px Segoe UI";
+        ctx.fillText("n", E.x + 8, E.y - 6);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.font = "13px Segoe UI";
+      ctx.fillText(`φ = ${fmt(phi, 4)}`, P.x + 10, P.y + 18);
+      ctx.restore();
+    }
+
+    function drawSliceLineOnMain() {
+      const y = state.shape.cy;
+      const a = worldToCanvas(world.xmin, y, sdfCanvas);
+      const b = worldToCanvas(world.xmax, y, sdfCanvas);
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,0.40)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 6]);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.font = "12px Segoe UI";
+      ctx.fillText("剖面线 y = cy", a.x + 8, a.y - 8);
+      ctx.restore();
+    }
+
+    function drawSlicePlot() {
+      const W = sliceCanvas.width;
+      const H = sliceCanvas.height;
+      sliceCtx.clearRect(0, 0, W, H);
+
+      sliceCtx.fillStyle = "#0a1024";
+      sliceCtx.fillRect(0, 0, W, H);
+
+      const pad = { l: 50, r: 20, t: 20, b: 35 };
+      const gx0 = pad.l, gx1 = W - pad.r;
+      const gy0 = pad.t, gy1 = H - pad.b;
+      const plotW = gx1 - gx0, plotH = gy1 - gy0;
+
+      const ySlice = state.shape.cy;
+      const xs = [];
+      const phis = [];
+      let maxAbs = 0.001;
+      const n = 500;
+
+      for (let i = 0; i <= n; ++i) {
+        const x = lerp(world.xmin, world.xmax, i / n);
+        const phi = sdfCircle(x, ySlice);
+        xs.push(x);
+        phis.push(phi);
+        maxAbs = Math.max(maxAbs, Math.abs(phi));
+      }
+
+      maxAbs = Math.max(maxAbs, 0.7);
+
+      // grid
+      sliceCtx.save();
+      sliceCtx.strokeStyle = "rgba(255,255,255,0.08)";
+      sliceCtx.lineWidth = 1;
+      for (let k = 0; k <= 4; ++k) {
+        const yy = gy0 + k / 4 * plotH;
+        sliceCtx.beginPath();
+        sliceCtx.moveTo(gx0, yy);
+        sliceCtx.lineTo(gx1, yy);
+        sliceCtx.stroke();
+      }
+      for (let k = 0; k <= 8; ++k) {
+        const xx = gx0 + k / 8 * plotW;
+        sliceCtx.beginPath();
+        sliceCtx.moveTo(xx, gy0);
+        sliceCtx.lineTo(xx, gy1);
+        sliceCtx.stroke();
+      }
+      sliceCtx.restore();
+
+      function mapX(x) {
+        return gx0 + (x - world.xmin) / (world.xmax - world.xmin) * plotW;
+      }
+      function mapY(phi) {
+        return gy0 + (maxAbs - phi) / (2 * maxAbs) * plotH;
+      }
+
+      // axes
+      sliceCtx.save();
+      sliceCtx.strokeStyle = "rgba(255,255,255,0.5)";
+      sliceCtx.lineWidth = 1.5;
+      const zeroY = mapY(0);
+      sliceCtx.beginPath();
+      sliceCtx.moveTo(gx0, zeroY);
+      sliceCtx.lineTo(gx1, zeroY);
+      sliceCtx.stroke();
+
+      const zeroX = mapX(0);
+      sliceCtx.beginPath();
+      sliceCtx.moveTo(zeroX, gy0);
+      sliceCtx.lineTo(zeroX, gy1);
+      sliceCtx.stroke();
+      sliceCtx.restore();
+
+      // curve
+      sliceCtx.save();
+      sliceCtx.strokeStyle = "#7dd3fc";
+      sliceCtx.lineWidth = 2.5;
+      sliceCtx.beginPath();
+      for (let i = 0; i <= n; ++i) {
+        const X = mapX(xs[i]);
+        const Y = mapY(phis[i]);
+        if (i === 0) sliceCtx.moveTo(X, Y);
+        else sliceCtx.lineTo(X, Y);
+      }
+      sliceCtx.stroke();
+      sliceCtx.restore();
+
+      // mark zero crossings
+      const { cx, r } = state.shape;
+      const x1 = cx - r;
+      const x2 = cx + r;
+      [x1, x2].forEach((xv, idx) => {
+        const X = mapX(xv);
+        const Y = mapY(0);
+        sliceCtx.save();
+        sliceCtx.fillStyle = idx === 0 ? "#fde68a" : "#fde68a";
+        sliceCtx.beginPath();
+        sliceCtx.arc(X, Y, 4.5, 0, Math.PI * 2);
+        sliceCtx.fill();
+        sliceCtx.font = "12px Segoe UI";
+        sliceCtx.fillStyle = "rgba(255,255,255,0.9)";
+        sliceCtx.fillText("φ=0", X + 6, Y - 8);
+        sliceCtx.restore();
+      });
+
+      // mark current sample if close to slice line
+      const sample = state.sample;
+      if (Math.abs(sample.y - ySlice) < 0.18) {
+        const X = mapX(sample.x);
+        const Y = mapY(sdfCircle(sample.x, ySlice));
+        sliceCtx.save();
+        sliceCtx.fillStyle = "#86efac";
+        sliceCtx.beginPath();
+        sliceCtx.arc(X, Y, 5, 0, Math.PI * 2);
+        sliceCtx.fill();
+        sliceCtx.font = "12px Segoe UI";
+        sliceCtx.fillStyle = "rgba(255,255,255,0.9)";
+        sliceCtx.fillText("当前 x", X + 8, Y - 8);
+        sliceCtx.restore();
+      }
+
+      // labels
+      sliceCtx.save();
+      sliceCtx.fillStyle = "rgba(255,255,255,0.85)";
+      sliceCtx.font = "12px Segoe UI";
+      sliceCtx.fillText("φ", 14, gy0 + 4);
+      sliceCtx.fillText("x", gx1 - 8, gy1 + 22);
+      sliceCtx.fillText(`剖面: y = ${fmt(ySlice, 3)}`, gx0 + 8, gy0 - 6);
+      sliceCtx.fillText(`${fmt(maxAbs, 2)}`, 8, gy0 + 4);
+      sliceCtx.fillText("0", 20, zeroY + 4);
+      sliceCtx.fillText(`${fmt(-maxAbs, 2)}`, 3, gy1 + 4);
+      sliceCtx.restore();
+    }
+
+    function updateInfoPanel() {
+      const p = state.sample;
+      const nearest = nearestPointOnCircle(p.x, p.y);
+      const phi = sdfCircle(p.x, p.y);
+      const d = Math.abs(phi);
+      const s = phi < 0 ? -1 : (phi > 0 ? 1 : 0);
+      const n = normalCircle(p.x, p.y);
+
+      ptInfo.textContent = `(${fmt(p.x)}, ${fmt(p.y)})`;
+      nearestInfo.textContent = `(${fmt(nearest.x)}, ${fmt(nearest.y)})`;
+      distInfo.textContent = `${fmt(d)}`;
+      signInfo.textContent = `${s}`;
+      phiInfo.textContent = `${fmt(phi)}`;
+      normalInfo.textContent = `(${fmt(n.x)}, ${fmt(n.y)})`;
+      classInfo.textContent = classify(phi, state.eps);
+
+      let badge = "";
+      if (Math.abs(phi) < state.eps) {
+        badge = `<span class="badge bandBadge">|φ| < ε ：界面窄带</span>`;
+      } else if (phi < 0) {
+        badge = `<span class="badge solidBadge">φ < 0 ：solid 内部</span>`;
+      } else {
+        badge = `<span class="badge fluidBadge">φ > 0 ：fluid 外部</span>`;
+      }
+      stateBadgeWrap.innerHTML = badge;
+    }
+
+    function updateControlLabels() {
+      radiusValue.textContent = Number(state.shape.r).toFixed(2);
+      epsValue.textContent = Number(state.eps).toFixed(3);
+    }
+
+    function render() {
+      drawField();
+      drawSlicePlot();
+      updateInfoPanel();
+    }
+
+    function setSampleFromMouse(evt) {
+      const rect = sdfCanvas.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) * sdfCanvas.width / rect.width;
+      const y = (evt.clientY - rect.top) * sdfCanvas.height / rect.height;
+      state.sample = canvasToWorld(x, y, sdfCanvas);
+      render();
+    }
+
+    function attachEvents() {
+      radiusSlider.addEventListener('input', () => {
+        state.shape.r = parseFloat(radiusSlider.value);
+        updateControlLabels();
+        render();
+      });
+
+      epsSlider.addEventListener('input', () => {
+        state.eps = parseFloat(epsSlider.value);
+        updateControlLabels();
+        render();
+      });
+
+      [showBand, showNearest, showNormal, showSlice, showGrid].forEach(el => {
+        el.addEventListener('change', render);
+      });
+
+      animatePoint.addEventListener('change', () => {
+        if (animatePoint.checked) {
+          loop();
+        }
+      });
+
+      sdfCanvas.addEventListener('mousedown', (evt) => {
+        state.dragging = true;
+        setSampleFromMouse(evt);
+      });
+
+      window.addEventListener('mouseup', () => {
+        state.dragging = false;
+      });
+
+      sdfCanvas.addEventListener('mousemove', (evt) => {
+        if (state.dragging) {
+          setSampleFromMouse(evt);
+        }
+      });
+
+      sdfCanvas.addEventListener('click', (evt) => {
+        setSampleFromMouse(evt);
+      });
+
+      presetOutside.addEventListener('click', () => {
+        state.sample = { x: 0.88, y: 0.58 };
+        render();
+      });
+
+      presetInterface.addEventListener('click', () => {
+        const { cx, cy, r } = state.shape;
+        state.sample = { x: cx + r + 0.01, y: cy };
+        render();
+      });
+
+      presetInside.addEventListener('click', () => {
+        const { cx, cy } = state.shape;
+        state.sample = { x: cx + 0.03, y: cy + 0.02 };
+        render();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        state.shape = { cx: 0.18, cy: 0.05, r: 0.38 };
+        state.eps = 0.08;
+        state.sample = { x: 0.78, y: 0.35 };
+        radiusSlider.value = state.shape.r;
+        epsSlider.value = state.eps;
+        showBand.checked = true;
+        showNearest.checked = true;
+        showNormal.checked = true;
+        showSlice.checked = true;
+        animatePoint.checked = false;
+        showGrid.checked = false;
+        updateControlLabels();
+        render();
+      });
+    }
+
+    let rafId = null;
+    function loop() {
+      if (!animatePoint.checked) {
+        cancelAnimationFrame(rafId);
+        return;
+      }
+      state.autoT += 0.012;
+      const { cx, cy } = state.shape;
+      state.sample.x = -0.95 + 1.9 * ((Math.sin(state.autoT) + 1) / 2);
+      state.sample.y = cy + 0.35 * Math.cos(0.65 * state.autoT);
+      render();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function init() {
+      updateControlLabels();
+      attachEvents();
+      render();
+    }
+
+    try {
+      init();
+    } catch (error) {
+      const banner = document.createElement('div');
+      banner.className = 'runtime-error';
+      banner.textContent = '页面结构已加载，但交互图初始化失败。请刷新页面或检查浏览器控制台。';
+      document.querySelector('.wrap').prepend(banner);
+      console.error('SDF visualizer initialization failed', error);
+    }
+  </script>
+</body>
+</html>

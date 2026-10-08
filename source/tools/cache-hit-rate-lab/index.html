@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="通过前缀块和 LRU 示意理解大模型跨请求 Prefix KV Cache 的命中与淘汰。">
   <title>大模型缓存命中率交互实验室</title>
+  <link rel="stylesheet" href="/tools/assets/tool-shell.css">
+  <script defer src="/tools/assets/tool-shell.js"></script>
   <style>
     :root{--bg:#f5f7fb;--panel:#fff;--ink:#182235;--muted:#68758b;--line:#dce3ed;--blue:#2563eb;--blue-soft:#dbeafe;--green:#15803d;--green-soft:#dcfce7;--orange:#c2410c;--orange-soft:#ffedd5;--violet:#7c3aed;--shadow:0 15px 45px rgba(36,52,78,.09)}
     *{box-sizing:border-box}body{margin:0;color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 12% 0,#e8f0ff 0,transparent 35%),radial-gradient(circle at 95% 10%,#f1eaff 0,transparent 32%),var(--bg)}
@@ -15,8 +18,8 @@
     @media(max-width:820px){.hero,.grid{grid-template-columns:1fr}.equation{justify-self:start}.metrics{grid-template-columns:1fr 1fr}.toolbar{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr;gap:6px}.arrow{transform:rotate(90deg)}.concept-grid{grid-template-columns:1fr}}@media(max-width:460px){.page{padding:18px 12px}.metrics{grid-template-columns:1fr}.buttons{display:grid}.hero h1{font-size:30px}.request-head{display:block}}
   </style>
 </head>
-<body>
-<main class="page">
+<body data-tool-scheme="light">
+<main class="page" data-tool-shell-root>
   <header class="hero">
     <div><div class="eyebrow">LLM · PREFIX CACHE LAB</div><h1>缓存命中率为什么会变化？</h1><p>把提示词切成若干前缀块：如果某块对应的 KV 已在显存中，就直接复用；遇到第一个不同的块后，后续内容必须重新进行 Prefill。</p></div>
     <div class="equation">命中率 = 命中的提示词块数 ÷ 访问的总块数</div>
