@@ -13,10 +13,10 @@ description: 2026 年前 9 个月共 100 次训练的交互式数据分析:训�
 从 2026-01-08 到 2026-09-30,266 天里累计训练 100 次。把这份数据整理成了一份完整的交互式分析报告,全部内嵌在下方,可以直接交互浏览(手机端同样适配):
 
 <div class="training-report-embed">
-  <iframe src="/report/training-analysis/" title="tttt个人运行100次数据分析报告" loading="lazy" allowfullscreen></iframe>
+  <iframe src="/report/training-analysis/" title="tttt个人运动100次数据分析报告" loading="lazy" allowfullscreen></iframe>
 </div>
 
-> 如果嵌入区域加载失败(如 RSS 阅读器环境),可直接打开独立页面:**[tttt个人运行100次数据分析报告](/report/training-analysis/)**
+> 如果嵌入区域加载失败(如 RSS 阅读器环境),可直接打开独立页面:**[tttt个人运动100次数据分析报告](/report/training-analysis/)**
 
 ## 报告速览
 
